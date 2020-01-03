@@ -2,7 +2,7 @@
   <div>
     <div>
       <div class="box is-radiusless is-shadowless has-background-light">
-        <div class="is-size-4">Welcome, {{ user.displayName }}</div>
+        <div class="is-size-4">Welcome, Student {{ user.displayName }}</div>
       </div>
     </div>
 
@@ -11,20 +11,20 @@
         <aside class="column is-2 aside">
           <nav class="menu">
             <ul class="menu-list">
-              <!--<li>
+              <li>
                 <a class>
                   <i class="fa fa-cog"></i> Settings
                 </a>
-              </li>-->
+              </li>
 
               <li>
-                <router-link class="navbar-item" :to="'students'">
-                  <i class="fas fa-users"></i> Students
+                <router-link class="navbar-item" :to="''">
+                  <i class="fas fa-users"></i> My Practices
                 </router-link>
               </li>
               <li>
-                <router-link class="navbar-item" :to="'students'">
-                  <i class="fas fa-graduation-cap"></i> Archive
+                <router-link class="navbar-item" :to="''">
+                  <i class="fas fa-graduation-cap"></i> My Feedback
                 </router-link>
               </li>
             </ul>
@@ -35,7 +35,7 @@
           <div class="level">
             <div class="level-left">
               <div class="level-item">
-                <div class="title has-text-info">Students</div>
+                <div class="title has-text-info">Student Dashboard</div>
               </div>
             </div>
           </div>
@@ -52,22 +52,6 @@
                   <div>
                     <div class="heading has-text-white">date</div>
                     <div class="title has-text-white">Student Name</div>
-                  </div>
-                </article>
-              </div>
-            </div>
-
-            <div class="column is-one-third">
-              <div class="box has-background-warning">
-                <article class="media">
-                  <div class="media-left">
-                    <figure class="circle">
-                      <img src="../assets/instruments/1.png" alt="Image" />
-                    </figure>
-                  </div>
-                  <div>
-                    <div class="heading">date</div>
-                    <div class="title">Student Name</div>
                   </div>
                 </article>
               </div>
@@ -93,10 +77,11 @@ export default {
     };
   },
   created() {
-    firebase
+    //var user = firebase.auth().currentUser;
+    /*firebase
       .firestore()
       .collection("users")
-      .doc(this.user.uid)
+      .doc(user.uid)
       .collection("students")
       .onSnapshot(function(querySnapshot) {
         var students = [];
@@ -105,7 +90,7 @@ export default {
         });
         // eslint-disable-next-line no-console
         console.log("students ", students.join(", "));
-      });
+      });*/
   }
 };
 </script>

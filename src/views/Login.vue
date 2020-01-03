@@ -24,7 +24,10 @@
             <div class="card column is-shady">
               <h2 class="title has-text-centered">Student Login</h2>
 
-              <a class="button is-info is-rounded is-medium is-fullwidth" @click="loginWithGoogle">
+              <a
+                class="button is-info is-rounded is-medium is-fullwidth"
+                @click="loginWithGoogle()"
+              >
                 <span class="icon">
                   <i class="fab fa-google"></i>
                 </span>
@@ -38,7 +41,7 @@
 
               <a
                 class="button is-primary is-rounded is-medium is-fullwidth"
-                @click="loginWithGoogle"
+                @click="loginWithGoogle('t')"
               >
                 <span class="icon">
                   <i class="fab fa-google"></i>
@@ -71,7 +74,7 @@ export default {
     msg: String
   },
   methods: {
-    loginWithGoogle() {
+    loginWithGoogle(type) {
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase
         .auth()
@@ -79,12 +82,19 @@ export default {
         .then(res => {
           // save user to db
           let uid = res.user.uid;
-
-          let data = {
-            name: res.user.displayName,
-            email: res.user.email,
-            type: "teacher"
-          };
+          let data = {};
+          if (type == "t") {
+            data = {
+              name: res.user.displayName,
+              email: res.user.email,
+              type: "teacher"
+            };
+          } else {
+            data = {
+              name: res.user.displayName,
+              email: res.user.email
+            };
+          }
 
           firebase
             .firestore()
@@ -94,7 +104,11 @@ export default {
         })
         .then(() => {
           //differentiate if student vs. teacher
-          this.$router.replace("teacherlanding");
+          if (type == "t") {
+            this.$router.replace("teacherlanding");
+          } else {
+            this.$router.replace("studentlanding");
+          }
         })
         .catch(err => {
           // TODO:
