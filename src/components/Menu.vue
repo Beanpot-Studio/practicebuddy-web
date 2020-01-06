@@ -1,10 +1,16 @@
 <template>
   <aside class="column is-2 aside">
-    <nav class="menu">
+    <nav v-if="status == 'student'" class="menu">
       <ul class="menu-list">
         <li>
           <router-link class="navbar-item" :to="'studentlanding'">
-            <i class="fas fa-users"></i> My Practices
+            <i class="fas fa-headphones"></i> My Practices
+          </router-link>
+        </li>
+
+        <li>
+          <router-link class="navbar-item" :to="'practice'">
+            <i class="fas fa-music"></i> Practice
           </router-link>
         </li>
 
@@ -15,9 +21,9 @@
         </li>
 
         <li>
-          <a class>
-            <i class="fa fa-user"></i> My Teacher
-          </a>
+          <router-link class="navbar-item" :to="'myteacher'">
+            <i class="fa fa-user"></i> MyTeacher
+          </router-link>
         </li>
 
         <li>
@@ -32,5 +38,45 @@
         </li>
       </ul>
     </nav>
+    <nav v-else>
+      <ul class="menu-list">
+        <li>
+          <router-link class="navbar-item" :to="''">
+            <i class="fas fa-users"></i> My Students' Practices
+          </router-link>
+        </li>
+        <li>
+          <router-link class="navbar-item" :to="''">
+            <i class="fas fa-archive"></i> My Students' Archive
+          </router-link>
+        </li>
+      </ul>
+    </nav>
   </aside>
 </template>
+
+<script>
+import { firebase } from "@firebase/app";
+import "@firebase/auth";
+import "@firebase/firestore";
+import { mapState } from "vuex";
+export default {
+  computed: {
+    ...mapState(["message", "status"])
+  },
+  data: () => ({
+    currentUser: firebase.auth().currentUser
+  }),
+  created() {
+    this.init();
+  },
+  methods: {
+    init() {
+      this.setStatus(this.currentUser.uid);
+    },
+    setStatus(id) {
+      this.$store.dispatch("setStatus", id);
+    }
+  }
+};
+</script>

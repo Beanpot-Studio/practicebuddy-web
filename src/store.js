@@ -8,6 +8,8 @@ export default new Vuex.Store({
 	state: {
 		user: null,
 		message: null,
+		status: null,
+		students: [],
 	},
 	mutations: {
 		setUser: (state, user) => {
@@ -16,16 +18,38 @@ export default new Vuex.Store({
 		setMessage: (state, message) => {
 			state.message = message;
 		},
+		setStatus: (state, status) => {
+			if (status) {
+				state.status = 'teacher';
+			} else {
+				state.status = 'student';
+			}
+		},
+		setStudents: (state, students) => {
+			state.students = students;
+		},
 	},
 	actions: {
+		setStatus({ commit }, uid) {
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(uid)
+				.onSnapshot(function(doc) {
+					if (typeof doc.data().type == 'undefined') {
+						commit('setStatus', false);
+					} else {
+						commit('setStatus', true);
+					}
+				});
+		},
+
 		findTeacher({ commit }, uid) {
 			firebase
 				.firestore()
 				.collection('users')
 				.doc(uid)
 				.onSnapshot(function(doc) {
-					// eslint-disable-next-line no-console
-					console.log(doc.data().teacherId);
 					if (typeof doc.data().teacherId == 'undefined') {
 						commit(
 							'setMessage',
@@ -34,6 +58,25 @@ export default new Vuex.Store({
 					} else {
 						commit('setMessage', '');
 					}
+				});
+		},
+		fetchStudents({ commit }, uid) {
+			let students = [];
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(uid)
+				.collection('students')
+				.onSnapshot(function(querySnapshot) {
+					querySnapshot.forEach(function(doc) {
+						var record = {
+							id: doc.id,
+							name: doc.data().name,
+							instrument: doc.data().instrument,
+						};
+						students.push(record);
+					});
+					commit('setStudents', students);
 				});
 		},
 	},

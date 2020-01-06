@@ -1,123 +1,57 @@
 <template web>
-  <div>
+  <main class="column main">
     <div>
       <div class="box is-radiusless is-shadowless has-background-light">
-        <div class="is-size-4">Welcome, {{ user.displayName }}</div>
+        <div class="is-size-4 title">Welcome, {{currentUser.displayName}}</div>
       </div>
     </div>
 
-    <div class="wrapper">
+    <div class="main-content">
+      <h1 class="title is-size-3">Students</h1>
+
       <div class="columns">
-        <aside class="column is-2 aside">
-          <nav class="menu">
-            <ul class="menu-list">
-              <!--<li>
-                <a class>
-                  <i class="fa fa-cog"></i> Settings
-                </a>
-              </li>-->
-
-              <li>
-                <router-link class="navbar-item" :to="'students'">
-                  <i class="fas fa-users"></i> Students
-                </router-link>
-              </li>
-              <li>
-                <router-link class="navbar-item" :to="'students'">
-                  <i class="fas fa-graduation-cap"></i> Archive
-                </router-link>
-              </li>
-            </ul>
-          </nav>
-        </aside>
-
-        <main class="column main">
-          <div class="level">
-            <div class="level-left">
-              <div class="level-item">
-                <div class="title has-text-info">Students</div>
+        <div class="column is-one-third" v-for="student in students" :key="student.id">
+          <div class="box has-background-info">
+            <article class="media">
+              <div class="media-left">
+                <figure class="circle">
+                  <img :src="'./instruments/'+student.instrument+'.png'" alt="Image" />
+                </figure>
               </div>
-            </div>
+              <div>
+                <div class="title has-text-white">{{student.name}}</div>
+              </div>
+            </article>
           </div>
-
-          <div class="columns is-multiline">
-            <div class="column is-one-third">
-              <div class="box has-background-info">
-                <article class="media">
-                  <div class="media-left">
-                    <figure class="circle">
-                      <img src="../assets/instruments/0.png" alt="Image" />
-                    </figure>
-                  </div>
-                  <div>
-                    <div class="heading has-text-white">date</div>
-                    <div class="title has-text-white">Student Name</div>
-                  </div>
-                </article>
-              </div>
-            </div>
-
-            <div class="column is-one-third">
-              <div class="box has-background-warning">
-                <article class="media">
-                  <div class="media-left">
-                    <figure class="circle">
-                      <img src="../assets/instruments/1.png" alt="Image" />
-                    </figure>
-                  </div>
-                  <div>
-                    <div class="heading">date</div>
-                    <div class="title">Student Name</div>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script>
 import { firebase } from "@firebase/app";
 import "@firebase/auth";
 import "@firebase/firestore";
-
+import { mapState } from "vuex";
 export default {
   name: "teacherlanding",
-
-  data: function() {
-    return {
-      user: firebase.auth().currentUser
-    };
+  computed: {
+    ...mapState(["students"])
   },
+  data: () => ({
+    currentUser: firebase.auth().currentUser
+  }),
   created() {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(this.user.uid)
-      .collection("students")
-      .onSnapshot(function(querySnapshot) {
-        var students = [];
-        querySnapshot.forEach(function(doc) {
-          students.push(doc.data().name);
-        });
-        // eslint-disable-next-line no-console
-        console.log("students ", students.join(", "));
-      });
+    this.init();
+  },
+  methods: {
+    init() {
+      this.fetchStudents(this.currentUser.uid);
+    },
+    fetchStudents(uid) {
+      this.$store.dispatch("fetchStudents", uid);
+    }
   }
 };
 </script>
-<style scoped>
-.wrapper {
-  flex: 1;
-  margin: 10px;
-}
-
-.circle {
-  width: 100px;
-  border-radius: 50px;
-  background-color: white;
-}
-</style>

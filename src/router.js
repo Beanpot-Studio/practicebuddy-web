@@ -10,6 +10,7 @@ import StudentLanding from '@/views/StudentLanding.vue';
 import Login from '@/views/Login.vue';
 import About from '@/views/About.vue';
 import Settings from '@/views/Settings.vue';
+import MyTeacher from '@/views/MyTeacher.vue';
 
 Vue.use(Router);
 
@@ -34,6 +35,14 @@ const router = new Router({
 			path: '/about',
 			name: 'about',
 			component: About,
+		},
+		{
+			path: '/myteacher',
+			name: 'myteacher',
+			component: MyTeacher,
+			meta: {
+				requiresAuth: true,
+			},
 		},
 		{
 			path: '/settings',

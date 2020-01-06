@@ -35,9 +35,13 @@
 <script web>
 import { firebase } from "@firebase/app";
 import "@firebase/auth";
+import { mapState } from "vuex";
 
 export default {
   name: "my-navbar",
+  computed: {
+    ...mapState(["status"])
+  },
   data: function() {
     return {
       loggedIn: false
@@ -71,3 +75,17 @@ export default {
   }
 };
 </script>
+
+<style>
+.main-content {
+  margin-top: 30px;
+}
+.circle {
+  width: 100px;
+  border-radius: 50px;
+  background-color: white;
+}
+.wrapper {
+  flex: 1;
+}
+</style>

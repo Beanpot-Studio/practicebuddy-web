@@ -1,4 +1,4 @@
-<template web>
+<template>
   <main class="column main">
     <div>
       <div class="box is-radiusless is-shadowless has-background-light">
@@ -10,15 +10,15 @@
       </div>
     </div>
 
-    <div class="box is-radiusless">
+    <div class="main-content">
       <h1 class="title is-size-3">Student Practices</h1>
 
-      <div class="columns is-multiline">
+      <div class="columns">
         <div class="column is-one-third">
           <div class="box has-background-info">
             <article class="media">
               <div class="media-left">
-                <figure class="circle">
+                <figure class="circle has-background-white">
                   <img src="../assets/instruments/0.png" alt="Image" />
                 </figure>
               </div>
@@ -46,7 +46,6 @@ import { firebase } from "@firebase/app";
 import "@firebase/auth";
 import "@firebase/firestore";
 import { mapState } from "vuex";
-
 export default {
   name: "studentlanding",
   computed: {
@@ -68,15 +67,3 @@ export default {
   }
 };
 </script>
-<style scoped>
-.wrapper {
-  flex: 1;
-  margin: 10px;
-}
-
-.circle {
-  width: 100px;
-  border-radius: 50px;
-  background-color: white;
-}
-</style>
