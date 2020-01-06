@@ -2,10 +2,11 @@
   <div>
     <div>
       <div class="box is-radiusless is-shadowless has-background-light">
-        <div class="is-size-4">Welcome, {{currentUser.displayName}}</div>
-      </div>
-      <div class="box is-radiusless is-shadowless has-background-warning">
-        <div class="is-size-3">{{ message }}</div>
+        <div class="is-size-4 title">Welcome, {{currentUser.displayName}}</div>
+        <div v-if="message !== ''" class="notification is-warning">
+          <button class="delete"></button>
+          {{ message }}
+        </div>
       </div>
     </div>
 
@@ -21,6 +22,12 @@
               </li>
 
               <li>
+                <a class>
+                  <i class="fa fa-user"></i> My Teacher
+                </a>
+              </li>
+
+              <li>
                 <router-link class="navbar-item" :to="''">
                   <i class="fas fa-users"></i> My Practices
                 </router-link>
@@ -28,6 +35,11 @@
               <li>
                 <router-link class="navbar-item" :to="''">
                   <i class="fas fa-graduation-cap"></i> My Feedback
+                </router-link>
+              </li>
+              <li>
+                <router-link class="navbar-item" :to="''">
+                  <i class="fas fa-archive"></i> My Practice Archive
                 </router-link>
               </li>
             </ul>

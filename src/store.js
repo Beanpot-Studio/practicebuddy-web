@@ -27,9 +27,12 @@ export default new Vuex.Store({
 					// eslint-disable-next-line no-console
 					console.log(doc.data().teacherId);
 					if (typeof doc.data().teacherId == 'undefined') {
-						commit('setMessage', 'oops');
+						commit(
+							'setMessage',
+							"It looks like you don't have a teacher associated to your practices. If this is incorrect, please add your teacher to your account in the My Teacher tab."
+						);
 					} else {
-						commit('setMessage', "there's a teacher");
+						commit('setMessage', '');
 					}
 				});
 		},
