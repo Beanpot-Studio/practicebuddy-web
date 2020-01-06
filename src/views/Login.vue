@@ -1,21 +1,16 @@
 <template>
   <div>
-    <section class="section is-medium has-background-info">
-      <div class="container has-text-centered">
-        <header class="section-header">
-          <h1
-            class="title is-spaced is-size-3 has-text-white text-weight-bold"
-          >Welcome to Practice Buddy</h1>
-          <h3 class="column is-size-4 has-text-white">
-            Practice Buddy is the musical student's preferred app
-            and the music teacher's best toolkit
-          </h3>
-
-          <h4
-            class="has-text-white is-size-5"
-          >Practice Buddy includes the ability to login, save your preferences, time and record your practice sessions, and review your progress via lists of sessions. Once a goal is achieved, the app sends an email to the teacher, requesting feedback. The student can check the feedback section of the app to get comments and stickers from their music teacher. Teachers use the app to track their students' sessions.</h4>
-        </header>
-      </div>
+    <section class="home-elements">
+      <h1
+        class="home-elements has-text-centered is-large title is-size-3 text-weight-bold"
+      >Welcome to Practice Buddy</h1>
+      <h3 class="home-elements has-text-centered subtitle is-size-4">
+        Practice Buddy is the musical student's preferred app
+        and the music teacher's best toolkit
+      </h3>
+      <h4
+        class="home-elements has-text-centered is-size-5"
+      >Practice Buddy includes the ability to login, save your preferences, time and record your practice sessions, and review your progress via lists of sessions. Once a goal is achieved, the app sends an email to the teacher, requesting feedback. The student can check the feedback section of the app to get comments and stickers from their music teacher. Teachers use the app to track their students' sessions.</h4>
     </section>
     <section class="hero">
       <div class="hero-body">
@@ -66,7 +61,6 @@
 <script>
 import { firebase } from "@firebase/app";
 import "@firebase/auth";
-import "@firebase/firestore";
 
 export default {
   name: "Home",
@@ -127,6 +121,9 @@ export default {
 }
 .level {
   margin-bottom: 0px;
+}
+.home-elements {
+  padding: 10px;
 }
 </style>
 

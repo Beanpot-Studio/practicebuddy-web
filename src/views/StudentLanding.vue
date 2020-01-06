@@ -2,7 +2,10 @@
   <div>
     <div>
       <div class="box is-radiusless is-shadowless has-background-light">
-        <div class="is-size-4">Welcome, Student {{ user.displayName }}</div>
+        <div class="is-size-4">Welcome, {{currentUser.displayName}}</div>
+      </div>
+      <div class="box is-radiusless is-shadowless has-background-warning">
+        <div class="is-size-3">{{ message }}</div>
       </div>
     </div>
 
@@ -67,30 +70,26 @@
 import { firebase } from "@firebase/app";
 import "@firebase/auth";
 import "@firebase/firestore";
+import { mapState } from "vuex";
 
 export default {
-  name: "teacherlanding",
-
-  data: function() {
-    return {
-      user: firebase.auth().currentUser
-    };
+  name: "studentlanding",
+  computed: {
+    ...mapState(["message"])
   },
+  data: () => ({
+    currentUser: firebase.auth().currentUser
+  }),
   created() {
-    //var user = firebase.auth().currentUser;
-    /*firebase
-      .firestore()
-      .collection("users")
-      .doc(user.uid)
-      .collection("students")
-      .onSnapshot(function(querySnapshot) {
-        var students = [];
-        querySnapshot.forEach(function(doc) {
-          students.push(doc.data().name);
-        });
-        // eslint-disable-next-line no-console
-        console.log("students ", students.join(", "));
-      });*/
+    this.init();
+  },
+  methods: {
+    init() {
+      this.findTeacher(this.currentUser.uid);
+    },
+    findTeacher(id) {
+      this.$store.dispatch("findTeacher", id);
+    }
   }
 };
 </script>
