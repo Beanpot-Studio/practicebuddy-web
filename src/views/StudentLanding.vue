@@ -1,5 +1,5 @@
 <template web>
-  <div>
+  <main class="column main">
     <div>
       <div class="box is-radiusless is-shadowless has-background-light">
         <div class="is-size-4 title">Welcome, {{currentUser.displayName}}</div>
@@ -10,72 +10,35 @@
       </div>
     </div>
 
-    <div class="wrapper">
-      <div class="columns">
-        <aside class="column is-2 aside">
-          <nav class="menu">
-            <ul class="menu-list">
-              <li>
-                <a class>
-                  <i class="fa fa-cog"></i> Settings
-                </a>
-              </li>
+    <div class="box is-radiusless">
+      <h1 class="title is-size-3">Student Practices</h1>
 
-              <li>
-                <a class>
-                  <i class="fa fa-user"></i> My Teacher
-                </a>
-              </li>
-
-              <li>
-                <router-link class="navbar-item" :to="''">
-                  <i class="fas fa-users"></i> My Practices
-                </router-link>
-              </li>
-              <li>
-                <router-link class="navbar-item" :to="''">
-                  <i class="fas fa-graduation-cap"></i> My Feedback
-                </router-link>
-              </li>
-              <li>
-                <router-link class="navbar-item" :to="''">
-                  <i class="fas fa-archive"></i> My Practice Archive
-                </router-link>
-              </li>
-            </ul>
-          </nav>
-        </aside>
-
-        <main class="column main">
-          <div class="level">
-            <div class="level-left">
-              <div class="level-item">
-                <div class="title has-text-info">Student Dashboard</div>
+      <div class="columns is-multiline">
+        <div class="column is-one-third">
+          <div class="box has-background-info">
+            <article class="media">
+              <div class="media-left">
+                <figure class="circle">
+                  <img src="../assets/instruments/0.png" alt="Image" />
+                </figure>
               </div>
-            </div>
-          </div>
-
-          <div class="columns is-multiline">
-            <div class="column is-one-third">
-              <div class="box has-background-info">
-                <article class="media">
-                  <div class="media-left">
-                    <figure class="circle">
-                      <img src="../assets/instruments/0.png" alt="Image" />
-                    </figure>
-                  </div>
-                  <div>
-                    <div class="heading has-text-white">date</div>
-                    <div class="title has-text-white">Student Name</div>
-                  </div>
-                </article>
+              <div>
+                <div class="heading has-text-white">Occurred: 01/02/2020</div>
+                <div class="has-text-white is-size-5">50 Minutes</div>
+                <div class="has-text-white is-size-5">Feedback: Very well done!</div>
+                <div class="has-text-white is-size-5">
+                  <img src="../assets/stickers/sticker1.png" />
+                </div>
+                <div class="has-text-white is-size-5">
+                  <i class="fa fa-play"></i> Recording
+                </div>
               </div>
-            </div>
+            </article>
           </div>
-        </main>
+        </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script>
