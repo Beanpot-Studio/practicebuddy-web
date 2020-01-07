@@ -22,7 +22,7 @@
     <div id="example-menu" class="navbar-menu">
       <div class="navbar-end">
         <router-link class="navbar-item has-text-white" :to="'about'">About</router-link>
-        <div v-if="loggedIn" class="navbar-item">
+        <div v-if="status != ''" class="navbar-item">
           <div class="buttons" @click="logout">
             <a class="button is-danger">Logout</a>
           </div>
@@ -44,7 +44,7 @@ export default {
   },
   data: function() {
     return {
-      loggedIn: false
+      //loggedIn: false
     };
   },
   methods: {
@@ -54,7 +54,8 @@ export default {
         .signOut()
         .then(() => {
           this.$router.replace("login");
-          this.loggedIn = false;
+          //this.loggedIn = false;
+          this.$store.dispatch("clearAll");
         });
     }
   },
@@ -68,9 +69,9 @@ export default {
   },
   created() {
     if (firebase.auth().currentUser == null) {
-      this.loggedIn = false;
+      //this.loggedIn = false;
     } else {
-      this.loggedIn = true;
+      //this.loggedIn = true;
     }
   }
 };

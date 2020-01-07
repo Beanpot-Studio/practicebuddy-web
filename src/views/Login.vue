@@ -17,7 +17,7 @@
         <div class="container has-text-centered">
           <div class="columns">
             <div class="card column is-shady">
-              <h2 class="title has-text-centered">Student Login</h2>
+              <h2 class="title has-text-centered">Login</h2>
 
               <a
                 class="button is-info is-rounded is-medium is-fullwidth"
@@ -31,7 +31,7 @@
               <br />
             </div>
 
-            <div class="card column is-shady">
+            <!--<div class="card column is-shady">
               <h2 class="title has-text-centered">Teacher Login</h2>
 
               <a
@@ -51,7 +51,7 @@
                 </span>
                 <span>Sign in with Facebook</span>
               </a>
-            </div>
+            </div>-->
           </div>
         </div>
       </div>
@@ -68,7 +68,7 @@ export default {
     msg: String
   },
   methods: {
-    loginWithGoogle(type) {
+    loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase
         .auth()
@@ -77,18 +77,10 @@ export default {
           // save user to db
           let uid = res.user.uid;
           let data = {};
-          if (type == "t") {
-            data = {
-              name: res.user.displayName,
-              email: res.user.email,
-              type: "teacher"
-            };
-          } else {
-            data = {
-              name: res.user.displayName,
-              email: res.user.email
-            };
-          }
+          data = {
+            name: res.user.displayName,
+            email: res.user.email
+          };
 
           firebase
             .firestore()
@@ -97,12 +89,7 @@ export default {
             .set(data);
         })
         .then(() => {
-          //differentiate if student vs. teacher
-          if (type == "t") {
-            this.$router.replace("teacherlanding");
-          } else {
-            this.$router.replace("studentlanding");
-          }
+          this.$router.replace("home");
         })
         .catch(err => {
           // TODO:

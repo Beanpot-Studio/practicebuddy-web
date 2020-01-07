@@ -1,17 +1,46 @@
-<template>
+<template web>
   <main class="column main">
     <div>
       <div class="box is-radiusless is-shadowless has-background-light">
         <div class="is-size-4 title">Welcome, {{currentUser.displayName}}</div>
-        <div v-if="message !== ''" class="notification is-warning">
+        <div v-if="message !== '' && status != 'teacher'" class="notification is-warning">
           <button class="delete"></button>
           {{ message }}
         </div>
       </div>
     </div>
 
-    <div class="main-content">
-      <h1 class="title is-size-3">Student Practices</h1>
+    <div class="main-content" v-if="status == 'teacher'">
+      <h1 class="title is-size-3">My Students</h1>
+
+      <div class="columns">
+        <router-link
+          class="column is-one-third"
+          v-for="student in students"
+          :key="student.id"
+          :to="{
+				name: 'studentpractices',
+				params: { id: student.id }
+		}"
+        >
+          <div class="box has-background-info">
+            <article class="media">
+              <div class="media-left">
+                <figure class="circle">
+                  <img :src="'./instruments/'+student.instrument+'.png'" alt="Image" />
+                </figure>
+              </div>
+              <div>
+                <div class="title has-text-white">{{student.name}}</div>
+              </div>
+            </article>
+          </div>
+        </router-link>
+      </div>
+    </div>
+
+    <div v-else>
+      <h1 class="title is-size-3">My Practices</h1>
 
       <div class="columns">
         <div class="column is-one-third">
@@ -19,7 +48,7 @@
             <article class="media">
               <div class="media-left">
                 <figure class="circle has-background-white">
-                  <img src="../assets/instruments/0.png" alt="Image" />
+                  <img src="/instruments/0.png" alt="Image" />
                 </figure>
               </div>
               <div>
@@ -44,12 +73,11 @@
 <script>
 import { firebase } from "@firebase/app";
 import "@firebase/auth";
-import "@firebase/firestore";
 import { mapState } from "vuex";
 export default {
-  name: "studentlanding",
+  name: "teacherlanding",
   computed: {
-    ...mapState(["message"])
+    ...mapState(["students", "status", "message"])
   },
   data: () => ({
     currentUser: firebase.auth().currentUser
@@ -57,9 +85,14 @@ export default {
   created() {
     this.init();
   },
+
   methods: {
     init() {
+      this.fetchStudents(this.currentUser.uid);
       this.findTeacher(this.currentUser.uid);
+    },
+    fetchStudents(uid) {
+      this.$store.dispatch("fetchStudents", uid);
     },
     findTeacher(id) {
       this.$store.dispatch("findTeacher", id);

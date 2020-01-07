@@ -1,28 +1,29 @@
 <template>
-  <aside class="column is-2 aside">
+  <aside v-if="status != ''" class="column is-2 aside">
+    {{status}}
     <nav v-if="status == 'student'" class="menu">
       <ul class="menu-list">
         <li>
-          <router-link class="navbar-item" :to="'studentlanding'">
+          <router-link class="navbar-item" :to="'/home'">
             <i class="fas fa-headphones"></i> My Practices
           </router-link>
         </li>
 
         <li>
-          <router-link class="navbar-item" :to="'practice'">
+          <router-link class="navbar-item" :to="'/practice'">
             <i class="fas fa-music"></i> Practice
           </router-link>
         </li>
 
         <li>
-          <router-link class="navbar-item" :to="'settings'">
+          <router-link class="navbar-item" :to="'/settings'">
             <i class="fa fa-cog"></i> Settings
           </router-link>
         </li>
 
         <li>
-          <router-link class="navbar-item" :to="'myteacher'">
-            <i class="fa fa-user"></i> MyTeacher
+          <router-link class="navbar-item" :to="'/teachersearch'">
+            <i class="fa fa-user"></i> My Teacher
           </router-link>
         </li>
 
@@ -38,10 +39,10 @@
         </li>
       </ul>
     </nav>
-    <nav v-else>
+    <nav v-if="status == 'teacher'">
       <ul class="menu-list">
         <li>
-          <router-link class="navbar-item" :to="''">
+          <router-link class="navbar-item" :to="'/home'">
             <i class="fas fa-users"></i> My Students' Practices
           </router-link>
         </li>
@@ -72,10 +73,12 @@ export default {
   },
   methods: {
     init() {
-      this.setStatus(this.currentUser.uid);
+      if (this.currentUser !== null) {
+        this.fetchStudents(this.currentUser.uid);
+      }
     },
-    setStatus(id) {
-      this.$store.dispatch("setStatus", id);
+    fetchStudents(id) {
+      this.$store.dispatch("fetchStudents", id);
     }
   }
 };

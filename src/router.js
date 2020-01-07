@@ -4,13 +4,13 @@ import { firebase } from '@firebase/app';
 import '@firebase/auth';
 import '@firebase/firestore';
 
-import TeacherLanding from '@/views/TeacherLanding.vue';
-import StudentLanding from '@/views/StudentLanding.vue';
-
 import Login from '@/views/Login.vue';
 import About from '@/views/About.vue';
+
+import Home from '@/views/Home.vue';
 import Settings from '@/views/Settings.vue';
-import MyTeacher from '@/views/MyTeacher.vue';
+import TeacherSearch from '@/views/TeacherSearch.vue';
+import StudentPractices from '@/views/StudentPractices.vue';
 
 Vue.use(Router);
 
@@ -37,9 +37,17 @@ const router = new Router({
 			component: About,
 		},
 		{
-			path: '/myteacher',
-			name: 'myteacher',
-			component: MyTeacher,
+			path: '/home',
+			name: 'home',
+			component: Home,
+			meta: {
+				requiresAuth: true,
+			},
+		},
+		{
+			path: '/teachersearch',
+			name: 'teachersearch',
+			component: TeacherSearch,
 			meta: {
 				requiresAuth: true,
 			},
@@ -52,18 +60,11 @@ const router = new Router({
 				requiresAuth: true,
 			},
 		},
+
 		{
-			path: '/teacherlanding',
-			name: 'teacherlanding',
-			component: TeacherLanding,
-			meta: {
-				requiresAuth: true,
-			},
-		},
-		{
-			path: '/studentlanding',
-			name: 'studentlanding',
-			component: StudentLanding,
+			path: '/studentpractices/:id',
+			name: 'studentpractices',
+			component: StudentPractices,
 			meta: {
 				requiresAuth: true,
 			},
@@ -77,29 +78,7 @@ router.beforeEach((to, from, next) => {
 	if (requiresAuth && !currentUser) {
 		next('login');
 	} else if (!requiresAuth && currentUser) {
-		//differentiate for students vs. teacher landing
-		var docRef = firebase
-			.firestore()
-			.collection('users')
-			.doc(currentUser.uid);
-
-		docRef
-			.get()
-			.then(function(doc) {
-				if (doc.exists) {
-					if (doc.data().type == 'teacher') {
-						next('teacherlanding');
-					} else {
-						next('studentlanding');
-					}
-				} else {
-					// doc.data() will be undefined in this case
-					console.log('No such document!');
-				}
-			})
-			.catch(function(error) {
-				console.log('Error getting document:', error);
-			});
+		next('home');
 	} else {
 		next();
 	}

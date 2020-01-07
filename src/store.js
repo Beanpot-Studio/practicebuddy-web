@@ -8,7 +8,9 @@ export default new Vuex.Store({
 	state: {
 		user: null,
 		message: null,
-		status: null,
+		teacherId: null,
+		teacherName: null,
+		status: '',
 		students: [],
 	},
 	mutations: {
@@ -18,29 +20,46 @@ export default new Vuex.Store({
 		setMessage: (state, message) => {
 			state.message = message;
 		},
-		setStatus: (state, status) => {
-			if (status) {
+		setStudents: (state, students) => {
+			state.students = students;
+			//if students exist, this is a teacher
+			if (state.students.length) {
 				state.status = 'teacher';
 			} else {
 				state.status = 'student';
 			}
 		},
-		setStudents: (state, students) => {
-			state.students = students;
+		clearAll: state => {
+			state.students = [];
+			state.status = '';
+		},
+		setTeacher: (state, teacher) => {
+			state.teacherId = teacher.uid;
+			state.teacherName = teacher.name;
 		},
 	},
 	actions: {
-		setStatus({ commit }, uid) {
+		clearAll({ commit }) {
+			commit('clearAll');
+		},
+
+		searchTeachers({ commit }, email) {
+			let teacher = {};
 			firebase
 				.firestore()
 				.collection('users')
-				.doc(uid)
-				.onSnapshot(function(doc) {
-					if (typeof doc.data().type == 'undefined') {
-						commit('setStatus', false);
-					} else {
-						commit('setStatus', true);
-					}
+				.where('email', '==', email)
+				.get()
+				.then(function(querySnapshot) {
+					querySnapshot.forEach(function(doc) {
+						teacher.name = doc.data().name;
+						teacher.uid = doc.id;
+						commit('setTeacher', teacher);
+					});
+				})
+				.catch(function(error) {
+					// eslint-disable-next-line no-console
+					console.log('Error getting documents: ', error);
 				});
 		},
 
@@ -60,6 +79,7 @@ export default new Vuex.Store({
 					}
 				});
 		},
+
 		fetchStudents({ commit }, uid) {
 			let students = [];
 			firebase
