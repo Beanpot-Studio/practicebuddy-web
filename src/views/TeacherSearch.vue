@@ -2,8 +2,11 @@
   <main class="column is-half main">
     <div class="box main-content">
       <h1 class="title is-size-3">Find My Teacher</h1>
-
-      {{teacherName}}
+      <div v-if="error != ''">
+        <article class="message is-danger">
+          <div class="message-body">{{error}}</div>
+        </article>
+      </div>
       <div class="columns">
         <div class="column">
           <div class="field">
@@ -27,6 +30,19 @@
           </div>
         </div>
       </div>
+
+      <div v-if="teacherName != null">
+        <article class="message is-success">
+          <div class="message-body">
+            I found someone with that email address! Is
+            <b>{{teacherName}}</b> your teacher?
+          </div>
+        </article>
+        <div class="buttons">
+          <button class="button is-success">Yes, associate me with this teacher</button>
+          <button class="button is-danger">No, this isn't my teacher</button>
+        </div>
+      </div>
     </div>
   </main>
 </template>
@@ -35,7 +51,7 @@ import { mapState } from "vuex";
 
 export default {
   computed: {
-    ...mapState(["teacherName"])
+    ...mapState(["teacherName", "error"])
   },
   data: () => ({
     valid: true,

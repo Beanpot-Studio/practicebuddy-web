@@ -10,6 +10,7 @@ export default new Vuex.Store({
 		message: null,
 		teacherId: null,
 		teacherName: null,
+		error: '',
 		status: '',
 		students: [],
 	},
@@ -19,6 +20,9 @@ export default new Vuex.Store({
 		},
 		setMessage: (state, message) => {
 			state.message = message;
+		},
+		throwError: (state, error) => {
+			state.error = error;
 		},
 		setStudents: (state, students) => {
 			state.students = students;
@@ -33,6 +37,9 @@ export default new Vuex.Store({
 			state.students = [];
 			state.status = '';
 		},
+		clearError: state => {
+			state.error = '';
+		},
 		setTeacher: (state, teacher) => {
 			state.teacherId = teacher.uid;
 			state.teacherName = teacher.name;
@@ -42,8 +49,12 @@ export default new Vuex.Store({
 		clearAll({ commit }) {
 			commit('clearAll');
 		},
+		clearError({ commit }) {
+			commit('clearError');
+		},
 
 		searchTeachers({ commit }, email) {
+			commit('clearError');
 			let teacher = {};
 			firebase
 				.firestore()
@@ -51,11 +62,15 @@ export default new Vuex.Store({
 				.where('email', '==', email)
 				.get()
 				.then(function(querySnapshot) {
-					querySnapshot.forEach(function(doc) {
-						teacher.name = doc.data().name;
-						teacher.uid = doc.id;
-						commit('setTeacher', teacher);
-					});
+					if (querySnapshot.empty) {
+						commit('throwError', "Sorry, I can't find that teacher");
+					} else {
+						querySnapshot.forEach(function(doc) {
+							teacher.name = doc.data().name;
+							teacher.uid = doc.id;
+							commit('setTeacher', teacher);
+						});
+					}
 				})
 				.catch(function(error) {
 					// eslint-disable-next-line no-console
