@@ -84,6 +84,8 @@ export default {
   }),
   created() {
     this.init();
+    // eslint-disable-next-line no-console
+    console.log(this.currentUser.uid);
   },
 
   methods: {

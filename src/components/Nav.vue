@@ -42,20 +42,17 @@ export default {
   computed: {
     ...mapState(["status"])
   },
-  data: function() {
-    return {
-      //loggedIn: false
-    };
-  },
+
   methods: {
     logout() {
       firebase
         .auth()
         .signOut()
         .then(() => {
-          this.$router.replace("login");
-          //this.loggedIn = false;
           this.$store.dispatch("clearAll");
+        })
+        .then(() => {
+          this.$router.replace("login");
         });
     }
   },
@@ -66,13 +63,6 @@ export default {
       burger.classList.toggle("is-active");
       menu.classList.toggle("is-active");
     });
-  },
-  created() {
-    if (firebase.auth().currentUser == null) {
-      //this.loggedIn = false;
-    } else {
-      //this.loggedIn = true;
-    }
   }
 };
 </script>

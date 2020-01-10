@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <section class="home-elements">
+  <div class="columns home-elements">
+    <div class="column">
       <h1
         class="home-elements has-text-centered is-large title is-size-3 text-weight-bold"
       >Welcome to Practice Buddy</h1>
@@ -11,51 +11,20 @@
       <h4
         class="home-elements has-text-centered is-size-5"
       >Practice Buddy includes the ability to login, save your preferences, time and record your practice sessions, and review your progress via lists of sessions. Once a goal is achieved, the app sends an email to the teacher, requesting feedback. The student can check the feedback section of the app to get comments and stickers from their music teacher. Teachers use the app to track their students' sessions.</h4>
-    </section>
-    <section class="hero">
-      <div class="hero-body">
-        <div class="container has-text-centered">
-          <div class="columns">
-            <div class="card column is-shady">
-              <h2 class="title has-text-centered">Login</h2>
+    </div>
+    <div class="column">
+      <div class="card is-shady">
+        <h2 class="title has-text-centered">Login</h2>
 
-              <a
-                class="button is-info is-rounded is-medium is-fullwidth"
-                @click="loginWithGoogle()"
-              >
-                <span class="icon">
-                  <i class="fab fa-google"></i>
-                </span>
-                <span>Sign in with Google</span>
-              </a>
-              <br />
-            </div>
-
-            <!--<div class="card column is-shady">
-              <h2 class="title has-text-centered">Teacher Login</h2>
-
-              <a
-                class="button is-primary is-rounded is-medium is-fullwidth"
-                @click="loginWithGoogle('t')"
-              >
-                <span class="icon">
-                  <i class="fab fa-google"></i>
-                </span>
-                <span>Sign in with Google</span>
-              </a>
-              <br />
-
-              <a class="button is-link is-rounded is-medium is-fullwidth">
-                <span class="icon">
-                  <i class="fab fa-facebook"></i>
-                </span>
-                <span>Sign in with Facebook</span>
-              </a>
-            </div>-->
-          </div>
-        </div>
+        <a class="button is-info is-rounded is-medium is-fullwidth" @click="loginWithGoogle()">
+          <span class="icon">
+            <i class="fab fa-google"></i>
+          </span>
+          <span>Sign in with Google</span>
+        </a>
+        <br />
       </div>
-    </section>
+    </div>
   </div>
 </template>
 <script>
@@ -111,6 +80,7 @@ export default {
 }
 .home-elements {
   padding: 10px;
+  margin: 10px;
 }
 </style>
 

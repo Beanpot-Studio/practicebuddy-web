@@ -8,8 +8,7 @@ export default new Vuex.Store({
 	state: {
 		user: null,
 		message: null,
-		teacherId: null,
-		teacherName: null,
+		teacher: null,
 		error: '',
 		status: '',
 		students: [],
@@ -34,15 +33,19 @@ export default new Vuex.Store({
 			}
 		},
 		clearAll: state => {
+			//only on logout
 			state.students = [];
+			state.teacher = null;
 			state.status = '';
+		},
+		clearTeacher: state => {
+			state.teacher = null;
 		},
 		clearError: state => {
 			state.error = '';
 		},
 		setTeacher: (state, teacher) => {
-			state.teacherId = teacher.uid;
-			state.teacherName = teacher.name;
+			state.teacher = teacher;
 		},
 	},
 	actions: {
@@ -96,6 +99,8 @@ export default new Vuex.Store({
 		},
 
 		fetchStudents({ commit }, uid) {
+			// eslint-disable-next-line no-console
+			console.log(uid);
 			let students = [];
 			firebase
 				.firestore()
@@ -112,6 +117,19 @@ export default new Vuex.Store({
 						students.push(record);
 					});
 					commit('setStudents', students);
+				});
+		},
+		claimTeacher({ commit }, payload) {
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(payload.userId)
+				.set({ teacherId: payload.teacherId }, { merge: true })
+				.then(function() {
+					commit('setMessage', 'Your teacher has been set!');
+				})
+				.then(function() {
+					commit('clearTeacher');
 				});
 		},
 	},

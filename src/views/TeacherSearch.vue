@@ -7,6 +7,11 @@
           <div class="message-body">{{error}}</div>
         </article>
       </div>
+      <div v-if="message !== null">
+        <article class="message is-success">
+          <div class="message-body">{{message}}</div>
+        </article>
+      </div>
       <div class="columns">
         <div class="column">
           <div class="field">
@@ -31,15 +36,18 @@
         </div>
       </div>
 
-      <div v-if="teacherName != null">
+      <div v-if="teacher != null && !claimed">
         <article class="message is-success">
           <div class="message-body">
             I found someone with that email address! Is
-            <b>{{teacherName}}</b> your teacher?
+            <b>{{teacher.name}}</b> your teacher?
           </div>
         </article>
         <div class="buttons">
-          <button class="button is-success">Yes, associate me with this teacher</button>
+          <button
+            class="button is-success"
+            @click="claimTeacher(teacher.uid)"
+          >Yes, associate me with this teacher</button>
           <button class="button is-danger">No, this isn't my teacher</button>
         </div>
       </div>
@@ -47,21 +55,34 @@
   </main>
 </template>
 <script>
+import { firebase } from "@firebase/app";
+import "@firebase/auth";
+import "@firebase/firestore";
 import { mapState } from "vuex";
 
 export default {
   computed: {
-    ...mapState(["teacherName", "error"])
+    ...mapState(["teacher", "error", "message"])
   },
   data: () => ({
+    claimed: false,
     valid: true,
     email: "",
-    emailRules: [v => !!v || "Email is required"]
+    emailRules: [v => !!v || "Email is required"],
+    currentUser: firebase.auth().currentUser
   }),
+
   created() {},
   methods: {
     submit() {
       this.$store.dispatch("searchTeachers", this.email);
+    },
+    claimTeacher(id) {
+      this.claimed = true;
+      this.$store.dispatch("claimTeacher", {
+        userId: this.currentUser.uid,
+        teacherId: id
+      });
     }
   }
 };
