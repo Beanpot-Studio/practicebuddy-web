@@ -1,5 +1,5 @@
 <template web>
-	<nav class="navbar has-background-info" role="navigation" aria-label="main navigation">
+	<nav class="navbar has-background-link" role="navigation" aria-label="main navigation">
 		<div class="navbar-brand">
 			<a class="navbar-item" href="./">
 				<img src="@/assets/lyre.png" width="30" height="30" />

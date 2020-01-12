@@ -11,6 +11,7 @@ import Home from '@/views/Home.vue';
 import Settings from '@/views/Settings.vue';
 import TeacherSearch from '@/views/TeacherSearch.vue';
 import StudentPractices from '@/views/StudentPractices.vue';
+import Practice from '@/views/Practice.vue';
 
 Vue.use(Router);
 
@@ -60,7 +61,14 @@ const router = new Router({
 				requiresAuth: true,
 			},
 		},
-
+		{
+			path: '/practice',
+			name: 'practice',
+			component: Practice,
+			meta: {
+				requiresAuth: true,
+			},
+		},
 		{
 			path: '/studentpractices/:id',
 			name: 'studentpractices',

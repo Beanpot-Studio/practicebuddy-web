@@ -1,40 +1,39 @@
 <template>
 	<div>
-		<section class="hero-body">
-			<div class="columns is-vcentered">
-				<div class="column is-one-third is-centered home-elements">
-					<h1 class="title is-1 is-bold home-elements">
-						Let's Play!
-					</h1>
-					<h2 class="subtitle is-3 home-elements">
-						Practice Buddy is the musical student's preferred app and the music teacher's best toolkit
-					</h2>
+		<section class="hero is-success is-bold">
+			<div class="hero-body">
+				<div class="columns is-vcentered">
+					<div class="column is-one-third is-offset-1 is-centered home-elements">
+						<h1 class="title is-1 is-bold home-elements">
+							Let's Play!
+						</h1>
+						<h2 class="subtitle is-3 home-elements">
+							Practice Buddy is the musical student's preferred app and the music teacher's best toolkit
+						</h2>
 
-					<a
-						class="home-elements button is-info is-rounded is-medium is-fullwidth"
-						@click="loginWithGoogle()"
-					>
-						<span class="icon">
-							<i class="fab fa-google"></i>
-						</span>
-						<span>Sign in with Google</span>
-					</a>
-				</div>
+						<a class="home-elements button is-full is-link is-rounded is-large" @click="loginWithGoogle()">
+							<span class="icon">
+								<i class="fab fa-google"></i>
+							</span>
+							<span>Sign in with Google</span>
+						</a>
+					</div>
 
-				<div class="column is-four-fifths is-centered">
-					<Lottie
-						className="animation"
-						renderer="canvas"
-						:loop="true"
-						:autoplay="true"
-						:animationData="guitarPlayer"
-						@getLottieInstance="getLottieInstance"
-					/>
+					<div class="column is-two-thirds is-centered">
+						<Lottie
+							className="animation"
+							renderer="canvas"
+							:loop="true"
+							:autoplay="true"
+							:animationData="guitarPlayer"
+							@getLottieInstance="getLottieInstance"
+						/>
+					</div>
 				</div>
 			</div>
 		</section>
 
-		<section class="section has-background-white-ter is-medium">
+		<section class="section has-background-white-ter">
 			<div class="container">
 				<div class="title-wrapper has-text-centered">
 					<h2 class="title is-2">For Music Teachers and Their Students</h2>
@@ -158,7 +157,7 @@ export default {
 						.firestore()
 						.collection('users')
 						.doc(uid)
-						.set(data);
+						.set(data, { merge: true });
 				})
 				.then(() => {
 					this.$router.replace('home');
@@ -191,14 +190,12 @@ export default {
 	padding: 10px;
 	height: 100%;
 }
-.level {
-	margin-bottom: 0px;
-}
-.home-elements {
-	padding: 10px;
-	margin: 20px;
-}
-.card-text {
+
+.card-text,
+.title {
 	padding-top: 10px;
+}
+.content-wrapper {
+	padding-bottom: 10px;
 }
 </style>

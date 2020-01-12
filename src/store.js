@@ -2,23 +2,29 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { firebase } from '@firebase/app';
 import '@firebase/firestore';
+import '@firebase/auth';
 Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state: {
 		user: null,
 		message: null,
+		announcement: null,
 		teacher: null,
 		error: '',
 		status: '',
 		students: [],
 	},
+
 	mutations: {
 		setUser: (state, user) => {
 			state.user = user;
 		},
 		setMessage: (state, message) => {
 			state.message = message;
+		},
+		setAnnouncement: (state, announcement) => {
+			state.announcement = announcement;
 		},
 		throwError: (state, error) => {
 			state.error = error;
@@ -82,6 +88,7 @@ export default new Vuex.Store({
 		},
 
 		findTeacher({ commit }, uid) {
+			let teacher = {};
 			firebase
 				.firestore()
 				.collection('users')
@@ -89,18 +96,49 @@ export default new Vuex.Store({
 				.onSnapshot(function(doc) {
 					if (typeof doc.data().teacherId == 'undefined') {
 						commit(
-							'setMessage',
+							'setAnnouncement',
 							"It looks like you don't have a teacher associated to your practices. If this is incorrect, please add your teacher to your account in the My Teacher tab."
 						);
 					} else {
-						commit('setMessage', '');
+						teacher.id = doc.data().teacherId;
+						firebase
+							.firestore()
+							.collection('users')
+							.doc(teacher.id)
+							.onSnapshot(function(doc) {
+								console.log(doc.data());
+								let teacher = {};
+								teacher.id = doc.uid;
+								teacher.name = doc.data().name;
+
+								teacher.email = doc.data().email;
+								commit('setTeacher', teacher);
+								commit('setAnnouncement', '');
+							});
 					}
+				});
+		},
+		//all user information from the users collection for currentUser
+		getUser({ commit }, uid) {
+			let user = [];
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(uid)
+				.onSnapshot(function(doc) {
+					if (typeof doc.data().name !== 'undefined') {
+						var record = {
+							id: uid,
+							name: doc.data().name,
+							instrument: doc.data().instrument,
+						};
+						user.push(record);
+					}
+					commit('setUser', user);
 				});
 		},
 
 		fetchStudents({ commit }, uid) {
-			// eslint-disable-next-line no-console
-			console.log(uid);
 			let students = [];
 			firebase
 				.firestore()
@@ -120,16 +158,32 @@ export default new Vuex.Store({
 				});
 		},
 		claimTeacher({ commit }, payload) {
+			// eslint-disable-next-line no-console
+			console.log(payload);
+			var user = {
+				instrument: payload.instrument || 'none',
+				name: payload.name,
+			};
 			firebase
 				.firestore()
 				.collection('users')
 				.doc(payload.userId)
 				.set({ teacherId: payload.teacherId }, { merge: true })
+				//now add this teacherId to the students collection for the teacher
+				.then(function() {
+					firebase
+						.firestore()
+						.collection('users')
+						.doc(payload.teacherId)
+						.collection('students')
+						.doc(payload.userId)
+						.set({ instrument: user.instrument, name: user.name }, { merge: true });
+				})
 				.then(function() {
 					commit('setMessage', 'Your teacher has been set!');
 				})
 				.then(function() {
-					commit('clearTeacher');
+					//commit('clearTeacher');
 				});
 		},
 	},
