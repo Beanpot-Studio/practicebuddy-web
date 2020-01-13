@@ -106,11 +106,9 @@ export default new Vuex.Store({
 							.collection('users')
 							.doc(teacher.id)
 							.onSnapshot(function(doc) {
-								console.log(doc.data());
 								let teacher = {};
 								teacher.id = doc.uid;
 								teacher.name = doc.data().name;
-
 								teacher.email = doc.data().email;
 								commit('setTeacher', teacher);
 								commit('setAnnouncement', '');

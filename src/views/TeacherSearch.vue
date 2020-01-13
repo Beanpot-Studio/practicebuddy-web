@@ -14,25 +14,37 @@
 			</div>
 			<div class="columns">
 				<div class="column">
-					<div class="field">
-						<label class="label">Teacher Email</label>
-						<div class="control">
-							<input
-								v-model="email"
-								class="input"
-								type="email"
-								id="email"
-								required
-								placeholder="My Teacher's Email Address"
-							/>
+					<form @submit.prevent="submit">
+						<div class="field">
+							<label class="label">Teacher Email</label>
+							<div v-if="submitStatus == 'ERROR'">
+								<p class="help is-danger">Field is required</p>
+							</div>
+							<div class="control">
+								<input
+									v-model="email"
+									:class="validClass"
+									type="email"
+									id="email"
+									placeholder="My Teacher's Email Address"
+									v-model.trim="$v.email.$model"
+								/>
+							</div>
 						</div>
-					</div>
 
-					<div class="field">
-						<div class="control">
-							<button class="button is-link" @click="submit">Submit</button>
+						<div class="field">
+							<div class="control">
+								<button
+									type="submit"
+									:disabled="submitStatus === 'PENDING'"
+									class="button is-link"
+									@click="submit"
+								>
+									Submit
+								</button>
+							</div>
 						</div>
-					</div>
+					</form>
 				</div>
 			</div>
 
@@ -47,7 +59,9 @@
 					<button class="button is-success" @click="claimTeacher(teacher.uid)">
 						Yes, associate me with this teacher
 					</button>
-					<button class="button is-danger">No, this isn't my teacher</button>
+					<button class="button is-danger">
+						No, this isn't my teacher
+					</button>
 				</div>
 			</div>
 		</div>
@@ -58,25 +72,44 @@ import { firebase } from '@firebase/app';
 import '@firebase/auth';
 import '@firebase/firestore';
 import { mapState } from 'vuex';
+import { required } from 'vuelidate/lib/validators';
 
 export default {
 	computed: {
 		...mapState(['teacher', 'error', 'message', 'user']),
 	},
-	data: () => ({
-		claimed: false,
-		valid: true,
-		email: '',
-		emailRules: [v => !!v || 'Email is required'],
-		currentUser: firebase.auth().currentUser,
-	}),
-
+	data() {
+		return {
+			claimed: false,
+			validClass: 'input',
+			email: '',
+			submitStatus: null,
+			currentUser: firebase.auth().currentUser,
+		};
+	},
+	validations: {
+		email: {
+			required,
+		},
+	},
 	methods: {
 		submit() {
-			this.$store.dispatch('searchTeachers', this.email);
+			this.$v.$touch();
+			if (this.$v.$invalid) {
+				this.submitStatus = 'ERROR';
+				this.validClass = 'input is-danger';
+			} else {
+				// do your submit logic here
+				this.submitStatus = 'PENDING';
+				this.validClass = 'input';
+				this.$store.dispatch('searchTeachers', this.email);
+				setTimeout(() => {
+					this.submitStatus = 'OK';
+					this.validClass = 'input';
+				}, 500);
+			}
 		},
 		claimTeacher(id) {
-			// eslint-disable-next-line no-console
 			this.claimed = true;
 			this.$store.dispatch('claimTeacher', {
 				userId: this.currentUser.uid,

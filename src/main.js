@@ -5,6 +5,8 @@ import store from './store';
 import { firebase } from '@firebase/app';
 import '@firebase/auth';
 Vue.config.productionTip = false;
+import Vuelidate from 'vuelidate';
+Vue.use(Vuelidate);
 
 let app = '';
 
