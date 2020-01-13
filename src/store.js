@@ -132,7 +132,7 @@ export default new Vuex.Store({
 						};
 						user.push(record);
 					}
-					commit('setUser', user);
+					commit('setUser', user[0]);
 				});
 		},
 

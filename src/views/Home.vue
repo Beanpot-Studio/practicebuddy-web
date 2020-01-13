@@ -2,9 +2,8 @@
 	<main class="column main">
 		<div>
 			<div class="box is-radiusless is-shadowless has-background-light">
-				<div class="is-size-4 title">Welcome, {{ currentUser.displayName }}</div>
+				<div class="is-size-4 title">Welcome, {{ user.name }}</div>
 				<div v-if="announcement !== '' && status != 'teacher'" class="notification is-warning">
-					<button class="delete"></button>
 					{{ announcement }}
 				</div>
 				<div v-else>Your teacher is: {{ teacher.name }}</div>
@@ -76,7 +75,7 @@ import { mapState } from 'vuex';
 export default {
 	name: 'teacherlanding',
 	computed: {
-		...mapState(['students', 'status', 'announcement', 'teacher']),
+		...mapState(['students', 'status', 'announcement', 'teacher', 'user']),
 	},
 	data: () => ({
 		currentUser: firebase.auth().currentUser,
@@ -87,6 +86,7 @@ export default {
 
 	methods: {
 		init() {
+			//this.getUser(this.currentUser.uid);
 			this.fetchStudents(this.currentUser.uid);
 			this.findTeacher(this.currentUser.uid);
 		},
@@ -96,6 +96,9 @@ export default {
 		findTeacher(id) {
 			this.$store.dispatch('findTeacher', id);
 		},
+		/*getUser(id) {
+			this.$store.dispatch('getUser', id);
+		},*/
 	},
 };
 </script>

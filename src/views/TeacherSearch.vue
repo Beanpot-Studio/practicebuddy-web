@@ -68,9 +68,9 @@
 	</main>
 </template>
 <script>
-import { firebase } from '@firebase/app';
-import '@firebase/auth';
-import '@firebase/firestore';
+//import { firebase } from '@firebase/app';
+//import '@firebase/auth';
+//import '@firebase/firestore';
 import { mapState } from 'vuex';
 import { required } from 'vuelidate/lib/validators';
 
@@ -84,7 +84,7 @@ export default {
 			validClass: 'input',
 			email: '',
 			submitStatus: null,
-			currentUser: firebase.auth().currentUser,
+			//currentUser: firebase.auth().currentUser,
 		};
 	},
 	validations: {
@@ -112,10 +112,10 @@ export default {
 		claimTeacher(id) {
 			this.claimed = true;
 			this.$store.dispatch('claimTeacher', {
-				userId: this.currentUser.uid,
+				userId: this.user.uid,
 				teacherId: id,
-				name: this.user[0].name,
-				instrument: this.user[0].instrument,
+				name: this.user.name,
+				instrument: this.user.instrument,
 			});
 		},
 	},
