@@ -3,6 +3,8 @@ import Vuex from 'vuex';
 import { firebase } from '@firebase/app';
 import '@firebase/firestore';
 import '@firebase/auth';
+import createPersistedState from 'vuex-persistedstate';
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -15,7 +17,7 @@ export default new Vuex.Store({
 		status: '',
 		students: [],
 	},
-
+	plugins: [createPersistedState()],
 	mutations: {
 		setUser: (state, user) => {
 			state.user = user;
@@ -107,7 +109,7 @@ export default new Vuex.Store({
 							.doc(teacher.id)
 							.onSnapshot(function(doc) {
 								let teacher = {};
-								teacher.id = doc.uid;
+								teacher.id = doc.id;
 								teacher.name = doc.data().name;
 								teacher.email = doc.data().email;
 								commit('setTeacher', teacher);
@@ -125,14 +127,11 @@ export default new Vuex.Store({
 				.doc(uid)
 				.onSnapshot(function(doc) {
 					if (typeof doc.data().name !== 'undefined') {
-						var record = {
-							id: uid,
-							name: doc.data().name,
-							instrument: doc.data().instrument,
-						};
-						user.push(record);
+						user.id = doc.id;
+						user.name = doc.data().name;
+						user.instrument = doc.data().instrument;
+						commit('setUser', user);
 					}
-					commit('setUser', user[0]);
 				});
 		},
 

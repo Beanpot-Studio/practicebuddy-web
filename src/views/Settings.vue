@@ -8,50 +8,71 @@
 					<div class="field">
 						<label class="label">Name</label>
 						<div class="control">
-							<input class="input" type="text" :placeholder="user.name" />
+							<input class="input" type="text" :value="user.name" />
 						</div>
 					</div>
 
-					<div class="field">
+					<div class="field" v-if="teacher != null">
 						<label class="label">Teacher Name</label>
 						<div class="control">
-							<input class="input" disabled type="email" :value="teacher.name" />
+							<input class="input" disabled type="email" :value="teacher.name || ''" />
 						</div>
+					</div>
+
+					<div v-else>
+						<article class="message is-danger">
+							<div class="message-body">
+								It looks like you don't have a teacher associated to your practices. If this is an
+								error, go to the 'My Teacher' page to search for your teacher.
+							</div>
+						</article>
 					</div>
 
 					<div class="field">
 						<label class="label">Working Towards This Reward</label>
 						<div class="control">
-							<input class="input" type="text" :placeholder="user.reward" />
+							<input
+								v-model.trim="$v.reward.$model"
+								:class="validClass"
+								type="text"
+								:placeholder="user.reward || 'A trip to the candy store!'"
+							/>
+						</div>
+						<div v-if="submitStatus == 'ERROR'">
+							<p class="help is-danger">Field is required</p>
 						</div>
 					</div>
 
 					<div class="field">
-						<label class="label">Practices Required to Receive This Reward</label>
+						<label class="label">Number of Practices Required to Receive This Reward</label>
 						<div class="control">
-							<input class="input" type="number" :placeholder="user.practicesrequired" min="1" max="5" />
-						</div>
-					</div>
-
-					<div class="field">
-						<label class="label">Practices Completed</label>
-						<div class="control">
-							<input class="input" type="number" :placeholder="user.practicescompleted" min="1" max="5" />
+							<input
+								class="input"
+								type="number"
+								:placeholder="user.practicesrequired || 5"
+								min="1"
+								max="5"
+							/>
 						</div>
 					</div>
 
 					<div class="field">
 						<label class="label">Practice Length in Minutes</label>
 						<div class="control">
-							<input class="input" type="number" :placeholder="user.practicelength" min="1" max="5" />
+							<input
+								class="input"
+								type="number"
+								:placeholder="user.practicelength || 20"
+								min="1"
+								max="5"
+							/>
 						</div>
 					</div>
 
 					<div class="field">
 						<label class="label">Notify Your Teacher of Every Practice Submission</label>
 						<div class="control">
-							<input type="radio" name="notify" value="yes" /> Yes<br />
-							<input type="radio" name="notify" value="no" /> No<br />
+							<input type="checkbox" v-model="user.notify" :value="user.notify" />
 						</div>
 					</div>
 
@@ -59,12 +80,29 @@
 						<label class="label">Instrument</label>
 						<div class="control">
 							<div class="select">
-								<select>
-									<option v-for="instrument in instruments" :key="instrument" :value="instrument">{{
-										instrument
-									}}</option>
+								<select v-model="user.instrument">
+									<option>none</option>
+									<option
+										v-for="instrument in instruments"
+										:key="instrument"
+										:value="instruments.indexOf(instrument)"
+										>{{ instrument }}</option
+									>
 								</select>
 							</div>
+						</div>
+					</div>
+
+					<div class="field">
+						<div class="control">
+							<button
+								type="submit"
+								:disabled="submitStatus === 'PENDING'"
+								class="button is-link"
+								@click="submit"
+							>
+								Save
+							</button>
 						</div>
 					</div>
 				</div>
@@ -73,16 +111,40 @@
 	</main>
 </template>
 <script>
-//import { firebase } from '@firebase/app';
-//import '@firebase/auth';
+import { firebase } from '@firebase/app';
+import '@firebase/auth';
 import { mapState } from 'vuex';
+import { required } from 'vuelidate/lib/validators';
+
 export default {
 	name: 'settings',
 	computed: {
 		...mapState(['user', 'teacher']),
 	},
-
+	validations: {
+		reward: {
+			required,
+		},
+		practicesrequired: {
+			required,
+		},
+		practicelength: {
+			required,
+		},
+		notify: {
+			required,
+		},
+	},
 	data: () => ({
+		currentUser: firebase.auth().currentUser,
+		submitStatus: null,
+		validClass: 'input',
+		name: '',
+		reward: '',
+		practicesrequired: 0,
+		practicelength: 0,
+		notify: false,
+		instrument: 'none',
 		instruments: [
 			'acoustic guitar',
 			'banjo',
@@ -107,10 +169,23 @@ export default {
 			'xylophone',
 		],
 	}),
-
-	created() {
-		this.$store.dispatch('findTeacher', this.user.id);
+	methods: {
+		submit() {
+			this.$v.$touch();
+			if (this.$v.$invalid) {
+				this.submitStatus = 'ERROR';
+				this.validClass = 'input is-danger';
+			} else {
+				// do your submit logic here
+				this.submitStatus = 'PENDING';
+				this.validClass = 'input';
+				this.$store.dispatch('searchTeachers', this.email);
+				setTimeout(() => {
+					this.submitStatus = 'OK';
+					this.validClass = 'input';
+				}, 500);
+			}
+		},
 	},
-	methods: {},
 };
 </script>

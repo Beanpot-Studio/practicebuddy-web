@@ -2,9 +2,12 @@
 	<main class="column main">
 		<div>
 			<div class="box is-radiusless is-shadowless has-background-light">
-				<div class="is-size-4 title">Welcome, {{ user.name }}</div>
-				<div v-if="announcement !== '' && status != 'teacher'" class="notification is-warning">
-					{{ announcement }}
+				<div class="is-size-4 title">Welcome, {{ currentUser.displayName }}</div>
+				<div v-if="teacher == null" class="notification is-warning">
+					It looks like you don't have a teacher associated to your practices. If this is incorrect, please
+					add your teacher to your account in the My Teacher tab. If you are a teacher, when your students add
+					you to their account you will start to see their practice information below and you will see
+					different links in the side navigation.
 				</div>
 				<div v-else>Your teacher is: {{ teacher.name }}</div>
 			</div>
@@ -71,9 +74,9 @@
 <script>
 import { firebase } from '@firebase/app';
 import '@firebase/auth';
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 export default {
-	name: 'teacherlanding',
+	name: 'landing',
 	computed: {
 		...mapState(['students', 'status', 'announcement', 'teacher', 'user']),
 	},
@@ -81,24 +84,18 @@ export default {
 		currentUser: firebase.auth().currentUser,
 	}),
 	created() {
-		this.init();
+		this.getUser(this.currentUser.uid)
+			.then(this.findTeacher(this.currentUser.uid))
+			.then(this.fetchStudents(this.currentUser.uid));
 	},
-
 	methods: {
-		init() {
-			//this.getUser(this.currentUser.uid);
-			this.fetchStudents(this.currentUser.uid);
-			this.findTeacher(this.currentUser.uid);
-		},
+		...mapActions(['getUser']),
 		fetchStudents(uid) {
 			this.$store.dispatch('fetchStudents', uid);
 		},
 		findTeacher(id) {
 			this.$store.dispatch('findTeacher', id);
 		},
-		/*getUser(id) {
-			this.$store.dispatch('getUser', id);
-		},*/
 	},
 };
 </script>

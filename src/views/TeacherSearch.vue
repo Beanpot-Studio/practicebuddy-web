@@ -17,9 +17,7 @@
 					<form @submit.prevent="submit">
 						<div class="field">
 							<label class="label">Teacher Email</label>
-							<div v-if="submitStatus == 'ERROR'">
-								<p class="help is-danger">Field is required</p>
-							</div>
+
 							<div class="control">
 								<input
 									v-model="email"
@@ -29,6 +27,9 @@
 									placeholder="My Teacher's Email Address"
 									v-model.trim="$v.email.$model"
 								/>
+							</div>
+							<div v-if="submitStatus == 'ERROR'">
+								<p class="help is-danger">Field is required</p>
 							</div>
 						</div>
 
