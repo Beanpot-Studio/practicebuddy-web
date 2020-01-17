@@ -11,7 +11,6 @@ export default new Vuex.Store({
 	state: {
 		user: null,
 		message: null,
-		announcement: null,
 		teacher: null,
 		error: '',
 		status: '',
@@ -24,9 +23,6 @@ export default new Vuex.Store({
 		},
 		setMessage: (state, message) => {
 			state.message = message;
-		},
-		setAnnouncement: (state, announcement) => {
-			state.announcement = announcement;
 		},
 		throwError: (state, error) => {
 			state.error = error;
@@ -96,12 +92,7 @@ export default new Vuex.Store({
 				.collection('users')
 				.doc(uid)
 				.onSnapshot(function(doc) {
-					if (typeof doc.data().teacherId == 'undefined') {
-						commit(
-							'setAnnouncement',
-							"It looks like you don't have a teacher associated to your practices. If this is incorrect, please add your teacher to your account in the My Teacher tab."
-						);
-					} else {
+					if (typeof doc.data().teacherId !== 'undefined') {
 						teacher.id = doc.data().teacherId;
 						firebase
 							.firestore()
@@ -113,7 +104,7 @@ export default new Vuex.Store({
 								teacher.name = doc.data().name;
 								teacher.email = doc.data().email;
 								commit('setTeacher', teacher);
-								commit('setAnnouncement', '');
+								//commit('setAnnouncement', '');
 							});
 					}
 				});
@@ -181,6 +172,29 @@ export default new Vuex.Store({
 				})
 				.then(function() {
 					//commit('clearTeacher');
+				});
+		},
+		updateUser({ commit }, payload) {
+			// eslint-disable-next-line no-console
+			console.log(payload);
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(payload.uid)
+				.set(
+					{
+						name: payload.name,
+						reward: payload.reward,
+						practicesrequired: payload.practicesrequired,
+						instrument: payload.instrument,
+						practicelength: payload.practicelength,
+						updated: firebase.firestore.Timestamp.fromDate(new Date()),
+						notify: payload.notify,
+					},
+					{ merge: true }
+				)
+				.then(function() {
+					commit('setUser', payload);
 				});
 		},
 	},
