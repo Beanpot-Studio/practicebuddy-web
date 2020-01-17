@@ -84,7 +84,7 @@
               <label class="label">Instrument</label>
               <div class="control">
                 <div class="select">
-                  <select v-model="instrument">
+                  <select v-model="myInstrument">
                     <option>none</option>
                     <option
                       v-for="instrument in instruments"
@@ -124,6 +124,9 @@ export default {
     ...mapState(["user", "teacher"])
   },
   validations: {
+    name: {
+      required
+    },
     reward: {
       required
     },
@@ -137,6 +140,10 @@ export default {
       required
     }
   },
+  created() {
+    console.log(this.user.instrument);
+    this.myInstrument = this.user.instrument;
+  },
   data: () => ({
     currentUser: firebase.auth().currentUser,
     submitStatus: null,
@@ -147,7 +154,8 @@ export default {
     practicesrequired: 0,
     practicelength: 0,
     notify: false,
-    instrument: "none",
+    instrument: null,
+    myInstrument: "none",
     instruments: [
       "acoustic guitar",
       "banjo",
@@ -172,13 +180,7 @@ export default {
       "xylophone"
     ]
   }),
-  created() {
-    // eslint-disable-next-line no-console
-    console.log(this.user.name, this.user.instrument);
-    if (this.user.instrument == 0) {
-      this.selected == true;
-    }
-  },
+
   methods: {
     submit() {
       this.$v.$touch();
@@ -194,7 +196,7 @@ export default {
           reward: this.reward,
           uid: this.user.id,
           practicesrequired: this.practicesrequired,
-          instrument: this.instrument,
+          instrument: this.myInstrument,
           practicelength: this.practicelength,
           notify: this.notify
         });
