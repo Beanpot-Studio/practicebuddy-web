@@ -121,6 +121,10 @@ export default new Vuex.Store({
 						user.id = doc.id;
 						user.name = doc.data().name;
 						user.instrument = doc.data().instrument;
+						user.reward = doc.data().reward;
+						user.practicelength = doc.data().practicelength;
+						user.practicesrequired = doc.data().practicesrequired;
+						user.notify = doc.data().notify;
 						commit('setUser', user);
 					}
 				});

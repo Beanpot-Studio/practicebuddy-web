@@ -9,7 +9,10 @@
             <div class="field">
               <label class="label">Name</label>
               <div class="control">
-                <input class="input" id="name" v-model="name" type="text" :placeholder="user.name" />
+                <input v-model.trim="$v.myName.$model" :class="validClass" type="text" />
+              </div>
+              <div v-if="submitStatus == 'ERROR'">
+                <p class="help is-danger">Field is required</p>
               </div>
             </div>
 
@@ -33,11 +36,10 @@
               <label class="label">Working Towards This Reward</label>
               <div class="control">
                 <input
-                  v-model.trim="$v.reward.$model"
+                  v-model.trim="$v.myReward.$model"
                   :class="validClass"
-                  value="reward"
                   type="text"
-                  :placeholder="user.reward || 'A trip to the candy store!'"
+                  :placeholder="myReward"
                 />
               </div>
               <div v-if="submitStatus == 'ERROR'">
@@ -50,12 +52,13 @@
               <div class="control">
                 <input
                   class="input"
+                  v-model.trim="$v.myPracticesRequired.$model"
                   type="number"
-                  :placeholder="user.practicesrequired || 5"
-                  value="practicesrequired"
-                  min="1"
-                  max="5"
+                  :placeholder="myPracticesRequired"
                 />
+                <div v-if="submitStatus == 'ERROR'">
+                  <p class="help is-danger">Field is required</p>
+                </div>
               </div>
             </div>
 
@@ -65,8 +68,8 @@
                 <input
                   class="input"
                   type="number"
-                  value="practicelength"
-                  :placeholder="user.practicelength || 20"
+                  v-model.trim="$v.myPracticeLength.$model"
+                  :placeholder="myPracticeLength"
                   min="1"
                   max="5"
                 />
@@ -76,7 +79,7 @@
             <div class="field">
               <label class="label">Notify Your Teacher of Every Practice Submission</label>
               <div class="control">
-                <input type="checkbox" v-model="notify" :value="user.notify" />
+                <input type="checkbox" v-model="myNotify" :value="user.notify" />
               </div>
             </div>
 
@@ -124,38 +127,40 @@ export default {
     ...mapState(["user", "teacher"])
   },
   validations: {
-    name: {
+    myName: {
       required
     },
-    reward: {
+    myReward: {
       required
     },
-    practicesrequired: {
+    myPracticesRequired: {
       required
     },
-    practicelength: {
-      required
-    },
-    notify: {
+    myPracticeLength: {
       required
     }
   },
   created() {
-    console.log(this.user.instrument);
     this.myInstrument = this.user.instrument;
+    this.myName = this.user.name;
+    this.myReward = this.user.reward;
+    this.myPracticesRequired = this.user.practicesrequired;
+    this.myPracticeLength = this.user.practicelength;
+    this.myNotify = this.user.notify;
+
+    // eslint-disable-next-line no-console
+    console.log(this.user);
   },
   data: () => ({
     currentUser: firebase.auth().currentUser,
     submitStatus: null,
-    selected: false,
     validClass: "input",
-    name: "",
-    reward: "",
-    practicesrequired: 0,
-    practicelength: 0,
-    notify: false,
     instrument: null,
+    myName: null,
     myInstrument: "none",
+    myReward: "A trip to the candy store!",
+    myPracticesRequired: null,
+    myPracticeLength: null,
     instruments: [
       "acoustic guitar",
       "banjo",
@@ -184,21 +189,22 @@ export default {
   methods: {
     submit() {
       this.$v.$touch();
-      if (this.$v.$invalid) {
+      // eslint-disable-next-line no-console
+      console.log(this.myName);
+      if (this.myName == "") {
         this.submitStatus = "ERROR";
         this.validClass = "input is-danger";
       } else {
         this.submitStatus = "PENDING";
         this.validClass = "input";
-        //this.$store.dispatch('searchTeachers', this.email);
         this.$store.dispatch("updateUser", {
-          name: this.name,
-          reward: this.reward,
-          uid: this.user.id,
-          practicesrequired: this.practicesrequired,
+          name: this.myName,
+          reward: this.myReward,
+          uid: this.currentUser.uid,
+          practicesrequired: this.myPracticesRequired,
           instrument: this.myInstrument,
-          practicelength: this.practicelength,
-          notify: this.notify
+          practicelength: this.myPracticeLength,
+          notify: this.myNotify
         });
         setTimeout(() => {
           this.submitStatus = "OK";
