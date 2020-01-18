@@ -147,9 +147,6 @@ export default {
     this.myPracticesRequired = this.user.practicesrequired;
     this.myPracticeLength = this.user.practicelength;
     this.myNotify = this.user.notify;
-
-    // eslint-disable-next-line no-console
-    console.log(this.user);
   },
   data: () => ({
     currentUser: firebase.auth().currentUser,
