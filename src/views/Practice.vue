@@ -110,12 +110,7 @@ export default {
         this.practicescompleted++;
         //save practice session on completion, add to practices completed. Notify teacher if required
         this.$store.dispatch("savePractice", {
-          uid: this.currentUser.uid,
-          instrument: this.user.instrument,
-          name: this.user.name,
-          practicelength: this.user.practicelength,
-          teacherId: this.teacher.id,
-          practicescompleted: this.practicescompleted
+          uid: this.currentUser.uid
         });
       }
     },
@@ -134,8 +129,8 @@ export default {
       this.minutes = 0;
     },
     getPractices() {
-      this.practicescompleted = this.user.practicescompleted;
-      if (this.practicescompleted == this.user.practicesrequired) {
+      //this.practicescompleted = this.user.practicescompleted;
+      if (this.practicescompleted > this.user.practicesrequired) {
         //goal has been achieved
         this.practicescompleted == 0;
       }

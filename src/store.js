@@ -204,34 +204,16 @@ export default new Vuex.Store({
 		},
 		savePractice({ commit }, payload) {
 			// eslint-disable-next-line no-console
-			console.log(payload);
+			//let practices = [];
 			firebase
 				.firestore()
-				.collection('practices')
+				.collection('users')
 				.doc(payload.uid)
-				.set({
-					name: payload.name,
-					teacherId: payload.teacherId,
-					instrument: payload.instrument,
-					practicelength: payload.practicelength,
-					updated: firebase.firestore.Timestamp.fromDate(new Date()),
-				})
-				.then(function() {
-					//update users
-					firebase
-						.firestore()
-						.collection('users')
-						.doc(payload.uid)
-						.set(
-							{
-								practicescompleted: payload.practicescompleted,
-							},
-							{ merge: true }
-						);
-				})
-				.then(function() {
-					commit('setUser', payload);
-				});
+				.collection('practices')
+				.doc()
+				.set({ updated: firebase.firestore.Timestamp.fromDate(new Date()) });
+
+			//commit('setUser', practices);
 		},
 	},
 });
