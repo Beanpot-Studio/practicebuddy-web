@@ -124,6 +124,7 @@ export default new Vuex.Store({
 						user.reward = doc.data().reward;
 						user.practicelength = doc.data().practicelength;
 						user.practicesrequired = doc.data().practicesrequired;
+						user.practicescompleted = doc.data().practicescompleted;
 						user.notify = doc.data().notify;
 						commit('setUser', user);
 					}
@@ -197,6 +198,37 @@ export default new Vuex.Store({
 					},
 					{ merge: true }
 				)
+				.then(function() {
+					commit('setUser', payload);
+				});
+		},
+		savePractice({ commit }, payload) {
+			// eslint-disable-next-line no-console
+			console.log(payload);
+			firebase
+				.firestore()
+				.collection('practices')
+				.doc(payload.uid)
+				.set({
+					name: payload.name,
+					teacherId: payload.teacherId,
+					instrument: payload.instrument,
+					practicelength: payload.practicelength,
+					updated: firebase.firestore.Timestamp.fromDate(new Date()),
+				})
+				.then(function() {
+					//update users
+					firebase
+						.firestore()
+						.collection('users')
+						.doc(payload.uid)
+						.set(
+							{
+								practicescompleted: payload.practicescompleted,
+							},
+							{ merge: true }
+						);
+				})
 				.then(function() {
 					commit('setUser', payload);
 				});

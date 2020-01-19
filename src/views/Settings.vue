@@ -5,6 +5,12 @@
       <h2 class="subtitle">Fill in these settings to customize your practices</h2>
       <div class="columns">
         <div class="column">
+          <div v-if="message !== ''">
+            <article class="message is-success">
+              <div class="message-body">{{ message }}</div>
+            </article>
+          </div>
+
           <form @submit.prevent="submit">
             <div class="field">
               <label class="label">Name</label>
@@ -150,6 +156,7 @@ export default {
   },
   data: () => ({
     currentUser: firebase.auth().currentUser,
+    message: "",
     submitStatus: null,
     validClass: "input",
     instrument: null,
@@ -206,6 +213,7 @@ export default {
         setTimeout(() => {
           this.submitStatus = "OK";
           this.validClass = "input";
+          this.message = "Your settings have been saved!";
         }, 500);
       }
     }
