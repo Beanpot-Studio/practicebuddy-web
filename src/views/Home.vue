@@ -56,7 +56,9 @@
 									</figure>
 								</div>
 								<div>
-									<div class="heading has-text-white">Occurred: {{ practice.updated }}</div>
+									<div class="heading has-text-white">
+										Occurred: {{ practice.updated | moment('MMMM Do YYYY, h:mm:ss a') }}
+									</div>
 									<!--<div class="has-text-white is-size-5">{{ practice.practicelength }}</div>-->
 									<!--<div class="has-text-white is-size-5">{{ practice.feedback }}</div>
 								<div class="has-text-white is-size-5">

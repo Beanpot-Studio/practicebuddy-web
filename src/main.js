@@ -9,6 +9,11 @@ import Vuelidate from 'vuelidate';
 Vue.use(Vuelidate);
 import VueConfetti from 'vue-confetti';
 Vue.use(VueConfetti);
+import VueMoment from 'vue-moment';
+import moment from 'moment-timezone';
+Vue.use(VueMoment, {
+	moment,
+});
 
 let app = '';
 
