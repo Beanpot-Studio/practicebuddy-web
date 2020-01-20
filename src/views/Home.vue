@@ -45,25 +45,27 @@
 		<div class="main-content" v-else>
 			<h1 class="title is-size-3">My Practices</h1>
 
-			<div class="columns">
-				<div class="column is-one-third">
-					<div class="box has-background-info">
-						<article class="media">
-							<div class="media-left">
-								<figure class="circle has-background-white">
-									<img src="/instruments/0.png" alt="Image" />
-								</figure>
-							</div>
-							<div>
-								<div class="heading has-text-white">Occurred: 01/02/2020</div>
-								<div class="has-text-white is-size-5">50 Minutes</div>
-								<div class="has-text-white is-size-5">Feedback: Very well done!</div>
+			<div class="columns is-multiline">
+				<div v-for="practice in practices" :key="practice.id">
+					<div class="column">
+						<div class="box has-background-info">
+							<article class="media">
+								<div class="media-left">
+									<figure class="circle has-background-white">
+										<img :src="'./instruments/' + practice.instrument + '.png'" alt="Image" />
+									</figure>
+								</div>
+								<div>
+									<div class="heading has-text-white">Occurred: {{ practice.updated }}</div>
+									<!--<div class="has-text-white is-size-5">{{ practice.practicelength }}</div>-->
+									<!--<div class="has-text-white is-size-5">{{ practice.feedback }}</div>
 								<div class="has-text-white is-size-5">
 									<img src="../assets/stickers/sticker1.png" />
 								</div>
-								<div class="has-text-white is-size-5"><i class="fa fa-play"></i> Recording</div>
-							</div>
-						</article>
+								<div class="has-text-white is-size-5"><i class="fa fa-play"></i> Recording</div>-->
+								</div>
+							</article>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -78,7 +80,7 @@ import { mapState, mapActions } from 'vuex';
 export default {
 	name: 'landing',
 	computed: {
-		...mapState(['students', 'status', 'announcement', 'teacher', 'user']),
+		...mapState(['students', 'status', 'teacher', 'user', 'practices']),
 	},
 	data: () => ({
 		currentUser: firebase.auth().currentUser,
@@ -86,12 +88,16 @@ export default {
 	created() {
 		this.getUser(this.currentUser.uid)
 			.then(this.findTeacher(this.currentUser.uid))
-			.then(this.fetchStudents(this.currentUser.uid));
+			.then(this.fetchStudents(this.currentUser.uid))
+			.then(this.fetchPractices(this.currentUser.uid));
 	},
 	methods: {
 		...mapActions(['getUser']),
 		fetchStudents(uid) {
 			this.$store.dispatch('fetchStudents', uid);
+		},
+		fetchPractices(uid) {
+			this.$store.dispatch('fetchPractices', uid);
 		},
 		findTeacher(id) {
 			this.$store.dispatch('findTeacher', id);

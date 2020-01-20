@@ -205,9 +205,9 @@ export default {
           name: this.myName,
           reward: this.myReward,
           uid: this.currentUser.uid,
-          practicesrequired: this.myPracticesRequired,
+          practicesrequired: parseInt(this.myPracticesRequired),
           instrument: this.myInstrument,
-          practicelength: this.myPracticeLength,
+          practicelength: parseInt(this.myPracticeLength),
           notify: this.myNotify
         });
         setTimeout(() => {

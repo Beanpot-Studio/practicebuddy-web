@@ -15,6 +15,7 @@
 		"bulma": "^0.7.5",
 		"core-js": "^2.6.5",
 		"vue": "^2.6.10",
+		"vue-confetti": "^2.0.7",
 		"vue-lottie-web": "0.0.3",
 		"vue-router": "^3.0.3",
 		"vuelidate": "^0.7.4",

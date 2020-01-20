@@ -7,6 +7,8 @@ import '@firebase/auth';
 Vue.config.productionTip = false;
 import Vuelidate from 'vuelidate';
 Vue.use(Vuelidate);
+import VueConfetti from 'vue-confetti';
+Vue.use(VueConfetti);
 
 let app = '';
 

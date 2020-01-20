@@ -10,6 +10,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
 	state: {
 		user: null,
+		practices: [],
 		message: null,
 		teacher: null,
 		error: '',
@@ -20,6 +21,10 @@ export default new Vuex.Store({
 	mutations: {
 		setUser: (state, user) => {
 			state.user = user;
+		},
+		setPractices: (state, practices) => {
+			state.practices = practices;
+			console.log(state.practices);
 		},
 		setMessage: (state, message) => {
 			state.message = message;
@@ -131,6 +136,27 @@ export default new Vuex.Store({
 				});
 		},
 
+		fetchPractices({ commit }, uid) {
+			let practices = [];
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(uid)
+				.collection('practices')
+				.onSnapshot(function(querySnapshot) {
+					querySnapshot.forEach(function(doc) {
+						var record = {
+							id: doc.id,
+							name: doc.data().name,
+							instrument: doc.data().instrument,
+							updated: doc.data().updated.toDateString(),
+						};
+						practices.push(record);
+					});
+					commit('setPractices', practices);
+				});
+		},
+
 		fetchStudents({ commit }, uid) {
 			let students = [];
 			firebase
@@ -204,16 +230,38 @@ export default new Vuex.Store({
 		},
 		savePractice({ commit }, payload) {
 			// eslint-disable-next-line no-console
-			//let practices = [];
+			console.log(payload);
+
+			//update users
 			firebase
 				.firestore()
 				.collection('users')
 				.doc(payload.uid)
-				.collection('practices')
-				.doc()
-				.set({ updated: firebase.firestore.Timestamp.fromDate(new Date()) });
-
-			//commit('setUser', practices);
+				.set(
+					{
+						practicescompleted: payload.practicescompleted,
+					},
+					{ merge: true }
+				)
+				.then(function() {
+					//add a practice to the users collection
+					firebase
+						.firestore()
+						.collection('users')
+						.doc(payload.uid)
+						.collection('practices')
+						.doc()
+						.set({
+							instrument: payload.instrument,
+							name: payload.name,
+							updated: firebase.firestore.Timestamp.fromDate(new Date()),
+						});
+				})
+				.then(function() {
+					//commit('setUser', payload);
+					//this.getUser(payload.uid);
+					//todo - query users
+				});
 		},
 	},
 });
