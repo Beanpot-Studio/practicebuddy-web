@@ -32,7 +32,7 @@
 					</router-link>
 				</li>
 				<li>
-					<router-link class="navbar-item" :to="''">
+					<router-link class="navbar-item" :to="'/studentarchive'">
 						<i class="fas fa-archive"></i> My Practice Archive
 					</router-link>
 				</li>

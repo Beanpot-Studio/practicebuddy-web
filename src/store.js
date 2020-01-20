@@ -11,6 +11,7 @@ export default new Vuex.Store({
 	state: {
 		user: null,
 		practices: [],
+		archives: [],
 		message: null,
 		teacher: null,
 		error: '',
@@ -24,7 +25,9 @@ export default new Vuex.Store({
 		},
 		setPractices: (state, practices) => {
 			state.practices = practices;
-			console.log(state.practices);
+		},
+		setArchives: (state, archives) => {
+			state.archives = archives;
 		},
 		setMessage: (state, message) => {
 			state.message = message;
@@ -145,15 +148,44 @@ export default new Vuex.Store({
 				.collection('practices')
 				.onSnapshot(function(querySnapshot) {
 					querySnapshot.forEach(function(doc) {
-						var record = {
-							id: doc.id,
-							name: doc.data().name,
-							instrument: doc.data().instrument,
-							updated: doc.data().updated.toDateString(),
-						};
-						practices.push(record);
+						if (!doc.data().archive) {
+							var record = {
+								id: doc.id,
+								name: doc.data().name,
+								instrument: doc.data().instrument,
+								updated: doc.data().updated.toDate(),
+								reward: doc.data().reward,
+								practicescompleted: doc.data().practicescompleted,
+								practicesrequired: doc.data().practicesrequired,
+								feedback: doc.data().feedback,
+								sticker: doc.data().sticker,
+							};
+							practices.push(record);
+						}
 					});
 					commit('setPractices', practices);
+				});
+		},
+		fetchArchives({ commit }, uid) {
+			let archives = [];
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(uid)
+				.collection('practices')
+				.onSnapshot(function(querySnapshot) {
+					querySnapshot.forEach(function(doc) {
+						if (doc.data().archive) {
+							var record = {
+								id: doc.id,
+								name: doc.data().name,
+								instrument: doc.data().instrument,
+								updated: doc.data().updated.toDate(),
+							};
+							archives.push(record);
+						}
+					});
+					commit('setArchives', archives);
 				});
 		},
 
@@ -226,6 +258,24 @@ export default new Vuex.Store({
 				)
 				.then(function() {
 					commit('setUser', payload);
+				});
+		},
+		archivePractice({ commit }, payload) {
+			// eslint-disable-next-line no-console
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(payload.uid)
+				.collection('practices')
+				.doc(payload.id)
+				.set(
+					{
+						archive: true,
+					},
+					{ merge: true }
+				)
+				.then(function() {
+					//commit('setUser', payload);
 				});
 		},
 		savePractice({ commit }, payload) {

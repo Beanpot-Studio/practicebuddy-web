@@ -12,7 +12,7 @@ import Settings from '@/views/Settings.vue';
 import TeacherSearch from '@/views/TeacherSearch.vue';
 import StudentPractices from '@/views/StudentPractices.vue';
 import Practice from '@/views/Practice.vue';
-
+import StudentArchive from '@/views/StudentArchive.vue';
 Vue.use(Router);
 
 const router = new Router({
@@ -65,6 +65,14 @@ const router = new Router({
 			path: '/practice',
 			name: 'practice',
 			component: Practice,
+			meta: {
+				requiresAuth: true,
+			},
+		},
+		{
+			path: '/studentarchive',
+			name: 'studentarchive',
+			component: StudentArchive,
 			meta: {
 				requiresAuth: true,
 			},

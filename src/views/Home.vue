@@ -41,7 +41,7 @@
 				</router-link>
 			</div>
 		</div>
-
+		<!--what a student sees-->
 		<div class="main-content" v-else>
 			<h1 class="title is-size-3">My Practices</h1>
 
@@ -55,16 +55,34 @@
 										<img :src="'./instruments/' + practice.instrument + '.png'" alt="Image" />
 									</figure>
 								</div>
+
 								<div>
 									<div class="heading has-text-white">
 										Occurred: {{ practice.updated | moment('MMMM Do YYYY, h:mm:ss a') }}
 									</div>
-									<!--<div class="has-text-white is-size-5">{{ practice.practicelength }}</div>-->
-									<!--<div class="has-text-white is-size-5">{{ practice.feedback }}</div>
-								<div class="has-text-white is-size-5">
-									<img src="../assets/stickers/sticker1.png" />
+									<div
+										v-if="practice.reward && practice.reward !== ''"
+										class="heading has-text-white"
+									>
+										Practice {{ practice.practicescompleted }} out of
+										{{ practice.practicesrequired }}; working Towards: {{ practice.reward }}
+									</div>
+									<div class="has-text-white is-size-5">{{ practice.practicelength }}</div>
+									<div v-if="practice.feedback" class="has-text-white is-size-5">
+										{{ practice.feedback }}
+									</div>
+									<div v-if="practice.sticker" class="has-text-white is-size-5">
+										<img src="../assets/stickers/sticker1.png" />
+									</div>
+									<div v-if="practice.recording" class="has-text-white is-size-5">
+										<i class="fa fa-play"></i> Recording
+									</div>
 								</div>
-								<div class="has-text-white is-size-5"><i class="fa fa-play"></i> Recording</div>-->
+								<div
+									class="button media-right has-text-link has-background-light is-2"
+									@click="archive(practice.id)"
+								>
+									<figure><i class="fas fa-archive "></i></figure>
 								</div>
 							</article>
 						</div>
@@ -101,8 +119,11 @@ export default {
 		fetchPractices(uid) {
 			this.$store.dispatch('fetchPractices', uid);
 		},
-		findTeacher(id) {
-			this.$store.dispatch('findTeacher', id);
+		findTeacher(uid) {
+			this.$store.dispatch('findTeacher', uid);
+		},
+		archive(id) {
+			this.$store.dispatch('archivePractice', { uid: this.currentUser.uid, id: id });
 		},
 	},
 };
