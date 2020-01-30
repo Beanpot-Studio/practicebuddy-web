@@ -10,9 +10,11 @@ import About from '@/views/About.vue';
 import Home from '@/views/Home.vue';
 import Settings from '@/views/Settings.vue';
 import TeacherSearch from '@/views/TeacherSearch.vue';
-import StudentPractices from '@/views/StudentPractices.vue';
+import TeacherStudentPractices from '@/views/TeacherStudentPractices.vue';
 import Practice from '@/views/Practice.vue';
-import StudentArchive from '@/views/StudentArchive.vue';
+import TeacherArchive from '@/views/TeacherArchive.vue';
+import TeacherStudentArchives from '@/views/TeacherStudentArchives.vue';
+
 Vue.use(Router);
 
 const router = new Router({
@@ -70,17 +72,25 @@ const router = new Router({
 			},
 		},
 		{
-			path: '/studentarchive',
-			name: 'studentarchive',
-			component: StudentArchive,
+			path: '/teacherarchive',
+			name: 'teacherarchive',
+			component: TeacherArchive,
 			meta: {
 				requiresAuth: true,
 			},
 		},
 		{
-			path: '/studentpractices/:id',
-			name: 'studentpractices',
-			component: StudentPractices,
+			path: '/teacherstudentpractices/:id',
+			name: 'teacherstudentpractices',
+			component: TeacherStudentPractices,
+			meta: {
+				requiresAuth: true,
+			},
+		},
+		{
+			path: '/teacherstudentarchives/:id',
+			name: 'teacherstudentarchives',
+			component: TeacherStudentArchives,
 			meta: {
 				requiresAuth: true,
 			},

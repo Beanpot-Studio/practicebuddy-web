@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<section class="hero is-success is-bold">
+		<section class="hero ">
 			<div class="hero-body">
 				<div class="columns is-vcentered">
 					<div class="column is-one-third is-offset-1 is-centered home-elements">

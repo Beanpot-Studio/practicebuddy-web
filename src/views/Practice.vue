@@ -91,6 +91,7 @@ export default {
 		seconds: 0,
 		runningSeconds: 0,
 		notification: '',
+		goalAchieved: false,
 	}),
 	created() {
 		//console.log(this.user);
@@ -121,16 +122,25 @@ export default {
 				this.getPractices();
 				this.practicescompleted++;
 
-				//goal has been achieved
-				this.$confetti.start();
-				this.notification = "Congratulations, you've completed a goal!";
 				//save practice session on completion, add to practices completed. Notify teacher if required
-				this.$store.dispatch('savePractice', {
-					uid: this.currentUser.uid,
-					practicescompleted: parseInt(this.practicescompleted),
-					name: this.user.name,
-					instrument: this.user.instrument,
-				});
+				this.$store
+					.dispatch('savePractice', {
+						uid: this.currentUser.uid,
+						practicescompleted: parseInt(this.practicescompleted),
+						name: this.user.name,
+						instrument: this.user.instrument,
+						practicesrequired: parseInt(this.user.practicesrequired),
+						reward: this.user.reward,
+						practicelength: parseInt(this.user.practicelength),
+					})
+					.then(() => {
+						//goal has been achieved
+						if (this.practicescompleted == this.user.practicesrequired) {
+							this.$confetti.start();
+							this.notification = "Congratulations, you've completed a goal!";
+							this.practicescompleted = 0;
+						}
+					});
 			}
 		},
 
