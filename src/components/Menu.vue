@@ -1,7 +1,7 @@
 <template>
   <aside v-if="this.user != null" class="column is-2 aside">
-    
-    <nav v-if="practices.length" class="menu">
+    <!-- only show this is there are practices but no students, thus it's a student menu-->
+    <nav v-if="practices.length && students.length == 0" class="menu">
       <ul class="menu-list">
         <li>
           <router-link class="navbar-item" :to="'/home'">
@@ -26,12 +26,6 @@
             <i class="fa fa-user"></i> My Teacher
           </router-link>
         </li>
-
-        <!--<li>
-          <router-link class="navbar-item" :to="''">
-            <i class="fas fa-graduation-cap"></i> My Feedback
-          </router-link>
-        </li>-->
         <li>
           <router-link class="navbar-item" :to="'/studentarchive'">
             <i class="fas fa-archive"></i> My Practice Archive
@@ -40,6 +34,7 @@
       </ul>
     </nav>
     <nav v-else>
+      <!--teacher menu-->
       <ul class="menu-list">
         <li>
           <router-link class="navbar-item" :to="'/home'">
@@ -63,13 +58,13 @@ import "@firebase/firestore";
 import { mapState, mapActions } from "vuex";
 export default {
   computed: {
-    ...mapState(['user', ['practices']])
+    ...mapState(['user', ['practices'],['students']])
   },
   data: () => ({
     currentUser: firebase.auth().currentUser,
   }),
   methods: {
-    ...mapActions(['fetchUser','fetchPractices'])
+    ...mapActions(['fetchUser','fetchStudents','fetchPractices'])
   }
   
   

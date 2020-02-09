@@ -17,7 +17,7 @@
         <div v-else>Your teacher is: {{ teacher.name }}</div>
       </div>
     </div>
-{{students.length}}
+
     <div class="main-content" v-if="students.length>0">
       <h1 class="title is-size-3">My Students</h1>
 

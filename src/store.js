@@ -69,7 +69,6 @@ export default new Vuex.Store({
 		//bindings to collections
 		
 		fetchUser: firestoreAction(({ bindFirestoreRef }, payload) => {
-			console.log(payload)
 			bindFirestoreRef('user', firebase
 			.firestore().collection('users')
 			.doc(payload))
