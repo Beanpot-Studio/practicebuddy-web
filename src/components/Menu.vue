@@ -1,6 +1,7 @@
 <template>
-  <aside v-if="status != ''" class="column is-2 aside">
-    <nav v-if="status == 'student'" class="menu">
+  <aside v-if="this.user != null" class="column is-2 aside">
+    
+    <nav v-if="practices.length" class="menu">
       <ul class="menu-list">
         <li>
           <router-link class="navbar-item" :to="'/home'">
@@ -26,11 +27,11 @@
           </router-link>
         </li>
 
-        <li>
+        <!--<li>
           <router-link class="navbar-item" :to="''">
             <i class="fas fa-graduation-cap"></i> My Feedback
           </router-link>
-        </li>
+        </li>-->
         <li>
           <router-link class="navbar-item" :to="'/studentarchive'">
             <i class="fas fa-archive"></i> My Practice Archive
@@ -38,7 +39,7 @@
         </li>
       </ul>
     </nav>
-    <nav v-if="status == 'teacher'">
+    <nav v-else>
       <ul class="menu-list">
         <li>
           <router-link class="navbar-item" :to="'/home'">
@@ -59,26 +60,18 @@
 import { firebase } from "@firebase/app";
 import "@firebase/auth";
 import "@firebase/firestore";
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
 export default {
   computed: {
-    ...mapState(["status"])
+    ...mapState(['user', ['practices']])
   },
   data: () => ({
-    currentUser: firebase.auth().currentUser
+    currentUser: firebase.auth().currentUser,
   }),
-  created() {
-    this.init();
-  },
   methods: {
-    init() {
-      if (this.currentUser !== null) {
-        this.fetchStudents(this.currentUser.uid);
-      }
-    },
-    fetchStudents(id) {
-      this.$store.dispatch("fetchStudents", id);
-    }
+    ...mapActions(['fetchUser','fetchPractices'])
   }
+  
+  
 };
 </script>

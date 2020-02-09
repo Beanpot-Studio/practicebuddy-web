@@ -1,9 +1,10 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { firebase } from '@firebase/app';
+import { vuexfireMutations, firestoreAction } from 'vuexfire';
 import '@firebase/firestore';
 import '@firebase/auth';
-import createPersistedState from 'vuex-persistedstate';
+//import createPersistedState from 'vuex-persistedstate';
 
 Vue.use(Vuex);
 
@@ -12,34 +13,29 @@ export default new Vuex.Store({
 		user: null,
 		activeStudent: null,
 		practices: [],
-		archives: [],
 		message: null,
 		teacher: null,
 		error: '',
-		status: '',
+		//status: '',
 		students: [],
 	},
-	plugins: [createPersistedState()],
+	//plugins: [createPersistedState()],
 	mutations: {
-		setUser: (state, user) => {
+		...vuexfireMutations,
+		/*setUser: (state, user) => {
 			state.user = user;
-		},
+		},*/
 		setActiveStudent: (state, id) => {
 			state.activeStudent = id;
 		},
-		setPractices: (state, practices) => {
-			state.practices = practices;
-		},
-		setArchives: (state, archives) => {
-			state.archives = archives;
-		},
+		
 		setMessage: (state, message) => {
 			state.message = message;
 		},
 		throwError: (state, error) => {
 			state.error = error;
 		},
-		setStudents: (state, students) => {
+		/*: (state, students) => {
 			state.students = students;
 			//if students exist, this is a teacher
 			if (state.students.length) {
@@ -47,12 +43,13 @@ export default new Vuex.Store({
 			} else {
 				state.status = 'student';
 			}
-		},
+		},*/
 		clearAll: state => {
 			//only on logout
 			state.students = [];
 			state.teacher = null;
-			state.status = '';
+			state.user = null;
+			//state.status = '';
 		},
 		clearTeacher: state => {
 			state.teacher = null;
@@ -60,11 +57,56 @@ export default new Vuex.Store({
 		clearError: state => {
 			state.error = '';
 		},
+
 		setTeacher: (state, teacher) => {
 			state.teacher = teacher;
 		},
+
 	},
+	
 	actions: {
+
+		//bindings to collections
+		
+		fetchUser: firestoreAction(({ bindFirestoreRef }, payload) => {
+			console.log(payload)
+			bindFirestoreRef('user', firebase
+			.firestore().collection('users')
+			.doc(payload))
+		}),
+
+		fetchPractices: firestoreAction(({ bindFirestoreRef }, payload) => {
+			bindFirestoreRef('practices', firebase
+			.firestore().collection('users')
+			.doc(payload)
+			.collection('practices')
+			.orderBy('updated'))
+		}),
+
+		fetchStudents: firestoreAction(({ bindFirestoreRef }, payload) => {
+			bindFirestoreRef('students', firebase
+			.firestore().collection('users')
+			.doc(payload)
+			.collection('students'))
+		}),
+
+		//database changes
+	
+		awardSticker: firestoreAction(({ state }, payload) => {
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(payload.uid)
+				.collection('practices')
+				.doc(payload.practiceId)
+				.set(
+					{
+						sticker: payload.sticker,
+					},
+					{ merge: true }
+				)
+		}),
+
 		clearAll({ commit }) {
 			commit('clearAll');
 		},
@@ -121,116 +163,9 @@ export default new Vuex.Store({
 					}
 				});
 		},
-		//all user information from the users collection for currentUser
-		getUser({ commit }, uid) {
-			let user = [];
-			firebase
-				.firestore()
-				.collection('users')
-				.doc(uid)
-				.onSnapshot(function(doc) {
-					if (typeof doc.data().name !== 'undefined') {
-						user.id = doc.id;
-						user.name = doc.data().name;
-						user.instrument = doc.data().instrument;
-						user.reward = doc.data().reward;
-						user.practicelength = doc.data().practicelength;
-						user.practicesrequired = doc.data().practicesrequired;
-						user.practicescompleted = doc.data().practicescompleted;
-						user.notify = doc.data().notify;
-						commit('setUser', user);
-					}
-				});
-		},
+		
 
-		fetchPractices({ commit }, payload) {
-			let practices = [];
-			firebase
-				.firestore()
-				.collection('users')
-				.doc(payload.activeStudent)
-				.collection('practices')
-				.orderBy('updated')
-				.onSnapshot(function(querySnapshot) {
-					querySnapshot.forEach(function(doc) {
-						//filter teachers' archives if in teacher view
-						if (payload.teacher) {
-							if (!doc.data().teacherarchive) {
-								var record = {
-									id: doc.id,
-									name: doc.data().name,
-									instrument: doc.data().instrument,
-									updated: doc.data().updated.toDate(),
-									reward: doc.data().reward,
-									practicescompleted: doc.data().practicescompleted,
-									practicesrequired: doc.data().practicesrequired,
-									feedback: doc.data().feedback,
-									sticker: doc.data().sticker,
-									practicelength: doc.data().practicelength,
-									goalachieved: doc.data().goalachieved,
-								};
-								practices.push(record);
-							}
-						}
-						//else filter student archives from student view
-						else {
-							if (!doc.data().studentarchive) {
-								var record = {
-									id: doc.id,
-									name: doc.data().name,
-									instrument: doc.data().instrument,
-									updated: doc.data().updated.toDate(),
-									reward: doc.data().reward,
-									practicescompleted: doc.data().practicescompleted,
-									practicesrequired: doc.data().practicesrequired,
-									feedback: doc.data().feedback,
-									sticker: doc.data().sticker,
-									practicelength: doc.data().practicelength,
-									goalachieved: doc.data().goalachieved,
-								};
-								practices.push(record);
-							}
-						}
-					});
-					commit('setPractices', practices);
-				});
-		},
-
-		fetchArchives({ commit }, payload) {
-			let archives = [];
-			firebase
-				.firestore()
-				.collection('users')
-				.doc(payload.activeStudent)
-				.collection('practices')
-				.orderBy('updated')
-				.onSnapshot(function(querySnapshot) {
-					querySnapshot.forEach(function(doc) {
-						if (!payload.teacher) {
-							if (doc.data().studentarchive) {
-								var record = {
-									id: doc.id,
-									updated: doc.data().updated.toDate(),
-									practiceinfo: doc.data(),
-								};
-								archives.push(record);
-							}
-						} else {
-							if (doc.data().teacherarchive) {
-								var record = {
-									id: doc.id,
-									updated: doc.data().updated.toDate(),
-									practiceinfo: doc.data(),
-								};
-								archives.push(record);
-							}
-						}
-						commit('setArchives', archives);
-					});
-				});
-		},
-
-		fetchStudents({ commit }, uid) {
+		/*fetchStudents({ commit }, uid) {
 			let students = [];
 			firebase
 				.firestore()
@@ -248,7 +183,7 @@ export default new Vuex.Store({
 					});
 					commit('setStudents', students);
 				});
-		},
+		},*/
 		claimTeacher({ commit }, payload) {
 			// eslint-disable-next-line no-console
 			console.log(payload);
@@ -315,9 +250,7 @@ export default new Vuex.Store({
 						},
 						{ merge: true }
 					)
-					.then(function() {
-						//commit('setArchives', payload.practice);
-					});
+					
 			} else {
 				firebase
 					.firestore()
@@ -331,32 +264,11 @@ export default new Vuex.Store({
 						},
 						{ merge: true }
 					)
-					.then(function() {
-						//commit('setArchives', payload.practice);
-					});
+					
 			}
 		},
-		awardSticker({ commit }, payload) {
-			firebase
-				.firestore()
-				.collection('users')
-				.doc(payload.uid)
-				.collection('practices')
-				.doc(payload.practiceId)
-				.set(
-					{
-						sticker: payload.sticker,
-					},
-					{ merge: true }
-				)
-				.then(function() {
-					//commit('setArchives', payload.practice);
-				});
-		},
-		savePractice({ commit }, payload) {
-			// eslint-disable-next-line no-console
-			console.log(payload);
-
+		
+		savePractice(payload) {
 			//update users
 			firebase
 				.firestore()
@@ -391,11 +303,7 @@ export default new Vuex.Store({
 							updated: firebase.firestore.Timestamp.fromDate(new Date()),
 						});
 				})
-				.then(function() {
-					//commit('setUser', payload);
-					//this.getUser(payload.uid);
-					//todo - query users
-				});
+
 		},
 	},
 });

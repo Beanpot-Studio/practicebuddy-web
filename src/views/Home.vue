@@ -7,7 +7,7 @@
           Welcome! It looks like there is no teacher associated to your practices. If this is incorrect, please
           add your teacher to your account in the My Teacher tab.
           <span
-            v-if="status == 'teacher' && !students"
+            v-if="students.length==0"
           >
             If you are a teacher, when your students add
             you to their account you will start to see their practice information below and you will see
@@ -17,8 +17,8 @@
         <div v-else>Your teacher is: {{ teacher.name }}</div>
       </div>
     </div>
-
-    <div class="main-content" v-if="status == 'teacher'">
+{{students.length}}
+    <div class="main-content" v-if="students.length>0">
       <h1 class="title is-size-3">My Students</h1>
 
       <div class="columns">
@@ -53,7 +53,7 @@
       <div class="columns is-multiline">
         <div v-for="practice in practices" :key="practice.id">
           <div class="column">
-            <div
+            <div v-if="!practice.studentarchive"
               :class="practice.goalachieved ? 'box has-background-danger' : 'box has-background-info'"
             >
               <article class="media">
@@ -66,7 +66,7 @@
                 <div>
                   <div
                     class="heading has-text-white"
-                  >{{ practice.updated | moment('MMMM Do YYYY, h:mm:ss a') }}</div>
+                  >{{ practice.updated.seconds | moment('MMMM Do YYYY, h:mm:ss a') }}</div>
                   <div v-if="practice.reward && practice.reward !== ''" class="has-text-white">
                     <p>
                       Practice {{ practice.practicescompleted }} out of
@@ -79,9 +79,15 @@
                     v-if="practice.feedback"
                     class="has-text-white is-size-5"
                   >Teacher feedback: {{ practice.feedback }}</div>
-                  <div v-if="practice.sticker" class="has-text-white is-size-5">
-                    <img src="../assets/stickers/sticker1.png" />
-                  </div>
+                 <div v-if="practice.sticker" class="has-text-white is-size-5">
+										<img
+											:src="
+												require('../assets/stickers/sticker' +
+													practice.sticker +
+													'.png')
+											"
+										/>
+									</div>
                   <div v-if="practice.recording" class="has-text-white is-size-5">
                     <i class="fa fa-play"></i> Recording
                   </div>
@@ -110,28 +116,14 @@ import { mapState, mapActions } from "vuex";
 export default {
   name: "landing",
   computed: {
-    ...mapState(["students", "status", "teacher", "user", "practices"])
+    ...mapState([['students'], "teacher", "user", ['practices']])
   },
   data: () => ({
     currentUser: firebase.auth().currentUser
   }),
-  created() {
-    this.getUser(this.currentUser.uid)
-      .then(this.findTeacher(this.currentUser.uid))
-      .then(this.fetchStudents(this.currentUser.uid))
-      .then(this.fetchPractices(this.currentUser.uid));
-  },
+  
   methods: {
-    ...mapActions(["getUser"]),
-    fetchStudents(uid) {
-      this.$store.dispatch("fetchStudents", uid);
-    },
-    fetchPractices(uid) {
-      this.$store.dispatch("fetchPractices", {
-        activeStudent: uid,
-        teacher: false
-      });
-    },
+    ...mapActions(['fetchUser','fetchStudents','fetchPractices']),
     findTeacher(uid) {
       this.$store.dispatch("findTeacher", uid);
     },
@@ -141,6 +133,14 @@ export default {
         practice: practice
       });
     }
-  }
+  },
+  
+  created() {
+  this.fetchUser(this.currentUser.uid)
+      .then(this.findTeacher(this.currentUser.uid))
+			.then(this.fetchStudents(this.currentUser.uid))
+			.then(this.fetchPractices(this.currentUser.uid));
+    
+  },
 };
 </script>

@@ -14,16 +14,16 @@
       <h1 class="title is-size-3">Practices</h1>
       <h2 class="subtitle">Archived Practices</h2>
       <div class="columns is-multiline">
-        <div v-for="practice in archives" :key="practice.id">
+        <div v-for="practice in practices" :key="practice.id">
           <div class="column">
-            <div
-              :class="practice.practiceinfo.goalachieved ? 'box has-background-danger' : 'box has-background-info'"
+            <div v-if="practice.teacherarchive"
+              :class="practice.goalachieved ? 'box has-background-danger' : 'box has-background-info'"
             >
               <article class="media">
                 <div class="media-left">
                   <figure class="circle has-background-white">
                     <img
-                      :src="'../../instruments/' + practice.practiceinfo.instrument + '.png'"
+                      :src="'../../instruments/' + practice.instrument + '.png'"
                       alt="Image"
                     />
                   </figure>
@@ -32,29 +32,35 @@
                 <div>
                   <div
                     class="heading has-text-white"
-                  >{{ practice.updated | moment('MMMM Do YYYY, h:mm:ss a') }}</div>
+                  >{{ practice.updated.seconds | moment('MMMM Do YYYY, h:mm:ss a') }}</div>
                   <div
-                    v-if="practice.practiceinfo.reward && practice.practiceinfo.reward !== ''"
+                    v-if="practice.reward && practice.reward !== ''"
                     class="has-text-white"
                   >
-                    <p class="is-size-5">{{practice.practiceinfo.name}}</p>
+                    <p class="is-size-5">{{practice.name}}</p>
                     <p>
-                      Practice {{ practice.practiceinfo.practicescompleted }} out of
-                      {{ practice.practiceinfo.practicesrequired }}
+                      Practice {{ practice.practicescompleted }} out of
+                      {{ practice.practicesrequired }}
                     </p>
-                    <p>Working Towards: {{ practice.practiceinfo.reward }}</p>
+                    <p>Working Towards: {{ practice.reward }}</p>
                   </div>
                   <div
                     class="has-text-white is-size-4"
-                  >{{ practice.practiceinfo.practicelength }} minutes</div>
+                  >{{ practice.practicelength }} minutes</div>
                   <div
                     v-if="practice.feedback"
                     class="has-text-white is-size-5"
-                  >Teacher feedback: {{ practice.practiceinfo.feedback }}</div>
-                  <div v-if="practice.practiceinfo.sticker" class="has-text-white is-size-5">
-                    <img src="../assets/stickers/sticker1.png" />
-                  </div>
-                  <div v-if="practice.practiceinfo.recording" class="has-text-white is-size-5">
+                  >Teacher feedback: {{ practice.feedback }}</div>
+                  <div v-if="practice.sticker" class="has-text-white is-size-5">
+										<img
+											:src="
+												require('../assets/stickers/sticker' +
+													practice.sticker +
+													'.png')
+											"
+										/>
+									</div>
+                  <div v-if="practice.recording" class="has-text-white is-size-5">
                     <i class="fa fa-play"></i> Recording
                   </div>
                 </div>
@@ -68,11 +74,11 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
 export default {
   name: "teacherstudentarchives",
   computed: {
-    ...mapState(["user", "activeStudent", "archives"])
+    ...mapState(["user", "activeStudent", ['practices']])
   },
   watch: {
     "$route.params.id": {
@@ -83,15 +89,10 @@ export default {
     }
   },
   created() {
-    this.init();
+    this.fetchPractices(this.activeStudent);
   },
   methods: {
-    async init() {
-      await this.$store.dispatch("fetchArchives", {
-        activeStudent: this.activeStudent,
-        teacher: true
-      });
-    }
+    ...mapActions(['fetchPractices']),
   }
 };
 </script>

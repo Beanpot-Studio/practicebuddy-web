@@ -22,7 +22,7 @@
 		<div id="example-menu" class="navbar-menu">
 			<div class="navbar-end">
 				<router-link class="navbar-item has-text-white" :to="'about'">About</router-link>
-				<div v-if="status != ''" class="navbar-item">
+				<div v-if="user != null" class="navbar-item">
 					<div class="buttons" @click="logout">
 						<a class="button is-danger">Logout</a>
 					</div>
@@ -40,7 +40,7 @@ import { mapState } from 'vuex';
 export default {
 	name: 'my-navbar',
 	computed: {
-		...mapState(['status']),
+		...mapState(['user']),
 	},
 
 	methods: {

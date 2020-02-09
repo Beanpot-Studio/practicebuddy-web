@@ -38,27 +38,19 @@ import { mapState, mapActions } from 'vuex';
 export default {
 	name: 'landing',
 	computed: {
-		...mapState(['students', 'status', 'teacher', 'user', 'practices']),
+		...mapState([['students'], 'status', 'teacher', 'user']),
 	},
 	data: () => ({
 		currentUser: firebase.auth().currentUser,
 	}),
 	created() {
-		this.getUser(this.currentUser.uid)
+		this.fetchUser(this.currentUser.uid)
 			.then(this.fetchStudents(this.currentUser.uid))
-			.then(this.fetchPractices(this.currentUser.uid));
 	},
 	methods: {
-		...mapActions(['getUser']),
-		fetchStudents(uid) {
-			this.$store.dispatch('fetchStudents', uid);
-		},
-		fetchPractices(uid) {
-			this.$store.dispatch('fetchPractices', {
-				activeStudent: uid,
-				type: 'teacher',
-			});
-		},
+		...mapActions(['fetchUser', 'fetchStudents']),
+		
+		
 	},
 };
 </script>

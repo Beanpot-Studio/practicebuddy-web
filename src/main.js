@@ -31,7 +31,7 @@ firebase.initializeApp({
 firebase.auth().onAuthStateChanged(user => {
 	//fetch all information about user
 	if (user !== null) {
-		store.dispatch('getUser', user.uid);
+		//store.dispatch('fetchUser', user.uid);
 	}
 	if (!app) {
 		app = new Vue({
