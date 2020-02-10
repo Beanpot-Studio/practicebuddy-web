@@ -1,5 +1,5 @@
 <template>
-	<main class="column main">
+	<main class="column is-two-thirds main">
 		<div :class="modalClass">
 			<div class="modal-background"></div>
 			<div class="modal-content box">
@@ -27,8 +27,8 @@
 			<h1 class="title is-size-3">Practices</h1>
 			<h2 class="subtitle">Unarchived Practices</h2>
 			<div class="columns is-multiline">
-				<div v-for="practice in practices" :key="practice.id">
-					<div class="column">
+				<div v-for="practice in practices" :key="practice.id" class="practice-box">
+					
 						<div
 							v-if="!practice.teacherarchive"
 							:class="
@@ -93,7 +93,7 @@
 								</div>
 							</article>
 						</div>
-					</div>
+					
 				</div>
 			</div>
 		</div>
@@ -160,3 +160,8 @@ export default {
 	},
 };
 </script>
+<style scoped>
+.practice-box {
+  margin-bottom: 5px;
+}
+</style>

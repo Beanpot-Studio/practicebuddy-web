@@ -1,9 +1,11 @@
 <template>
-  <main class="column is-half main">
+  <main class="column is-two-thirds main">
     <div class="box main-content">
      
       <h1 class="title is-size-3">My Practices</h1>
       <h2 class="subtitle">Archived Practices</h2>
+
+      
       <div class="columns is-multiline">
         <div v-for="practice in practices" :key="practice.id">
           <div class="column">

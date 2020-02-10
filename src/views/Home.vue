@@ -1,6 +1,7 @@
 <template web>
-  <main class="column main">
-    <div>
+
+  <main class="column is-two-thirds main">
+    
       <div class="box is-radiusless is-shadowless has-background-light">
         <div class="is-size-4 title">Welcome, {{ currentUser.displayName }}</div>
         <div v-if="teacher == null" class="notification is-warning">
@@ -16,14 +17,12 @@
         </div>
         <div v-else>Your teacher is: {{ teacher.name }}</div>
       </div>
-    </div>
 
-    <div class="main-content" v-if="students.length>0">
+    <div class="box main-content" v-if="students.length>0">
       <h1 class="title is-size-3">My Students</h1>
 
-      <div class="columns">
+      <div class="columns is-multiline">
         <router-link
-          class="column is-one-third"
           v-for="student in students"
           :key="student.id"
           :to="{
@@ -47,16 +46,18 @@
       </div>
     </div>
     <!--what a student sees-->
-    <div class="main-content" v-else>
+    <div class="box main-content" v-else>
       <h1 class="title is-size-3">My Practices</h1>
       <h3 v-if="practices.length == 0">Your practice sessions will be displayed here</h3>
+      
       <div class="columns is-multiline">
         <div v-for="practice in practices" :key="practice.id">
-          <div class="column">
+          
+          
             <div v-if="!practice.studentarchive"
               :class="practice.goalachieved ? 'box has-background-danger' : 'box has-background-info'"
             >
-              <article class="media">
+             <article class="media">
                 <div class="media-left">
                   <figure class="circle has-background-white">
                     <img :src="'../../instruments/' + practice.instrument + '.png'" alt="Image" />
@@ -102,7 +103,7 @@
                 </div>
               </article>
             </div>
-          </div>
+         
         </div>
       </div>
     </div>
@@ -144,3 +145,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.box {
+  margin: 5px;
+}
+</style>

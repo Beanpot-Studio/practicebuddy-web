@@ -1,6 +1,6 @@
 <template web>
-	<main class="column main">
-		<div class="main-content">
+	<main class="column is-two-thirds main">
+		<div class="box main-content">
 			<h1 class="title is-size-3">My Students' Archives</h1>
 
 			<div class="columns">
