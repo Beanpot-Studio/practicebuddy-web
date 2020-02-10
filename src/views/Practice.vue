@@ -117,8 +117,6 @@ export default {
 				this.timerRunning = false;
 				this.minutes = 0;
 				this.seconds = 0;
-				//add one to practices completed
-				//this.getPractices();
 				this.practicescompleted++;
 
 				//save practice session on completion, add to practices completed. Notify teacher if required
