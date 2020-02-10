@@ -35,21 +35,13 @@ export default new Vuex.Store({
 		throwError: (state, error) => {
 			state.error = error;
 		},
-		/*: (state, students) => {
-			state.students = students;
-			//if students exist, this is a teacher
-			if (state.students.length) {
-				state.status = 'teacher';
-			} else {
-				state.status = 'student';
-			}
-		},*/
+		
 		clearAll: state => {
 			//only on logout
 			state.students = [];
+			state.practices = [];
 			state.teacher = null;
 			state.user = null;
-			//state.status = '';
 		},
 		clearTeacher: state => {
 			state.teacher = null;
@@ -157,7 +149,6 @@ export default new Vuex.Store({
 								teacher.name = doc.data().name;
 								teacher.email = doc.data().email;
 								commit('setTeacher', teacher);
-								//commit('setAnnouncement', '');
 							});
 					}
 				});
@@ -165,8 +156,6 @@ export default new Vuex.Store({
 		
 
 		claimTeacher({ commit }, payload) {
-			// eslint-disable-next-line no-console
-			console.log(payload);
 			var user = {
 				instrument: payload.instrument || 'none',
 				name: payload.name,
@@ -189,13 +178,10 @@ export default new Vuex.Store({
 				.then(function() {
 					commit('setMessage', 'Your teacher has been set!');
 				})
-				.then(function() {
-					//commit('clearTeacher');
-				});
+				
 		},
-		updateUser({ commit }, payload) {
-			// eslint-disable-next-line no-console
-			console.log(payload);
+
+		updateUser: firestoreAction(({ state }, payload) => {
 			firebase
 				.firestore()
 				.collection('users')
@@ -212,11 +198,10 @@ export default new Vuex.Store({
 					},
 					{ merge: true }
 				)
-				.then(function() {
-					commit('setUser', payload);
-				});
-		},
-		archivePractice({ commit }, payload) {
+		
+		}),
+		
+		archivePractice: firestoreAction(({ state }, payload) => {
 			if (payload.teacher) {
 				firebase
 					.firestore()
@@ -244,9 +229,9 @@ export default new Vuex.Store({
 						},
 						{ merge: true }
 					)
-					
-			}
-		},
+				}
+		}),
+		
 		savePractice: firestoreAction(({ commit }, payload) => {
 			//update users
 			firebase
@@ -281,8 +266,9 @@ export default new Vuex.Store({
 							goalachieved: goalachieved,
 							updated: firebase.firestore.Timestamp.fromDate(new Date()),
 						});
-				})
+				
 
 			})
-	},
+		})
+	}	
 });

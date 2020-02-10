@@ -13,6 +13,7 @@ import TeacherSearch from '@/views/TeacherSearch.vue';
 import TeacherStudentPractices from '@/views/TeacherStudentPractices.vue';
 import Practice from '@/views/Practice.vue';
 import TeacherArchive from '@/views/TeacherArchive.vue';
+import StudentArchive from '@/views/StudentArchive.vue';
 import TeacherStudentArchives from '@/views/TeacherStudentArchives.vue';
 
 Vue.use(Router);
@@ -75,6 +76,14 @@ const router = new Router({
 			path: '/teacherarchive',
 			name: 'teacherarchive',
 			component: TeacherArchive,
+			meta: {
+				requiresAuth: true,
+			},
+		},
+		{
+			path: '/studentarchive',
+			name: 'studentarchive',
+			component: StudentArchive,
 			meta: {
 				requiresAuth: true,
 			},
