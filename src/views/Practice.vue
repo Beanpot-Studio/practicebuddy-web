@@ -10,7 +10,6 @@
 					</div>
 				</article>
 			</div>
-
 			<img
 				class="circle has-background-white-ter"
 				v-if="user.instrument"
@@ -74,7 +73,7 @@
 <script>
 import { firebase } from '@firebase/app';
 import '@firebase/auth';
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 
 export default {
 	name: 'practice',
@@ -98,11 +97,11 @@ export default {
 		if (this.user.instrument == undefined) {
 			this.message = "Before starting, please set up  your preferences in the 'Settings' tab.";
 		}
-		//todo, get practicescompleted, and watch for changes on FE
 		this.getPractices();
 	},
 
 	methods: {
+		...mapActions(['fetchUser']),
 		start() {
 			if (this.user.practicelength != this.minutes) {
 				if (this.timerRunning) {
@@ -119,7 +118,7 @@ export default {
 				this.minutes = 0;
 				this.seconds = 0;
 				//add one to practices completed
-				this.getPractices();
+				//this.getPractices();
 				this.practicescompleted++;
 
 				//save practice session on completion, add to practices completed. Notify teacher if required
@@ -163,9 +162,8 @@ export default {
 			this.minutes = 0;
 		},
 		getPractices() {
-			this.practicescompleted = this.user.practicescompleted;
-
-			if (this.practicescompleted > this.user.practicesrequired) {
+			
+			if (this.user.practicescompleted == this.user.practicesrequired) {
 				//goal has been achieved
 				this.practicescompleted == 0;
 			}

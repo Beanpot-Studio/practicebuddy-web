@@ -164,25 +164,6 @@ export default new Vuex.Store({
 		},
 		
 
-		/*fetchStudents({ commit }, uid) {
-			let students = [];
-			firebase
-				.firestore()
-				.collection('users')
-				.doc(uid)
-				.collection('students')
-				.onSnapshot(function(querySnapshot) {
-					querySnapshot.forEach(function(doc) {
-						var record = {
-							id: doc.id,
-							name: doc.data().name,
-							instrument: doc.data().instrument,
-						};
-						students.push(record);
-					});
-					commit('setStudents', students);
-				});
-		},*/
 		claimTeacher({ commit }, payload) {
 			// eslint-disable-next-line no-console
 			console.log(payload);
@@ -266,8 +247,7 @@ export default new Vuex.Store({
 					
 			}
 		},
-		
-		savePractice(payload) {
+		savePractice: firestoreAction(({ commit }, payload) => {
 			//update users
 			firebase
 				.firestore()
@@ -303,6 +283,6 @@ export default new Vuex.Store({
 						});
 				})
 
-		},
+			})
 	},
 });
