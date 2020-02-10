@@ -15,7 +15,7 @@
       <h2 class="subtitle">Archived Practices</h2>
       <div class="columns is-multiline">
         <div v-for="practice in practices" :key="practice.id">
-          <div class="column">
+          <div class="practice-box">
             <div v-if="practice.teacherarchive"
               :class="practice.goalachieved ? 'box has-background-danger' : 'box has-background-info'"
             >
@@ -97,7 +97,8 @@ export default {
 };
 </script>
 <style scoped>
-.box {
+.practice-box {
   margin: 5px;
+  min-width: 450px;
 }
 </style>
