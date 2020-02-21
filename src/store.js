@@ -4,7 +4,7 @@ import { firebase } from '@firebase/app';
 import { vuexfireMutations, firestoreAction } from 'vuexfire';
 import '@firebase/firestore';
 import '@firebase/auth';
-//import createPersistedState from 'vuex-persistedstate';
+import createPersistedState from 'vuex-persistedstate';
 
 Vue.use(Vuex);
 
@@ -19,7 +19,7 @@ export default new Vuex.Store({
 		//status: '',
 		students: [],
 	},
-	//plugins: [createPersistedState()],
+	plugins: [createPersistedState()],
 	mutations: {
 		...vuexfireMutations,
 		/*setUser: (state, user) => {
@@ -28,14 +28,14 @@ export default new Vuex.Store({
 		setActiveStudent: (state, id) => {
 			state.activeStudent = id;
 		},
-		
+
 		setMessage: (state, message) => {
 			state.message = message;
 		},
 		throwError: (state, error) => {
 			state.error = error;
 		},
-		
+
 		clearAll: state => {
 			//only on logout
 			state.students = [];
@@ -53,36 +53,46 @@ export default new Vuex.Store({
 		setTeacher: (state, teacher) => {
 			state.teacher = teacher;
 		},
-
 	},
-	
-	actions: {
 
+	actions: {
 		//bindings to collections
-		
+
 		fetchUser: firestoreAction(({ bindFirestoreRef }, payload) => {
-			bindFirestoreRef('user', firebase
-			.firestore().collection('users')
-			.doc(payload))
+			bindFirestoreRef(
+				'user',
+				firebase
+					.firestore()
+					.collection('users')
+					.doc(payload)
+			);
 		}),
 
 		fetchPractices: firestoreAction(({ bindFirestoreRef }, payload) => {
-			bindFirestoreRef('practices', firebase
-			.firestore().collection('users')
-			.doc(payload)
-			.collection('practices')
-			.orderBy('updated'))
+			bindFirestoreRef(
+				'practices',
+				firebase
+					.firestore()
+					.collection('users')
+					.doc(payload)
+					.collection('practices')
+					.orderBy('updated', 'desc')
+			);
 		}),
 
 		fetchStudents: firestoreAction(({ bindFirestoreRef }, payload) => {
-			bindFirestoreRef('students', firebase
-			.firestore().collection('users')
-			.doc(payload)
-			.collection('students'))
+			bindFirestoreRef(
+				'students',
+				firebase
+					.firestore()
+					.collection('users')
+					.doc(payload)
+					.collection('students')
+			);
 		}),
 
 		//database changes
-	
+
 		awardSticker: firestoreAction(({ state }, payload) => {
 			firebase
 				.firestore()
@@ -95,7 +105,7 @@ export default new Vuex.Store({
 						sticker: payload.sticker,
 					},
 					{ merge: true }
-				)
+				);
 		}),
 
 		clearAll({ commit }) {
@@ -153,7 +163,6 @@ export default new Vuex.Store({
 					}
 				});
 		},
-		
 
 		claimTeacher({ commit }, payload) {
 			var user = {
@@ -177,8 +186,7 @@ export default new Vuex.Store({
 				})
 				.then(function() {
 					commit('setMessage', 'Your teacher has been set!');
-				})
-				
+				});
 		},
 
 		updateUser: firestoreAction(({ state }, payload) => {
@@ -197,10 +205,9 @@ export default new Vuex.Store({
 						notify: payload.notify,
 					},
 					{ merge: true }
-				)
-		
+				);
 		}),
-		
+
 		archivePractice: firestoreAction(({ state }, payload) => {
 			if (payload.teacher) {
 				firebase
@@ -214,8 +221,7 @@ export default new Vuex.Store({
 							teacherarchive: true,
 						},
 						{ merge: true }
-					)
-					
+					);
 			} else {
 				firebase
 					.firestore()
@@ -228,10 +234,10 @@ export default new Vuex.Store({
 							studentarchive: true,
 						},
 						{ merge: true }
-					)
-				}
+					);
+			}
 		}),
-		
+
 		savePractice: firestoreAction(({ commit }, payload) => {
 			//update users
 			firebase
@@ -266,9 +272,7 @@ export default new Vuex.Store({
 							goalachieved: goalachieved,
 							updated: firebase.firestore.Timestamp.fromDate(new Date()),
 						});
-				
-
-			})
-		})
-	}	
+				});
+		}),
+	},
 });

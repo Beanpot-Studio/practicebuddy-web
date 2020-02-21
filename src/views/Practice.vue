@@ -30,12 +30,6 @@
 					<h2 class="column has-text-link is-1 has-text-centered">{{ seconds }}</h2>
 				</div>
 
-				<h2>Record one minute of your practice session</h2>
-
-				<div class="circle has-background-primary has-text-white icon is-large">
-					<i class="fa fa-microphone"></i>
-				</div>
-
 				<div class="practiceButton">
 					<button
 						class="button is-full is-link is-rounded is-large"
@@ -45,6 +39,24 @@
 						{{ timerRunning ? 'Stop Practicing' : 'Start Practicing' }}
 					</button>
 				</div>
+
+				<h2>Record one minute of your practice session.</h2>
+
+				<!--<div class="circle has-background-primary has-text-white icon is-large" @click="startRecording()">
+					<i class="fa fa-microphone"></i>
+				</div>-->
+				<audio-recorder
+					upload-url="https://console.cloud.google.com/storage/browser/practicebuddy-bucket"
+					:attempts="3"
+					:time="1"
+					:before-recording="callback"
+					:pause-recording="callback"
+					:after-recording="callback"
+					:select-record="callback"
+					:before-upload="callback"
+					:successful-upload="callback"
+					:failed-upload="callback"
+				/>
 
 				<div class="columns">
 					<div class="column practiceButton">
@@ -71,6 +83,7 @@
 	</main>
 </template>
 <script>
+//import * as fb from 'firebase';
 import { firebase } from '@firebase/app';
 import '@firebase/auth';
 import { mapState, mapActions } from 'vuex';
@@ -92,8 +105,14 @@ export default {
 		notification: '',
 		goalAchieved: false,
 	}),
+	async mounted() {
+		// eslint-disable-next-line no-console
+		//console.log(fb);
+		//const storageRef = firebase.app().storage('gs://practicebuddy-4d466.appspot.com');
+		// eslint-disable-next-line no-console
+		//console.log(storageRef);
+	},
 	created() {
-		//console.log(this.user);
 		if (this.user.instrument == undefined) {
 			this.message = "Before starting, please set up  your preferences in the 'Settings' tab.";
 		}
@@ -140,7 +159,36 @@ export default {
 					});
 			}
 		},
+		callback(data) {
+			//email this over
+			/*var name = +new Date() + '-' + data.name;
+			var storageRef = firebase.storage().ref();
+			storageRef
+				.child(name)
+				.put(data)
+				.then(snapshot => snapshot.ref.getDownloadURL())
+				.then(url => {
+					// eslint-disable-next-line no-console
+					console.log(url);
+				})
+				// eslint-disable-next-line no-console
+				.catch(console.error);
+*/
+			/*const ref = storage().ref();
+			const file = data;
+			const name = (+new Date()) + '-' + file.name;
+			const metadata = {
+			contentType: file.type
+			};
+			const task = ref.child(name).put(file, metadata);
+			task
+			.then(snapshot => snapshot.ref.getDownloadURL())
+			.then((url) => {
+				console.log(url);
 
+			})
+			.catch(console.error);*/
+		},
 		stopConfetti() {
 			this.$confetti.stop();
 		},
@@ -160,7 +208,6 @@ export default {
 			this.minutes = 0;
 		},
 		getPractices() {
-			
 			if (this.user.practicescompleted == this.user.practicesrequired) {
 				//goal has been achieved
 				this.practicescompleted == 0;
@@ -180,5 +227,9 @@ export default {
 }
 .is-open {
 	height: 200px;
+}
+.ar {
+	width: 100%;
+	margin-top: 10px;
 }
 </style>

@@ -4,6 +4,7 @@ import router from './router';
 import store from './store';
 import { firebase } from '@firebase/app';
 import '@firebase/auth';
+
 Vue.config.productionTip = false;
 import Vuelidate from 'vuelidate';
 Vue.use(Vuelidate);
@@ -14,6 +15,9 @@ import moment from 'moment-timezone';
 Vue.use(VueMoment, {
 	moment,
 });
+
+import AudioRecorder from 'vue-audio-recorder'
+Vue.use(AudioRecorder)
 
 let app = '';
 
