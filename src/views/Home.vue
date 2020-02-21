@@ -1,17 +1,13 @@
 <template web>
-  <main class="column is-full main">
+  <main class="column is-four-fifths main">
     <div class="box is-radiusless is-shadowless has-background-light">
       <div class="is-size-4 title">Welcome, {{ currentUser.displayName }}</div>
-      <div v-if="teacher == null" class="notification is-warning">
+      <div class="notification is-warning" v-if="teacher == null">
         Welcome! It looks like there is no teacher associated to your practices. If this is incorrect, please
         add your teacher to your account in the My Teacher tab.
-        <span
-          v-if="students.length==0"
-        >
-          If you are a teacher, when your students add
-          you to their account you will start to see their practice information below and you will see
-          different links in the side navigation.
-        </span>
+        If you are a teacher, when your students add
+        you to their account you will start to see their practice information below and you will see
+        different links in the side navigation.
       </div>
       <div v-else>Your teacher is: {{ teacher.name }}</div>
     </div>
@@ -29,16 +25,22 @@
 					}"
         >
           <div class="box has-background-info">
-            <article class="media">
-              <div class="media-left">
-                <figure class="circle">
-                  <img :src="'./instruments/' + student.instrument + '.png'" alt="Image" />
-                </figure>
+            <div class="card">
+              <div class="card-content">
+                <div class="content">
+                  <article class="media">
+                    <div class="media-left">
+                      <figure class="circle">
+                        <img :src="'./instruments/' + student.instrument + '.png'" alt="Image" />
+                      </figure>
+                    </div>
+                    <div>
+                      <div class="title has-text-white">{{ student.name }}</div>
+                    </div>
+                  </article>
+                </div>
               </div>
-              <div>
-                <div class="title has-text-white">{{ student.name }}</div>
-              </div>
-            </article>
+            </div>
           </div>
         </router-link>
       </div>

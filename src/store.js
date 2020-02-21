@@ -108,6 +108,21 @@ export default new Vuex.Store({
 				);
 		}),
 
+		submitFeedback: firestoreAction(({ state }, payload) => {
+			firebase
+				.firestore()
+				.collection('users')
+				.doc(payload.uid)
+				.collection('practices')
+				.doc(payload.practiceId)
+				.set(
+					{
+						feedback: payload.feedback,
+					},
+					{ merge: true }
+				);
+		}),
+
 		clearAll({ commit }) {
 			commit('clearAll');
 		},

@@ -1,5 +1,5 @@
 <template>
-  <main class="column is-full main">
+  <main class="column is-four-fifths main">
     <div class="box main-content">
       <h1 class="title is-size-3">My Archived Practices</h1>
       <h3 v-if="practices.length == 0">Your archived practice sessions will be displayed here</h3>
