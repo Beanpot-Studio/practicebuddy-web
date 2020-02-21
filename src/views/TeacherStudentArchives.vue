@@ -42,39 +42,24 @@
                       <div class="has-text-white is-size-4">{{ practice.practicelength }} minutes</div>
                     </div>
                   </article>
+                  <div
+                    v-if="practice.feedback"
+                    class="has-text-white is-size-5"
+                  >Teacher feedback: {{ practice.feedback }}</div>
                 </div>
               </div>
-              <footer class="card-footer">
-                <span href="#" class="card-footer-item">
-                  <div v-if="practice.sticker" class="has-text-white is-size-5">
-                    <img
-                      :src="
+
+              <div v-if="practice.sticker" class="has-text-centered">
+                <figure class="image is-64x64 is-inline-block">
+                  <img
+                    :src="
 												require('../assets/stickers/sticker' +
 													practice.sticker +
 													'.png')
 											"
-                    />
-                  </div>
-                  <div v-else class="has-text-white is-size-5 card-footer-item">
-                    <figure>
-                      <i class="fas fa-trophy"></i>
-                    </figure>
-                  </div>
-                </span>
-                <div
-                  v-if="typeof(practice.feedback)"
-                  class="has-text-white is-size-5 card-footer-item"
-                >
-                  <figure>
-                    <i class="fas fa-pen"></i>
-                  </figure>
-                </div>
-
-                <div
-                  v-else
-                  class="has-text-white is-size-5"
-                >Teacher feedback: {{ practice.feedback }}</div>
-              </footer>
+                  />
+                </figure>
+              </div>
             </div>
           </div>
         </div>
