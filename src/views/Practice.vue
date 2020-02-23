@@ -121,7 +121,7 @@ export default {
 				this.minutes = 0;
 				this.seconds = 0;
 				var pc;
-				if (!this.user.practicescompleted) {
+				if (!this.user.practicescompleted || this.user.practicescompleted >= this.user.practicesrequired) {
 					pc = 0;
 				} else {
 					pc = this.user.practicescompleted;
@@ -146,7 +146,6 @@ export default {
 						if (pc >= this.user.practicesrequired) {
 							this.$confetti.start();
 							this.notification = "Congratulations, you've completed a goal!";
-							pc = 0;
 							if (this.user.notify) {
 								this.sendGoalEmail();
 							}
