@@ -205,6 +205,7 @@ export default new Vuex.Store({
 		},
 
 		updateUser: firestoreAction(({ state }, payload) => {
+			console.log(payload);
 			firebase
 				.firestore()
 				.collection('users')

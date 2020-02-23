@@ -20,7 +20,7 @@
 			<div v-if="message" class="notification is-warning">{{ message }}</div>
 			<div v-else>
 				<h2 class="subtitle">
-					You have completed {{ user.practicescompleted }} practices out of {{ user.practicesrequired }}
+					You have completed {{ user.practicescompleted || 0 }} practices out of {{ user.practicesrequired }}
 				</h2>
 				<h3>You're working towards: {{ user.reward }}</h3>
 				<h3>You're scheduled to practice for {{ user.practicelength }} minutes</h3>
@@ -40,23 +40,14 @@
 					</button>
 				</div>
 
-				<h2>Record one minute of your practice session.</h2>
+				<div class="box">
+					<h2>
+						Record up to three minutes of your practice session. You will be able to download this file and
+						email it separately to your teacher.
+					</h2>
 
-				<!--<div class="circle has-background-primary has-text-white icon is-large" @click="startRecording()">
-					<i class="fa fa-microphone"></i>
-				</div>-->
-				<audio-recorder
-					upload-url="https://console.cloud.google.com/storage/browser/practicebuddy-bucket"
-					:attempts="3"
-					:time="1"
-					:before-recording="callback"
-					:pause-recording="callback"
-					:after-recording="callback"
-					:select-record="callback"
-					:before-upload="callback"
-					:successful-upload="callback"
-					:failed-upload="callback"
-				/>
+					<audio-recorder :attempts="3" :time="3" :show-upload-button="false" />
+				</div>
 
 				<div class="columns">
 					<div class="column practiceButton">
@@ -83,10 +74,10 @@
 	</main>
 </template>
 <script>
-//import * as fb from 'firebase';
 import { firebase } from '@firebase/app';
 import '@firebase/auth';
 import { mapState, mapActions } from 'vuex';
+import emailjs from 'emailjs-com';
 
 export default {
 	name: 'practice',
@@ -96,7 +87,6 @@ export default {
 	data: () => ({
 		currentUser: firebase.auth().currentUser,
 		message: '',
-		practicescompleted: 0,
 		myTimer: null,
 		timerRunning: false,
 		minutes: 0,
@@ -105,13 +95,7 @@ export default {
 		notification: '',
 		goalAchieved: false,
 	}),
-	async mounted() {
-		// eslint-disable-next-line no-console
-		//console.log(fb);
-		//const storageRef = firebase.app().storage('gs://practicebuddy-4d466.appspot.com');
-		// eslint-disable-next-line no-console
-		//console.log(storageRef);
-	},
+
 	created() {
 		if (this.user.instrument == undefined) {
 			this.message = "Before starting, please set up  your preferences in the 'Settings' tab.";
@@ -136,13 +120,21 @@ export default {
 				this.timerRunning = false;
 				this.minutes = 0;
 				this.seconds = 0;
-				this.practicescompleted++;
+				var pc;
+				if (!this.user.practicescompleted) {
+					pc = 0;
+				} else {
+					pc = this.user.practicescompleted;
+				}
+				pc++;
+				// eslint-disable-next-line no-console
+				console.log(pc, this.user.practicescompleted);
 
 				//save practice session on completion, add to practices completed. Notify teacher if required
 				this.$store
 					.dispatch('savePractice', {
 						uid: this.currentUser.uid,
-						practicescompleted: parseInt(this.practicescompleted),
+						practicescompleted: pc,
 						name: this.user.name,
 						instrument: this.user.instrument,
 						practicesrequired: parseInt(this.user.practicesrequired),
@@ -151,43 +143,54 @@ export default {
 					})
 					.then(() => {
 						//goal has been achieved
-						if (this.practicescompleted == this.user.practicesrequired) {
+						if (pc >= this.user.practicesrequired) {
 							this.$confetti.start();
 							this.notification = "Congratulations, you've completed a goal!";
-							this.practicescompleted = 0;
+							pc = 0;
+							if (this.user.notify) {
+								this.sendGoalEmail();
+							}
+						}
+						if (this.user.notify) {
+							this.sendEmail();
 						}
 					});
 			}
 		},
-		callback(data) {
-			//email this over
-			/*var name = +new Date() + '-' + data.name;
-			var storageRef = firebase.storage().ref();
-			storageRef
-				.child(name)
-				.put(data)
-				.then(snapshot => snapshot.ref.getDownloadURL())
-				.then(url => {
-					// eslint-disable-next-line no-console
-					console.log(url);
-				})
-				// eslint-disable-next-line no-console
-				.catch(console.error);
-*/
-			/*const ref = storage().ref();
-			const file = data;
-			const name = (+new Date()) + '-' + file.name;
-			const metadata = {
-			contentType: file.type
-			};
-			const task = ref.child(name).put(file, metadata);
-			task
-			.then(snapshot => snapshot.ref.getDownloadURL())
-			.then((url) => {
-				console.log(url);
 
-			})
-			.catch(console.error);*/
+		sendEmail() {
+			var templateParams = {
+				from_name: this.currentUser.displayName,
+				from_email: this.currentUser.email,
+				to_name: this.teacher.name,
+				goal: this.user.reward,
+				to_email: this.teacher.email,
+			};
+			emailjs.send('mailgun', 'template_j1zPcDDF', templateParams, 'user_uSp9gTGALDwT2q5dw9Zq8').then(
+				function(response) {
+					console.log('SUCCESS!', response.status, response.text);
+				},
+				function(error) {
+					console.log('FAILED...', error);
+				}
+			);
+		},
+		sendGoalEmail() {
+			var templateParams = {
+				from_name: this.currentUser.displayName,
+				from_email: this.currentUser.email,
+				to_name: this.teacher.name,
+				goal: this.user.reward,
+				to_email: this.teacher.email,
+			};
+			emailjs.send('mailgun', 'pb_goal_email', templateParams, 'user_uSp9gTGALDwT2q5dw9Zq8').then(
+				function(response) {
+					console.log('SUCCESS!', response.status, response.text);
+				},
+				function(error) {
+					console.log('FAILED...', error);
+				}
+			);
 		},
 		stopConfetti() {
 			this.$confetti.stop();

@@ -77,7 +77,6 @@
 									v-model.trim="$v.myPracticeLength.$model"
 									:placeholder="myPracticeLength"
 									min="1"
-									max="5"
 								/>
 							</div>
 						</div>
@@ -155,7 +154,7 @@ export default {
 		this.myReward = this.user.reward;
 		this.myPracticesRequired = this.user.practicesrequired;
 		this.myPracticeLength = this.user.practicelength;
-		this.myNotify = this.user.notify;
+		//this.myNotify = this.user.notify;
 	},
 	data: () => ({
 		currentUser: firebase.auth().currentUser,
@@ -168,6 +167,7 @@ export default {
 		myReward: 'A trip to the candy store!',
 		myPracticesRequired: null,
 		myPracticeLength: null,
+		myNotify: false,
 		instruments: [
 			'acoustic guitar',
 			'banjo',
@@ -197,7 +197,7 @@ export default {
 		submit() {
 			this.$v.$touch();
 			// eslint-disable-next-line no-console
-			console.log(this.myName);
+			console.log(this.myNotify);
 			if (this.myName == '') {
 				this.submitStatus = 'ERROR';
 				this.validClass = 'input is-danger';
