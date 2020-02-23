@@ -39,6 +39,9 @@ const router = new Router({
 			path: '/about',
 			name: 'about',
 			component: About,
+			meta: {
+				requiresAuth: true,
+			},
 		},
 		{
 			path: '/home',

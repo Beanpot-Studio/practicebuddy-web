@@ -21,8 +21,9 @@
 
 		<div id="example-menu" class="navbar-menu">
 			<div class="navbar-end">
-				<router-link class="navbar-item has-text-white" :to="'about'">About</router-link>
 				<div v-if="user != null" class="navbar-item">
+					<router-link class="navbar-item has-text-white" :to="'about'">About</router-link>
+
 					<div class="buttons" @click="logout">
 						<a class="button is-danger">Logout</a>
 					</div>
