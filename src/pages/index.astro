@@ -1,0 +1,14 @@
+---
+import Layout from '../components/Layout.astro';
+---
+
+<Layout>
+  <div id="app"></div>
+</Layout>
+
+<script>
+  import { createApp } from 'vue'
+  import MusicApp from '../components/MusicApp.vue'
+  
+  createApp(MusicApp).mount('#app')
+</script>
