@@ -1,37 +1,30 @@
 <template>
-  <div class="min-h-screen bg-musical-primary">
-    <div class="py-20">
+  <div class="min-h-screen bg-gradient-to-r from-musical-primary to-musical-primary/90 relative overflow-hidden">
+    <div class="py-20 relative z-10">
       <div class="container">
+        <h1 class="text-5xl mb-5 font-bold text-musical-graphite">Welcome to Practice Buddy</h1>
+        <p class="text-xl text-musical-graphite font-medium mb-10">Your musical journey starts here!</p>
         <div class="flex flex-col gap-20">
-          <div class="text-center">
-           
-            <h1 class="text-5xl font-bold text-musical-graphite mb-3 shadow-sm">Practice Buddy</h1>
-            <img src="/lyre.png" alt="lyre logo" class="mx-auto mb-4" />
-            <p class="text-xl text-musical-graphite font-medium">Your musical journey starts here!</p>
-           
-          </div>
-          
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-15 items-center">
             <div class="flex flex-col gap-10">
-              
-              <div class="max-w-lg mx-auto">
+              <div class="max-w-lg mx-auto lg:mx-0">
                 <div class="card">
                   <div class="flex mb-6 bg-gray-100 rounded-2xl p-1 border-4 border-gray-200 shadow-sm">
                     <button 
                       @click="activeTab = 'student'"
                       :class="[
-                        'flex-1 py-4 px-5 border-none bg-transparent rounded-xl font-semibold text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 font-inherit',
-                        activeTab === 'student' ? 'bg-gradient-to-br from-musical-primary to-blue-400 text-white shadow-md transform -translate-y-0.5 border-2 border-blue-600' : 'hover:bg-white/80 hover:text-gray-700'
+                        'flex-1 py-4 px-5 border-none rounded-xl font-semibold text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 font-inherit',
+                        activeTab === 'student' ? 'bg-musical-success text-white shadow-md transform -translate-y-0.5 border-2 border-green-600' : 'hover:bg-white/80 hover:text-gray-700'
                       ]"
                     >
                       <Users class="w-4.5 h-4.5" />
-                      Young Musicians
+                      Music Students
                     </button>
                     <button 
                       @click="activeTab = 'teacher'"
                       :class="[
-                        'flex-1 py-4 px-5 border-none bg-transparent rounded-xl font-semibold text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 font-inherit',
-                        activeTab === 'teacher' ? 'bg-gradient-to-br from-musical-primary to-blue-400 text-white shadow-md transform -translate-y-0.5 border-2 border-blue-600' : 'hover:bg-white/80 hover:text-gray-700'
+                        'flex-1 py-4 px-5 border-none rounded-xl font-semibold text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 font-inherit',
+                        activeTab === 'teacher' ? 'bg-musical-coral text-white shadow-md transform -translate-y-0.5' : 'hover:bg-white/80 hover:text-gray-700'
                       ]"
                     >
                       <GraduationCap class="w-4.5 h-4.5" />
@@ -43,16 +36,16 @@
                     <!-- Student Tab -->
                     <div v-if="activeTab === 'student'" class="animate-fadeIn">
                       <div class="text-center mb-8">
-                        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-[0_6px_0_rgba(0,0,0,0.2),0_8px_20px_rgba(0,0,0,0.15)] border-4 border-red-500 bg-gradient-to-br from-musical-error to-red-400 relative">
+                        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-[0_6px_0_rgba(0,0,0,0.2),0_8px_20px_rgba(0,0,0,0.15)] border-4 border-green-500 bg-musical-success relative">
                           <Users class="w-10 h-10 text-white" />
                         </div>
-                        <h2 class="text-3xl font-bold text-musical-graphite mb-2">Young Musicians</h2>
-                        <p class="text-musical-graphite">Track practice time and collect awesome stickers!</p>
+                        <h2 class="text-3xl font-bold text-musical-graphite mb-2"> Students</h2>
+                        <p class="text-musical-graphite">Track practice time and collect rewards!</p>
                       </div>
                       
                       <form @submit.prevent="loginStudent" class="space-y-6">
                         <div class="space-y-2">
-                          <label for="student-name" class="block text-sm font-semibold text-musical-graphite">🎭 Your Musical Name</label>
+                          <label for="student-name" class="block text-sm font-semibold text-musical-graphite">Your Name</label>
                           <input 
                             id="student-name"
                             v-model="studentForm.name" 
@@ -64,7 +57,7 @@
                         </div>
                         
                         <div class="space-y-2">
-                          <label for="student-code" class="block text-sm font-semibold text-musical-graphite">🔑 Secret Class Code</label>
+                          <label for="student-code" class="block text-sm font-semibold text-musical-graphite">Secret Class Code</label>
                           <input 
                             id="student-code"
                             v-model="studentForm.classCode" 
@@ -75,9 +68,9 @@
                           />
                         </div>
                         
-                        <button type="submit" class="btn btn-primary btn-full">
+                        <button type="submit" class="btn btn-secondary btn-full">
                           <Play class="w-4 h-4" />
-                          Start Your Musical Journey!
+                          Make Some Music!
                         </button>
                       </form>
                       
@@ -87,16 +80,16 @@
                     <!-- Teacher Tab -->
                     <div v-if="activeTab === 'teacher'" class="animate-fadeIn">
                       <div class="text-center mb-8">
-                        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-[0_6px_0_rgba(0,0,0,0.2),0_8px_20px_rgba(0,0,0,0.15)] border-4 border-blue-500 bg-gradient-to-br from-musical-primary to-blue-400 relative">
+                        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-[0_6px_0_rgba(0,0,0,0.2),0_8px_20px_rgba(0,0,0,0.15)] border-4 border-red-500 bg-musical-coral relative">
                           <GraduationCap class="w-10 h-10 text-white" />
                         </div>
-                        <h2 class="text-3xl font-bold text-musical-graphite mb-2">Music Teachers</h2>
+                        <h2 class="text-3xl font-bold text-musical-graphite mb-2">Teachers</h2>
                         <p class="text-musical-graphite">Guide your students and celebrate their musical journey!</p>
                       </div>
                       
                       <form @submit.prevent="loginTeacher" class="space-y-6">
                         <div class="space-y-2">
-                          <label for="teacher-email" class="block text-sm font-semibold text-musical-graphite">📧 Teacher Email</label>
+                          <label for="teacher-email" class="block text-sm font-semibold text-musical-graphite">Teacher Email</label>
                           <input 
                             id="teacher-email"
                             v-model="teacherForm.email" 
@@ -108,7 +101,7 @@
                         </div>
                         
                         <div class="space-y-2">
-                          <label for="teacher-password" class="block text-sm font-semibold text-musical-graphite">🔐 Password</label>
+                          <label for="teacher-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
                           <input 
                             id="teacher-password"
                             v-model="teacherForm.password" 
@@ -137,14 +130,80 @@
               </div>
             </div>
 
-            <div class="flex justify-center items-center">
-              <div class="relative max-w-sm">
-                <img 
-                  src="/cello-girl-tune.jpg" 
-                  alt="Young musician playing cello"
-                  class="w-full h-auto rounded-3xl shadow-[0_12px_0_rgba(0,0,0,0.2),0_20px_40px_rgba(0,0,0,0.3)] border-4 border-white transition-all duration-300 hover:transform hover:-translate-y-2 hover:shadow-[0_20px_0_rgba(0,0,0,0.2),0_30px_50px_rgba(0,0,0,0.4)]"
-                />
-                
+            <div class="flex justify-center items-start">
+              <div class="relative max-w-sm text-center">
+                <div class="card-stack relative w-80 h-[28rem]">
+                  <!-- Card 1 -->
+                  <div 
+                    class="card-item absolute w-full h-full rounded-3xl shadow-[0_12px_0_rgba(0,0,0,0.2),0_20px_40px_rgba(0,0,0,0.3)] border-4 border-white overflow-hidden cursor-pointer transition-all duration-500"
+                    :class="[
+                      'transform',
+                      currentCardIndex === 0 ? 'z-30 scale-100 rotate-0 translate-y-0' : 
+                      currentCardIndex === 1 ? 'z-20 scale-95 -rotate-6 translate-y-2' : 
+                      'z-10 scale-90 -rotate-12 translate-y-4'
+                    ]"
+                    @click="bringToFront(0)"
+                    @mouseenter="startTiltShuffle"
+                    @mouseleave="stopTiltShuffle"
+                  >
+                    <img 
+                      src="/cello.jpg" 
+                      alt="Cello player"
+                      class="w-full h-full object-cover"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                  
+                  </div>
+
+                  <!-- Card 2 -->
+                  <div 
+                    class="card-item absolute w-full h-full rounded-3xl shadow-[0_12px_0_rgba(0,0,0,0.2),0_20px_40px_rgba(0,0,0,0.3)] border-4 border-white overflow-hidden cursor-pointer transition-all duration-500"
+                    :class="[
+                      'transform',
+                      currentCardIndex === 1 ? 'z-30 scale-100 rotate-0 translate-y-0' : 
+                      currentCardIndex === 2 ? 'z-20 scale-95 -rotate-6 translate-y-2' : 
+                      'z-10 scale-90 -rotate-12 translate-y-4'
+                    ]"
+                    @click="bringToFront(1)"
+                    @mouseenter="startTiltShuffle"
+                    @mouseleave="stopTiltShuffle"
+                  >
+                    <img 
+                      src="/guitar.jpg" 
+                      alt="Guitar player"
+                      class="w-full h-full object-cover"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                  
+                  </div>
+
+                  <!-- Card 3 -->
+                  <div 
+                    class="card-item absolute w-full h-full rounded-3xl shadow-[0_12px_0_rgba(0,0,0,0.2),0_20px_40px_rgba(0,0,0,0.3)] border-4 border-white overflow-hidden cursor-pointer transition-all duration-500"
+                    :class="[
+                      'transform',
+                      currentCardIndex === 2 ? 'z-30 scale-100 rotate-0 translate-y-0' : 
+                      currentCardIndex === 0 ? 'z-20 scale-95 -rotate-6 translate-y-2' : 
+                      'z-10 scale-90 -rotate-12 translate-y-4'
+                    ]"
+                    @click="bringToFront(2)"
+                    @mouseenter="startTiltShuffle"
+                    @mouseleave="stopTiltShuffle"
+                  >
+                    <img 
+                      src="/sing.jpg" 
+                      alt="Singer"
+                      class="w-full h-full object-cover"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                  
+                  </div>
+
+                  <!-- Shuffle indicator -->
+                  <div v-if="isTiltShuffling" class="absolute -top-2 -right-2 bg-musical-primary text-white rounded-full p-2 shadow-lg">
+                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -152,9 +211,9 @@
       </div>
     </div>
     
-    <div class="bg-white py-20 border-t-4 border-musical-primary">
+    <div class="bg-musical-cream py-20 border-t-4 border-musical-primary">
       <div class="container">
-        <h2 class="text-center text-4xl font-bold text-musical-graphite mb-12">🎼 Build Your Musical Community</h2>
+        <h2 class="text-center text-4xl font-bold text-musical-graphite mb-12">🎼 Let's Make Music Together! </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div class="p-8 rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-red-600 bg-gradient-to-br from-musical-error to-red-400 transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
             <div class="text-5xl mb-5">🎵</div>
@@ -182,15 +241,18 @@
         </div>
       </div>
     </div>
+    
+    <Footer />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { 
   Music, Users, GraduationCap, Play, BookOpen, Clock, Mic, Star, Trophy, 
   Headphones, Award, BarChart3 
 } from 'lucide-vue-next'
+import Footer from './Footer.vue'
 
 const emit = defineEmits(['login'])
 
@@ -205,6 +267,26 @@ const teacherForm = ref({
   email: '',
   password: ''
 })
+
+// Shuffling card functionality
+const isTiltShuffling = ref(false)
+const currentCardIndex = ref(0)
+const tiltShuffleInterval = ref(null)
+
+const startTiltShuffle = () => {
+  isTiltShuffling.value = true
+  tiltShuffleInterval.value = setInterval(() => {
+    currentCardIndex.value = (currentCardIndex.value + 1) % 3
+  }, 800)
+}
+
+const stopTiltShuffle = () => {
+  isTiltShuffling.value = false
+  if (tiltShuffleInterval.value) {
+    clearInterval(tiltShuffleInterval.value)
+    tiltShuffleInterval.value = null
+  }
+}
 
 const loginStudent = () => {
   if (studentForm.value.name && studentForm.value.classCode) {
@@ -223,5 +305,9 @@ const loginTeacher = () => {
       email: teacherForm.value.email
     })
   }
+}
+
+const bringToFront = (index) => {
+  currentCardIndex.value = index
 }
 </script>

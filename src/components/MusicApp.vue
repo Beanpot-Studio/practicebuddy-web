@@ -1,8 +1,10 @@
 <template>
   <div class="app">
-    <HomePage v-if="!isLoggedIn" @login="handleLogin" />
+    <Header @logout="handleLogout" />
+    <div v-if="!isLoggedIn" class="app-content">
+      <HomePage @login="handleLogin" />
+    </div>
     <div v-else class="app-content">
-      <Header :current-mode="currentMode" @switch-mode="switchMode" @logout="handleLogout" />
       <main class="main-content">
         <StudentDashboard v-if="currentMode === 'student'" :student-name="currentUser.name" />
         <TeacherDashboard v-if="currentMode === 'teacher'" :teacher-email="currentUser.email" />
@@ -59,6 +61,5 @@ const handleGoHome = () => {
 
 .main-content {
   flex: 1;
-  padding: 20px 0;
 }
 </style>

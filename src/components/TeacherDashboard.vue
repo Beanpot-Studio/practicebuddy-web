@@ -1,136 +1,158 @@
 <template>
-  <div class="teacher-dashboard">
+  <div class="min-h-screen bg-musical-primary py-5">
     <div class="container">
-      <div class="header-section">
-        <div class="teacher-shape blue wiggle">👩‍🏫</div>
-        <h2>Teacher Hub</h2>
-        <p>Help your students develop amazing musical skills!</p>
-        <p class="teacher-email">Teaching with: {{ teacherEmail }}</p>
+      <div class="text-center mb-10 text-white flex flex-col items-center gap-3">
+        <div class="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+          👩‍🏫
+        </div>
+        <h2 class="text-3xl font-bold text-musical-graphite">Teacher Hub</h2>
+        <p class="text-lg opacity-95 font-medium text-musical-graphite">Help your students develop amazing musical skills!</p>
+        <p class="text-sm opacity-80 italic text-musical-graphite">Teaching with: {{ teacherEmail }}</p>
       </div>
 
-      <div class="grid grid-3 mb-8">
-        <div class="card card-red summary-card">
-          <div class="card-title">
-            <div class="title-shape red">📊</div>
-            <h3>Class Stats</h3>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="card card-red">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 relative">
+              📊
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Class Stats</h3>
           </div>
-          <div class="summary-stats">
-            <div class="summary-bubble red">
-              <div class="summary-number">{{ totalStudents }}</div>
-              <div class="summary-label">Music Students</div>
+          <div class="flex flex-col gap-3">
+            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white">
+              <div class="text-2xl font-bold">{{ totalStudents }}</div>
+              <div class="text-sm opacity-90 font-semibold">Music Students</div>
             </div>
-            <div class="summary-bubble blue">
-              <div class="summary-number">{{ pendingReviews }}</div>
-              <div class="summary-label">Pending Reviews</div>
+            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white">
+              <div class="text-2xl font-bold">{{ pendingReviews }}</div>
+              <div class="text-sm opacity-90 font-semibold">Pending Reviews</div>
             </div>
-            <div class="summary-bubble yellow">
-              <div class="summary-number">{{ stickersGiven }}</div>
-              <div class="summary-label">Stickers Given</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card card-blue recent-activity">
-          <div class="card-title">
-            <div class="title-shape blue">🔔</div>
-            <h3>Recent Activity</h3>
-          </div>
-          <div class="activity-list">
-            <div class="activity-bubble">
-              <div class="activity-text">🎹 Alex created a piano recording</div>
-              <div class="activity-time">5 min ago</div>
-            </div>
-            <div class="activity-bubble">
-              <div class="activity-text">🎸 Sarah completed 45 min practice</div>
-              <div class="activity-time">1 hour ago</div>
-            </div>
-            <div class="activity-bubble">
-              <div class="activity-text">🏆 Marcus earned a new badge</div>
-              <div class="activity-time">2 hours ago</div>
+            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 text-white">
+              <div class="text-2xl font-bold">{{ stickersGiven }}</div>
+              <div class="text-sm opacity-90 font-semibold">Stickers Given</div>
             </div>
           </div>
         </div>
 
-        <div class="card card-green quick-actions">
-          <div class="card-title">
-            <div class="title-shape green">⚡</div>
-            <h3>Quick Tools</h3>
+        <div class="card card-blue">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+              🔔
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Recent Activity</h3>
           </div>
-          <div class="actions-grid">
+          <div class="flex flex-col gap-3">
+            <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+              <div class="text-sm text-gray-800 font-semibold mb-1">🎹 Alex created a piano recording</div>
+              <div class="text-xs text-gray-500 font-medium">5 min ago</div>
+            </div>
+            <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+              <div class="text-sm text-gray-800 font-semibold mb-1">🎸 Sarah completed 45 min practice</div>
+              <div class="text-xs text-gray-500 font-medium">1 hour ago</div>
+            </div>
+            <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+              <div class="text-sm text-gray-800 font-semibold mb-1">🏆 Marcus earned a new badge</div>
+              <div class="text-xs text-gray-500 font-medium">2 hours ago</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-green">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
+              ⚡
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Quick Tools</h3>
+          </div>
+          <div class="flex flex-col gap-3">
             <button class="btn btn-primary" @click="showAllStudents = !showAllStudents">
-              <Users class="icon" />
+              <Users class="w-5 h-5" />
               {{ showAllStudents ? 'Hide' : 'View' }} All Students
             </button>
             <button class="btn btn-secondary" @click="showStickerModal = true">
-              <Star class="icon" />
+              <Star class="w-5 h-5" />
               Give Stickers
             </button>
           </div>
         </div>
       </div>
 
-      <div class="students-section">
-        <h3>🎼 Your Music Students</h3>
-        <div class="students-grid">
+      <div class="mt-10">
+        <h3 class="text-white text-2xl mb-6 text-center font-bold text-shadow-lg">🎼 Your Music Students</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           <div 
             v-for="student in students" 
             :key="student.id"
-            class="student-card card card-yellow"
+            class="card card-yellow cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.1),0_18px_40px_rgba(0,0,0,0.2)]"
             @click="selectStudent(student)"
           >
-            <div class="student-header">
-              <div class="student-avatar-shape">{{ student.avatar }}</div>
-              <div class="student-info">
-                <h4>{{ student.name }}</h4>
-                <p>{{ student.instrument }}</p>
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-3 border-gray-300 flex items-center justify-center text-2xl shadow-[0_4px_0_rgba(0,0,0,0.1)]">
+                {{ student.avatar }}
               </div>
-              <div class="student-status">
-                <span :class="['status-bubble', student.status]">{{ student.status }}</span>
+              <div class="flex-1">
+                <h4 class="text-base text-gray-800 font-bold mb-1">{{ student.name }}</h4>
+                <p class="text-sm text-gray-500 font-semibold">{{ student.instrument }}</p>
+              </div>
+              <div>
+                <span :class="[
+                  'px-3 py-1.5 rounded-2xl text-xs font-bold uppercase border-2 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
+                  student.status === 'active' 
+                    ? 'bg-gradient-to-br from-green-400 to-green-500 text-white border-green-600' 
+                    : 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 border-yellow-600'
+                ]">
+                  {{ student.status }}
+                </span>
               </div>
             </div>
             
-            <div class="student-stats">
-              <div class="stat-mini red">
-                <span class="stat-label">This Week</span>
-                <span class="stat-value">{{ student.weeklyMinutes }}min</span>
+            <div class="flex justify-between mb-4 gap-2">
+              <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white flex-1">
+                <span class="block text-xs opacity-90 font-semibold mb-0.5">This Week</span>
+                <span class="text-sm font-bold">{{ student.weeklyMinutes }}min</span>
               </div>
-              <div class="stat-mini blue">
-                <span class="stat-label">Streak</span>
-                <span class="stat-value">{{ student.streak }} days</span>
+              <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white flex-1">
+                <span class="block text-xs opacity-90 font-semibold mb-0.5">Streak</span>
+                <span class="text-sm font-bold">{{ student.streak }} days</span>
               </div>
-              <div class="stat-mini green">
-                <span class="stat-label">Creations</span>
-                <span class="stat-value">{{ student.recordings.length }}</span>
+              <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white flex-1">
+                <span class="block text-xs opacity-90 font-semibold mb-0.5">Creations</span>
+                <span class="text-sm font-bold">{{ student.recordings.length }}</span>
               </div>
             </div>
 
-            <div class="student-recordings">
-              <div class="recordings-header">
-                <h5>🎵 Recent Creations</h5>
-                <span class="pending-bubble" v-if="getPendingCount(student) > 0">
+            <div class="border-t-3 border-gray-200 pt-4">
+              <div class="flex justify-between items-center mb-3">
+                <h5 class="text-sm text-gray-800 font-bold">🎵 Recent Creations</h5>
+                <span v-if="getPendingCount(student) > 0" class="bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 px-2 py-1 rounded-xl text-xs font-bold border-2 border-yellow-600 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
                   {{ getPendingCount(student) }} pending
                 </span>
               </div>
-              <div class="recordings-list-mini">
+              <div class="flex flex-col gap-2">
                 <div 
                   v-for="recording in student.recordings.slice(0, 3)" 
                   :key="recording.id"
-                  :class="['recording-mini-bubble', { 'needs-review': !recording.reviewed }]"
+                  :class="[
+                    'flex justify-between items-center p-2 rounded-xl border-2 transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
+                    !recording.reviewed 
+                      ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 border-yellow-600 text-gray-800' 
+                      : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300'
+                  ]"
                 >
-                  <div class="recording-info-mini">
-                    <div class="recording-title-mini">{{ recording.title }}</div>
-                    <div class="recording-date-mini">{{ formatDate(recording.date) }}</div>
+                  <div class="flex-1">
+                    <div class="text-sm font-semibold">{{ recording.title }}</div>
+                    <div class="text-xs opacity-80 font-medium">{{ formatDate(recording.date) }}</div>
                   </div>
-                  <div class="recording-actions-mini">
-                    <button class="action-mini-bubble blue" @click.stop="playRecording(recording)">
-                      <Play class="icon-mini" />
+                  <div class="flex gap-1">
+                    <button class="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-blue-400 to-blue-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]" @click.stop="playRecording(recording)">
+                      <Play class="w-3 h-3" />
                     </button>
                     <button 
                       v-if="!recording.reviewed"
-                      class="action-mini-bubble yellow"
+                      class="w-6 h-6 border-2 border-yellow-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-yellow-400 to-yellow-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]"
                       @click.stop="reviewRecording(student, recording)"
                     >
-                      <Star class="icon-mini" />
+                      <Star class="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -142,20 +164,22 @@
     </div>
 
     <!-- Sticker Modal -->
-    <div v-if="showStickerModal" class="modal-overlay" @click="showStickerModal = false">
-      <div class="modal-content card card-green" @click.stop>
-        <div class="modal-header">
-          <div class="title-shape green">🌟</div>
-          <h3>Give Stickers</h3>
-          <button @click="showStickerModal = false" class="close-button">
-            <X class="icon" />
+    <div v-if="showStickerModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" @click="showStickerModal = false">
+      <div class="card card-green max-w-2xl w-11/12 max-h-[80vh] overflow-y-auto m-5" @click.stop>
+        <div class="flex items-center gap-3 mb-6 relative">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
+            🌟
+          </div>
+          <h3 class="flex-1 text-xl text-gray-800 font-bold">Give Stickers</h3>
+          <button @click="showStickerModal = false" class="w-10 h-10 border-2 border-gray-200 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_4px_0_rgba(0,0,0,0.1)] hover:bg-gray-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(0,0,0,0.1)]">
+            <X class="w-5 h-5" />
           </button>
         </div>
-        <div class="modal-body">
-          <div class="sticker-form">
-            <div class="student-select">
-              <label>🎭 Select Student</label>
-              <select v-model="selectedStudent" class="cute-select">
+        <div>
+          <div class="flex flex-col gap-5">
+            <div>
+              <label class="block mb-2 font-semibold text-gray-700 text-base">🎭 Select Student</label>
+              <select v-model="selectedStudent" class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-green-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(150,206,180,0.2)] focus:transform focus:-translate-y-0.5">
                 <option value="">Choose a music student</option>
                 <option v-for="student in students" :key="student.id" :value="student">
                   {{ student.name }}
@@ -163,9 +187,9 @@
               </select>
             </div>
             
-            <div class="recording-select" v-if="selectedStudent">
-              <label>🎵 Select Creation</label>
-              <select v-model="selectedRecording" class="cute-select">
+            <div v-if="selectedStudent">
+              <label class="block mb-2 font-semibold text-gray-700 text-base">🎵 Select Creation</label>
+              <select v-model="selectedRecording" class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-green-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(150,206,180,0.2)] focus:transform focus:-translate-y-0.5">
                 <option value="">Choose a musical creation</option>
                 <option v-for="recording in selectedStudent.recordings" :key="recording.id" :value="recording">
                   {{ recording.title }} - {{ formatDate(recording.date) }}
@@ -173,13 +197,18 @@
               </select>
             </div>
 
-            <div class="stickers-collection">
-              <label>🌟 Choose Awesome Stickers</label>
-              <div class="stickers-grid">
+            <div>
+              <label class="block mb-2 font-semibold text-gray-700 text-base">🌟 Choose Awesome Stickers</label>
+              <div class="grid grid-cols-6 sm:grid-cols-8 gap-2">
                 <div 
                   v-for="sticker in availableStickers" 
                   :key="sticker"
-                  :class="['sticker-bubble', { 'selected': selectedStickers.includes(sticker) }]"
+                  :class="[
+                    'w-12 h-12 sm:w-10 sm:h-10 border-3 border-gray-200 rounded-full flex items-center justify-center text-2xl sm:text-xl cursor-pointer transition-all duration-200 shadow-[0_4px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-gray-50 to-gray-100 hover:border-green-400 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.1)]',
+                    selectedStickers.includes(sticker) 
+                      ? 'border-green-400 bg-gradient-to-br from-green-400 to-green-500 transform -translate-y-0.5 shadow-[0_6px_0_rgba(0,0,0,0.2)]' 
+                      : ''
+                  ]"
                   @click="toggleSticker(sticker)"
                 >
                   {{ sticker }}
@@ -187,22 +216,22 @@
               </div>
             </div>
 
-            <div class="feedback-input">
-              <label>💬 Encouraging Message</label>
+            <div>
+              <label class="block mb-2 font-semibold text-gray-700 text-base">💬 Encouraging Message</label>
               <textarea 
                 v-model="teacherMessage"
                 placeholder="Amazing job developing your musical skills! Keep up the fantastic work! 🎵"
                 rows="3"
-                class="cute-textarea"
+                class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-green-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(150,206,180,0.2)] focus:transform focus:-translate-y-0.5 resize-vertical min-h-20"
               ></textarea>
             </div>
 
             <button 
               @click="giveStickers"
               :disabled="!selectedStudent || !selectedRecording || selectedStickers.length === 0"
-              class="btn btn-success btn-full"
+              class="btn btn-success w-full p-4 text-base font-bold"
             >
-              <Heart class="icon" />
+              <Heart class="w-5 h-5" />
               Give {{ selectedStickers.length }} Awesome Sticker{{ selectedStickers.length !== 1 ? 's' : '' }}!
             </button>
           </div>
@@ -382,597 +411,3 @@ const formatDate = (date) => {
   })
 }
 </script>
-
-<style scoped>
-.teacher-dashboard {
-  min-height: 100vh;
-  background: #FFF8E1;
-  padding: 20px 0;
-}
-
-.header-section {
-  text-align: center;
-  margin-bottom: 40px;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.teacher-shape {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2), 0 12px 30px rgba(0, 0, 0, 0.15);
-  border: 4px solid;
-  position: relative;
-}
-
-.teacher-shape.blue {
-  background: linear-gradient(145deg, #74B9FF, #5A9FE5);
-  border-color: #4A8FD5;
-}
-
-.header-section h2 {
-  font-size: 32px;
-  margin: 0;
-  font-weight: 700;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.header-section p {
-  font-size: 18px;
-  opacity: 0.95;
-  margin: 0;
-  font-weight: 500;
-}
-
-.teacher-email {
-  font-size: 14px;
-  opacity: 0.8;
-  font-style: italic;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.title-shape {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-  border: 2px solid;
-  position: relative;
-}
-
-.title-shape.red {
-  background: linear-gradient(145deg, #FF6B6B, #E55A5A);
-  border-color: #D94545;
-}
-
-.title-shape.blue {
-  background: linear-gradient(145deg, #74B9FF, #5A9FE5);
-  border-color: #4A8FD5;
-}
-
-.title-shape.green {
-  background: linear-gradient(145deg, #96CEB4, #7FB69A);
-  border-color: #6BA085;
-}
-
-.card-title h3 {
-  font-size: 18px;
-  color: #1f2937;
-  margin: 0;
-  font-weight: 700;
-}
-
-.summary-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.summary-bubble {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  border-radius: 16px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-  border: 2px solid;
-  color: white;
-}
-
-.summary-bubble.red {
-  background: linear-gradient(145deg, #FF6B6B, #E55A5A);
-  border-color: #D94545;
-}
-
-.summary-bubble.blue {
-  background: linear-gradient(145deg, #74B9FF, #5A9FE5);
-  border-color: #4A8FD5;
-}
-
-.summary-bubble.yellow {
-  background: linear-gradient(145deg, #FDCB6E, #E5B55A);
-  border-color: #D4A54A;
-}
-
-.summary-number {
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.summary-label {
-  font-size: 14px;
-  opacity: 0.9;
-  font-weight: 600;
-}
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.activity-bubble {
-  padding: 12px;
-  background: linear-gradient(145deg, #f9fafb, #e5e7eb);
-  border-radius: 16px;
-  border: 2px solid #d1d5db;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-}
-
-.activity-text {
-  font-size: 14px;
-  color: #1f2937;
-  margin-bottom: 4px;
-  font-weight: 600;
-}
-
-.activity-time {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.actions-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.students-section {
-  margin-top: 40px;
-}
-
-.students-section h3 {
-  color: white;
-  font-size: 24px;
-  margin-bottom: 24px;
-  text-align: center;
-  font-weight: 700;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.students-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-}
-
-.student-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.student-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.student-avatar-shape {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #f3f4f6, #e5e7eb);
-  border: 3px solid #d1d5db;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.student-info {
-  flex: 1;
-}
-
-.student-info h4 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  color: #1f2937;
-  font-weight: 700;
-}
-
-.student-info p {
-  margin: 0;
-  font-size: 14px;
-  color: #6b7280;
-  font-weight: 600;
-}
-
-.status-bubble {
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  border: 2px solid;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-}
-
-.status-bubble.active {
-  background: linear-gradient(145deg, #96CEB4, #7FB69A);
-  color: white;
-  border-color: #6BA085;
-}
-
-.status-bubble.needs-attention {
-  background: linear-gradient(145deg, #FDCB6E, #E5B55A);
-  color: #2d3436;
-  border-color: #D4A54A;
-}
-
-.student-stats {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  gap: 8px;
-}
-
-.stat-mini {
-  text-align: center;
-  padding: 8px;
-  border-radius: 12px;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-  border: 2px solid;
-  color: white;
-  flex: 1;
-}
-
-.stat-mini.red {
-  background: linear-gradient(145deg, #FF6B6B, #E55A5A);
-  border-color: #D94545;
-}
-
-.stat-mini.blue {
-  background: linear-gradient(145deg, #74B9FF, #5A9FE5);
-  border-color: #4A8FD5;
-}
-
-.stat-mini.green {
-  background: linear-gradient(145deg, #96CEB4, #7FB69A);
-  border-color: #6BA085;
-}
-
-.stat-label {
-  display: block;
-  font-size: 10px;
-  opacity: 0.9;
-  margin-bottom: 2px;
-  font-weight: 600;
-}
-
-.stat-value {
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.student-recordings {
-  border-top: 3px solid #e5e7eb;
-  padding-top: 16px;
-}
-
-.recordings-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.recordings-header h5 {
-  margin: 0;
-  font-size: 14px;
-  color: #1f2937;
-  font-weight: 700;
-}
-
-.pending-bubble {
-  background: linear-gradient(145deg, #FDCB6E, #E5B55A);
-  color: #2d3436;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  border: 2px solid #D4A54A;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-}
-
-.recordings-list-mini {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.recording-mini-bubble {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px;
-  background: linear-gradient(145deg, #f9fafb, #e5e7eb);
-  border-radius: 12px;
-  border: 2px solid #d1d5db;
-  transition: all 0.2s;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-}
-
-.recording-mini-bubble.needs-review {
-  background: linear-gradient(145deg, #FDCB6E, #E5B55A);
-  border-color: #D4A54A;
-  color: #2d3436;
-}
-
-.recording-info-mini {
-  flex: 1;
-}
-
-.recording-title-mini {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.recording-date-mini {
-  font-size: 11px;
-  opacity: 0.8;
-  font-weight: 500;
-}
-
-.recording-actions-mini {
-  display: flex;
-  gap: 4px;
-}
-
-.action-mini-bubble {
-  width: 24px;
-  height: 24px;
-  border: 2px solid;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-  color: white;
-}
-
-.action-mini-bubble:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.action-mini-bubble.blue {
-  background: linear-gradient(145deg, #74B9FF, #5A9FE5);
-  border-color: #4A8FD5;
-}
-
-.action-mini-bubble.yellow {
-  background: linear-gradient(145deg, #FDCB6E, #E5B55A);
-  border-color: #D4A54A;
-}
-
-.icon-mini {
-  width: 12px;
-  height: 12px;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  margin: 20px;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.modal-header h3 {
-  flex: 1;
-  margin: 0;
-  font-size: 20px;
-  color: #1f2937;
-  font-weight: 700;
-}
-
-.close-button {
-  width: 40px;
-  height: 40px;
-  border: 2px solid #e5e7eb;
-  background: #f3f4f6;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.close-button:hover {
-  background: #e5e7eb;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
-}
-
-.sticker-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.student-select label,
-.recording-select label,
-.stickers-collection label,
-.feedback-input label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #374151;
-  font-size: 16px;
-}
-
-.cute-select,
-.cute-textarea {
-  width: 100%;
-  padding: 14px 16px;
-  border: 4px solid #e5e7eb;
-  border-radius: 16px;
-  font-size: 16px;
-  font-family: inherit;
-  font-weight: 500;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.cute-select:focus,
-.cute-textarea:focus {
-  outline: none;
-  border-color: #96CEB4;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(150, 206, 180, 0.2);
-  transform: translateY(-2px);
-}
-
-.cute-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.stickers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-  gap: 8px;
-}
-
-.sticker-bubble {
-  width: 50px;
-  height: 50px;
-  border: 3px solid #e5e7eb;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
-  background: linear-gradient(145deg, #f9fafb, #e5e7eb);
-}
-
-.sticker-bubble:hover {
-  border-color: #96CEB4;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.1);
-}
-
-.sticker-bubble.selected {
-  border-color: #96CEB4;
-  background: linear-gradient(145deg, #96CEB4, #7FB69A);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
-}
-
-.btn-full {
-  width: 100%;
-  padding: 16px;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-@media (max-width: 768px) {
-  .students-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .student-stats {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .stat-mini {
-    display: flex;
-    justify-content: space-between;
-    text-align: left;
-  }
-
-  .stickers-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  .sticker-bubble {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-
-  .header-section h2 {
-    font-size: 24px;
-  }
-
-  .teacher-shape {
-    width: 60px;
-    height: 60px;
-    font-size: 30px;
-  }
-}
-</style>
