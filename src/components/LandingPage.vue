@@ -19,12 +19,25 @@
           <p class="text-xl text-musical-graphite font-medium mb-8 max-w-xl mx-auto">
             The beloved Practice Buddy app is returning soon — reimagined for the web, rebuilt for kids, and better than ever for music teachers.
           </p>
-          <form class="max-w-md mx-auto flex flex-col sm:flex-row gap-4 mb-2">
-            <input type="email" placeholder="Your Email Address" class="flex-1 px-4 py-3 rounded-xl border-3 border-gray-300 shadow-sm text-base focus:outline-none focus:border-musical-primary focus:shadow-md" required />
+          <form
+            v-if="!success"
+            class="max-w-md mx-auto flex flex-col sm:flex-row gap-4 mb-2"
+            @submit.prevent="submitEmail"
+          >
+            <input
+              v-model="email"
+              @input="clearMessages"
+              type="email"
+              placeholder="Your Email Address"
+              class="flex-1 px-4 py-3 rounded-xl border-3 border-gray-300 shadow-sm text-base focus:outline-none focus:border-musical-primary focus:shadow-md"
+              required
+            />
             <button type="submit" class="btn btn-secondary btn-full">
               Join the Waitlist
             </button>
           </form>
+          <p v-if="success" class="text-green-600 text-center">Thank you for joining!</p>
+          <p v-if="error && !success" class="text-red-600 text-center">{{ error }}</p>
           <p class="text-sm text-gray-500 mt-3">No spam, just early access + exclusive perks.</p>
         </div>
       </div>
@@ -124,6 +137,38 @@
    
   </div>
 </template>
+
+<script setup>
+import { ref } from "vue";
+import { db } from "../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
+const email = ref("");
+const success = ref(false);
+const error = ref("");
+
+async function submitEmail() {
+  if (!email.value) {
+    error.value = "Please enter a valid email.";
+    return;
+  }
+  try {
+    await addDoc(collection(db, "emails"), {
+      email: email.value,
+      createdAt: serverTimestamp(),
+    });
+    success.value = true;
+    email.value = "";
+  } catch (err) {
+    error.value = "There was a problem. Please try again.";
+  }
+}
+
+function clearMessages() {
+  error.value = "";
+  success.value = false;
+}
+</script>
 
 
 
