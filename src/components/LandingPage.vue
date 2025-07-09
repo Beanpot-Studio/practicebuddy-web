@@ -88,7 +88,7 @@
           <div class="flex flex-col items-center bg-musical-primary rounded-3xl shadow-lg p-8 text-center border-4 border-blue-600">
             <div class="mb-4 flex items-center justify-center">
               <div class="w-20 h-20 rounded-full bg-blue-600 border-4 border-white shadow-lg flex items-center justify-center mb-2">
-                <img src="/src/assets/home_icons/1.svg" alt="Record Practice Icon" class="w-12 h-12" />
+                <img src="/home_icons/1.svg" alt="Record Practice Icon" class="w-12 h-12" />
               </div>
             </div>
             <h3 class="text-2xl font-semibold mb-2 text-white">Record Your Practice</h3>
@@ -98,7 +98,7 @@
           <div class="flex flex-col items-center bg-musical-success rounded-3xl shadow-lg p-8 text-center border-4 border-green-600">
             <div class="mb-4 flex items-center justify-center">
               <div class="w-20 h-20 rounded-full bg-green-600 border-4 border-white shadow-lg flex items-center justify-center mb-2">
-                <img src="/src/assets/home_icons/2.svg" alt="Get Feedback Icon" class="w-12 h-12" />
+                <img src="/home_icons/2.svg" alt="Get Feedback Icon" class="w-12 h-12" />
               </div>
             </div>
             <h3 class="text-2xl font-semibold mb-2 text-musical-graphite">Get Feedback from Teachers</h3>
@@ -108,7 +108,7 @@
           <div class="flex flex-col items-center bg-musical-coral rounded-3xl shadow-lg p-8 text-center border-4 border-red-600">
             <div class="mb-4 flex items-center justify-center">
               <div class="w-20 h-20 rounded-full bg-red-600 border-4 border-white shadow-lg flex items-center justify-center mb-2">
-                <img src="/src/assets/home_icons/3.svg" alt="Earn Stickers Icon" class="w-12 h-12" />
+                <img src="/home_icons/3.svg" alt="Earn Stickers Icon" class="w-12 h-12" />
               </div>
             </div>
             <h3 class="text-2xl font-semibold mb-2 text-musical-graphite">Earn Stickers & Streaks</h3>
