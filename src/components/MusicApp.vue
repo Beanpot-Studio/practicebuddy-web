@@ -17,15 +17,7 @@
       </template>
     </AuthGuard>
     
-    <!-- Test button for toggling pre-launch mode (remove in production) -->
-    <div v-if="!isPreLaunch" class="fixed bottom-4 right-4 z-50">
-      <button 
-        @click="testPreLaunch = true"
-        class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg transition-colors"
-      >
-        🚀 Test Pre-Launch
-      </button>
-    </div>
+   
   </div>
 </template>
 

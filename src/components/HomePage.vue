@@ -88,9 +88,10 @@
                           />
                         </div>
                         
-                        <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError" :class="{ 'opacity-50 cursor-not-allowed': hasError }">
-                          <Play class="w-4 h-4" />
-                          {{ hasError ? 'Fix Errors First' : 'Make Some Music!' }}
+                        <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isStudentLoginLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isStudentLoginLoading }">
+                          <Play v-if="!isStudentLoginLoading" class="w-4 h-4" />
+                          <div v-if="isStudentLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          {{ hasError ? 'Fix Errors First' : isStudentLoginLoading ? 'Validating...' : 'Make Some Music!' }}
                         </button>
                       </form>
                       
@@ -138,9 +139,10 @@
                           />
                         </div>
                         
-                        <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError" :class="{ 'opacity-50 cursor-not-allowed': hasError }">
-                          <BookOpen class="w-4 h-4" />
-                          {{ hasError ? 'Fix Errors First' : 'Access Teacher Hub' }}
+                        <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isTeacherLoginLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isTeacherLoginLoading }">
+                          <BookOpen v-if="!isTeacherLoginLoading" class="w-4 h-4" />
+                          <div v-if="isTeacherLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          {{ hasError ? 'Fix Errors First' : isTeacherLoginLoading ? 'Validating...' : 'Access Teacher Hub' }}
                         </button>
                       </form>
                       
@@ -243,9 +245,10 @@
                             />
                           </div>
                           
-                          <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError" :class="{ 'opacity-50 cursor-not-allowed': hasError }">
-                            <GraduationCap class="w-4 h-4" />
-                            {{ hasError ? 'Fix Errors First' : 'Create Teacher Account' }}
+                          <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isTeacherRegistrationLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isTeacherRegistrationLoading }">
+                            <GraduationCap v-if="!isTeacherRegistrationLoading" class="w-4 h-4" />
+                            <div v-if="isTeacherRegistrationLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            {{ hasError ? 'Fix Errors First' : isTeacherRegistrationLoading ? 'Creating Account...' : 'Create Teacher Account' }}
                           </button>
                           
                           <div class="text-xs text-gray-500 text-center mt-2">
@@ -411,6 +414,11 @@ const activeTab = ref('student')
 const showRegisterForm = ref(false)
 const registrationSuccess = ref(false)
 
+// Individual loading states for each form
+const isStudentLoginLoading = ref(false)
+const isTeacherLoginLoading = ref(false)
+const isTeacherRegistrationLoading = ref(false)
+
 // Watch for unexpected tab changes
 watch(activeTab, (newTab, oldTab) => {
   console.log('activeTab changed from', oldTab, 'to', newTab)
@@ -526,16 +534,24 @@ const loginStudent = async () => {
     return
   }
   
-  const result = await executeWithErrorHandling(
-    () => loginStudentAccount(studentForm.value.name.trim(), studentForm.value.classCode.trim()),
-    'student-login',
-    { autoClearTime: 0 } // Don't auto-clear auth errors
-  )
+  // Set loading state
+  isStudentLoginLoading.value = true
   
-  if (result && result.success) {
-    emit('login', result.user)
+  try {
+    const result = await loginStudentAccount(studentForm.value.name.trim(), studentForm.value.classCode.trim())
+    
+    if (result && result.success) {
+      emit('login', result.user)
+    } else {
+      // Handle the error returned by loginStudentAccount
+      const errorObj = new Error(result.error)
+      errorObj.code = result.code // Preserve the Firebase error code
+      handleError(errorObj, 'student-login', { autoClearTime: 5000 }) // Clear after 5 seconds
+    }
+  } finally {
+    // Clear loading state
+    isStudentLoginLoading.value = false
   }
-  // Error is already handled by executeWithErrorHandling if result.success is false
 }
 
 const loginTeacher = async () => {
@@ -553,20 +569,30 @@ const loginTeacher = async () => {
     return
   }
   
-  console.log('Calling executeWithErrorHandling for teacher login')
-  const result = await executeWithErrorHandling(
-    () => loginTeacherAccount(teacherForm.value.email.trim(), teacherForm.value.password),
-    'teacher-login',
-    { autoClearTime: 0 } // Don't auto-clear auth errors
-  )
+  // Set loading state
+  isTeacherLoginLoading.value = true
   
-  console.log('Teacher login result:', result)
-  if (result && result.success) {
-    emit('login', result.user)
-  } else {
-    console.log('Teacher login failed, error should be displayed')
+  try {
+    console.log('Calling loginTeacherAccount directly')
+    const result = await loginTeacherAccount(teacherForm.value.email.trim(), teacherForm.value.password)
+    
+    console.log('Teacher login result:', result)
+    if (result && result.success) {
+      emit('login', result.user)
+    } else {
+      // Handle the error returned by loginTeacherAccount
+      console.log('Teacher login failed, displaying error:', result.error)
+      console.log('Full result object:', result)
+      
+      // Create an error object that preserves the original Firebase error code
+      const errorObj = new Error(result.error)
+      errorObj.code = result.code // Preserve the Firebase error code
+      handleError(errorObj, 'teacher-login', { autoClearTime: 5000 }) // Clear after 5 seconds
+    }
+  } finally {
+    // Clear loading state
+    isTeacherLoginLoading.value = false
   }
-  // Error is already handled by executeWithErrorHandling if result.success is false
 }
 
 const registerTeacher = async () => {
@@ -617,16 +643,16 @@ const registerTeacher = async () => {
     experience: registerForm.value.experience || 'beginner'
   }
   
-  const result = await executeWithErrorHandling(
-    () => registerTeacherAccount(
+  // Set loading state
+  isTeacherRegistrationLoading.value = true
+  
+  try {
+    const result = await registerTeacherAccount(
       registerForm.value.email.trim(), 
       registerForm.value.password, 
       registerForm.value.displayName.trim(), 
       teacherData
-    ),
-    'teacher-registration',
-    { autoClearTime: 0 } // Don't auto-clear auth errors
-  )
+    )
   
   if (result && result.success) {
     // Show success message
@@ -658,8 +684,16 @@ const registerTeacher = async () => {
       registrationSuccess.value = false
       // Don't auto-login - let user login manually
     }, 3000)
+  } else {
+    // Handle the error returned by registerTeacherAccount
+    const errorObj = new Error(result.error)
+    errorObj.code = result.code // Preserve the Firebase error code
+    handleError(errorObj, 'teacher-registration', { autoClearTime: 5000 }) // Clear after 5 seconds
   }
-  // Error is already handled by executeWithErrorHandling if result.success is false
+  } finally {
+    // Clear loading state
+    isTeacherRegistrationLoading.value = false
+  }
 }
 
 const bringToFront = (index) => {

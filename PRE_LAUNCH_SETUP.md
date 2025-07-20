@@ -5,14 +5,11 @@ Practice Buddy now includes a beautiful pre-launch screen that collects email ad
 
 ## How to Enable Pre-Launch Mode
 
-### Option 1: Environment Variable (Recommended for Production)
-Create a `.env` file in the root directory with:
+### Environment Variable
+In `.env` file in the root directory:
 ```
 PUBLIC_STATUS=pre-launch
 ```
-
-### Option 2: Test Button (Development Only)
-When the app is running, you'll see a yellow "🚀 Test Pre-Launch" button in the bottom-right corner. Click it to test the pre-launch screen.
 
 ## Features
 
@@ -31,16 +28,9 @@ When the app is running, you'll see a yellow "🚀 Test Pre-Launch" button in th
 3. **Primary Instrument** (optional)
 
 ### Data Storage:
-- Currently stores signups in `localStorage` for demo purposes
-- In production, you'd want to send this data to your backend/Firebase
+- Stored in your backend/Firebase
 
 ## Testing
-
-### To Test the Pre-Launch Screen:
-1. **Start the development server**: `npm run dev`
-2. **Click the yellow "🚀 Test Pre-Launch" button** in the bottom-right corner
-3. **Fill out the form** and submit
-4. **Click "← Back to App"** to return to the main application
 
 ### To Test with Environment Variable:
 1. **Create a `.env` file** with `PUBLIC_STATUS=pre-launch`
@@ -54,15 +44,6 @@ When the app is running, you'll see a yellow "🚀 Test Pre-Launch" button in th
    - Vercel: Add `PUBLIC_STATUS=pre-launch` to environment variables
    - Netlify: Add `PUBLIC_STATUS=pre-launch` to environment variables
    - Firebase Hosting: Add to your build environment
-
-2. **Remove test buttons** before deploying:
-   - Remove the "🚀 Test Pre-Launch" button from `MusicApp.vue`
-   - Remove the "← Back to App" button from `PreLaunchScreen.vue`
-
-3. **Connect to backend** for email storage:
-   - Replace localStorage with Firebase Firestore
-   - Add email validation and spam protection
-   - Set up email notifications
 
 ## Customization
 

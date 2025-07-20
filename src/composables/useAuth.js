@@ -46,58 +46,38 @@ const clearError = () => {
 }
 
 const registerTeacherAccount = async (email, password, displayName, teacherData = {}) => {
-  isLoading.value = true
-  clearError()
-  
   const result = await registerTeacher(email, password, displayName, teacherData)
   
-  if (!result.success) {
-    handleAuthError(result.error)
-  }
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
   
-  isLoading.value = false
   return result
 }
 
 const registerStudentAccount = async (name, classCode, studentData = {}) => {
-  isLoading.value = true
-  clearError()
-  
   const result = await registerStudent(name, classCode, studentData)
   
-  if (!result.success) {
-    handleAuthError(result.error)
-  }
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
   
-  isLoading.value = false
   return result
 }
 
 const loginTeacherAccount = async (email, password) => {
-  isLoading.value = true
-  clearError()
-  
   const result = await loginTeacher(email, password)
   
-  if (!result.success) {
-    handleAuthError(result.error)
-  }
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
   
-  isLoading.value = false
   return result
 }
 
 const loginStudentAccount = async (name, classCode) => {
-  isLoading.value = true
-  clearError()
-  
   const result = await loginStudent(name, classCode)
   
-  if (!result.success) {
-    handleAuthError(result.error)
-  }
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
   
-  isLoading.value = false
   return result
 }
 
