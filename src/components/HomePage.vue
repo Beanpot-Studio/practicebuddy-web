@@ -53,6 +53,11 @@
                       ✅ Thanks for registering! Please login with your email and password.
                     </div>
                     
+                    <!-- Password Reset Success Message -->
+                    <div v-if="passwordResetSuccess" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+                      ✅ Password reset email sent! Please check your inbox and follow the link to reset your password.
+                    </div>
+                    
                     <!-- Student Tab -->
                     <div v-if="activeTab === 'student'" class="animate-fadeIn">
                       <div class="text-center mb-8">
@@ -147,7 +152,12 @@
                       </form>
                       
                       <div class="flex justify-between items-center py-6 border-b-3 border-gray-200">
-                        <a href="#" class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5">🔄 Reset Password</a>
+                        <button 
+                          @click="toggleResetPasswordForm" 
+                          class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5"
+                        >
+                          {{ showResetPasswordForm ? 'Back to Login' : '🔄 Reset Password' }}
+                        </button>
                         <button 
                           @click="toggleRegisterForm" 
                           class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5"
@@ -253,6 +263,35 @@
                           
                           <div class="text-xs text-gray-500 text-center mt-2">
                             By creating an account, you agree to our Terms of Service and Privacy Policy.
+                          </div>
+                        </form>
+                      </div>
+                      
+                      <!-- Password Reset Form -->
+                      <div v-if="showResetPasswordForm" class="animate-fadeIn mt-6 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200">
+                        <h3 class="text-xl font-bold text-musical-graphite mb-4">Reset Your Password</h3>
+                        <p class="text-gray-600 mb-6">Enter your email address and we'll send you a link to reset your password.</p>
+                        <form @submit.prevent="resetPassword" class="space-y-4">
+                          <div class="space-y-2">
+                            <label for="reset-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
+                            <input 
+                              id="reset-email"
+                              v-model="resetPasswordForm.email" 
+                              type="email" 
+                              placeholder="teacher@musicschool.edu"
+                              required
+                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                            />
+                          </div>
+                          
+                          <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isPasswordResetLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isPasswordResetLoading }">
+                            <div v-if="!isPasswordResetLoading" class="w-4 h-4">📧</div>
+                            <div v-if="isPasswordResetLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            {{ hasError ? 'Fix Errors First' : isPasswordResetLoading ? 'Sending...' : 'Send Reset Link' }}
+                          </button>
+                          
+                          <div class="text-xs text-gray-500 text-center mt-2">
+                            Check your email for a password reset link. The link will expire in 1 hour.
                           </div>
                         </form>
                       </div>
@@ -398,7 +437,8 @@ const emit = defineEmits(['login'])
 const { 
   loginTeacherAccount, 
   loginStudentAccount, 
-  registerTeacherAccount
+  registerTeacherAccount,
+  resetUserPassword
 } = useAuth()
 
 // Error handling
@@ -412,12 +452,15 @@ const {
 
 const activeTab = ref('student')
 const showRegisterForm = ref(false)
+const showResetPasswordForm = ref(false)
 const registrationSuccess = ref(false)
+const passwordResetSuccess = ref(false)
 
 // Individual loading states for each form
 const isStudentLoginLoading = ref(false)
 const isTeacherLoginLoading = ref(false)
 const isTeacherRegistrationLoading = ref(false)
+const isPasswordResetLoading = ref(false)
 
 // Watch for unexpected tab changes
 watch(activeTab, (newTab, oldTab) => {
@@ -443,6 +486,10 @@ const registerForm = ref({
   school: '',
   instrument: '',
   experience: 'beginner'
+})
+
+const resetPasswordForm = ref({
+  email: ''
 })
 
 // Shuffling card functionality
@@ -518,8 +565,27 @@ const toggleRegisterForm = () => {
   
   // Toggle registration form
   showRegisterForm.value = !showRegisterForm.value
+  showResetPasswordForm.value = false // Hide reset password form
   // Don't clear errors when toggling forms - let user see them
   registrationSuccess.value = false
+  passwordResetSuccess.value = false
+}
+
+const toggleResetPasswordForm = () => {
+  // Don't toggle if there are any errors (Firebase, validation, or other)
+  if (hasError.value) {
+    const error = new Error('Please resolve form errors before switching forms.')
+    error.code = 'form-switch'
+    handleError(error, 'form-switch')
+    return
+  }
+  
+  // Toggle reset password form
+  showResetPasswordForm.value = !showResetPasswordForm.value
+  showRegisterForm.value = false // Hide registration form
+  // Don't clear errors when toggling forms - let user see them
+  registrationSuccess.value = false
+  passwordResetSuccess.value = false
 }
 
 const loginStudent = async () => {
@@ -693,6 +759,58 @@ const registerTeacher = async () => {
   } finally {
     // Clear loading state
     isTeacherRegistrationLoading.value = false
+  }
+}
+
+const resetPassword = async () => {
+  // Check for existing errors first
+  if (hasError.value) {
+    return
+  }
+  
+  // Validate required fields
+  if (!resetPasswordForm.value.email?.trim()) {
+    handleError(new Error('Please enter your email address.'), 'form-validation')
+    return
+  }
+  
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(resetPasswordForm.value.email.trim())) {
+    handleError(new Error('Please enter a valid email address.'), 'form-validation')
+    return
+  }
+  
+  // Set loading state
+  isPasswordResetLoading.value = true
+  
+  try {
+    const result = await resetUserPassword(resetPasswordForm.value.email.trim())
+    
+    if (result && result.success) {
+      // Show success message
+      passwordResetSuccess.value = true
+      clearError()
+      
+      // Clear form
+      resetPasswordForm.value.email = ''
+      
+      // Hide reset password form
+      showResetPasswordForm.value = false
+      
+      // Show success message briefly
+      setTimeout(() => {
+        passwordResetSuccess.value = false
+      }, 5000)
+    } else {
+      // Handle the error returned by resetUserPassword
+      const errorObj = new Error(result.error)
+      errorObj.code = result.code // Preserve the Firebase error code
+      handleError(errorObj, 'password-reset', { autoClearTime: 5000 })
+    }
+  } finally {
+    // Clear loading state
+    isPasswordResetLoading.value = false
   }
 }
 
