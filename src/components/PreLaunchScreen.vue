@@ -10,7 +10,7 @@
       <div class="absolute top-1/3 right-1/3 text-4xl text-white/10 animate-pulse" style="animation-delay: 1.5s;">🎺</div>
     </div>
 
-    <div class="relative z-10 min-h-screen flex items-center justify-center p-6">
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-6 pb-24">
       <div class="max-w-2xl w-full">
         <!-- Header -->
         <div class="text-center mb-12">
