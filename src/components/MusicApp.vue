@@ -1,41 +1,58 @@
 <template>
   <div class="app">
-    <Header @logout="handleLogout" />
-    <div v-if="!isLoggedIn" class="app-content">
-      <HomePage @login="handleLogin" />
-    </div>
-    <div v-else class="app-content">
-      <main class="main-content">
-        <StudentDashboard v-if="currentMode === 'student'" :student-name="currentUser.name" />
-        <TeacherDashboard v-if="currentMode === 'teacher'" :teacher-email="currentUser.email" />
-      </main>
-      <Footer @switch-mode="switchMode" @go-home="handleGoHome" />
+    <!-- Pre-launch screen when STATUS=pre-launch -->
+    <PreLaunchScreen v-if="isPreLaunch" @exit-pre-launch="testPreLaunch = false" />
+    
+    <!-- Main app when not in pre-launch mode -->
+    <AuthGuard v-else @login="handleLogin">
+      <template #default="{ user, userRole }">
+        <Header />
+        <div class="app-content">
+          <main class="main-content">
+            <StudentDashboard v-if="userRole === 'student'" :student-name="user?.name || user?.displayName" />
+            <TeacherDashboard v-if="userRole === 'teacher'" :teacher-email="user?.email" />
+          </main>
+          <Footer @switch-mode="switchMode" @go-home="handleGoHome" />
+        </div>
+      </template>
+    </AuthGuard>
+    
+    <!-- Test button for toggling pre-launch mode (remove in production) -->
+    <div v-if="!isPreLaunch" class="fixed bottom-4 right-4 z-50">
+      <button 
+        @click="testPreLaunch = true"
+        class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg transition-colors"
+      >
+        🚀 Test Pre-Launch
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import HomePage from './HomePage.vue'
+import { ref, computed, watch } from 'vue'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
 import StudentDashboard from './StudentDashboard.vue'
 import TeacherDashboard from './TeacherDashboard.vue'
+import AuthGuard from './AuthGuard.vue'
+import PreLaunchScreen from './PreLaunchScreen.vue'
 
-const isLoggedIn = ref(false)
 const currentMode = ref('student')
-const currentUser = ref({})
 
-const handleLogin = (loginData) => {
-  currentMode.value = loginData.type
-  currentUser.value = loginData
-  isLoggedIn.value = true
-}
+// For testing: allow toggling pre-launch mode
+const testPreLaunch = ref(false)
 
-const handleLogout = () => {
-  isLoggedIn.value = false
-  currentMode.value = 'student'
-  currentUser.value = {}
+// Check if we're in pre-launch mode
+const isPreLaunch = computed(() => {
+  console.log('PUBLIC_STATUS:', import.meta.env.PUBLIC_STATUS)
+  return import.meta.env.PUBLIC_STATUS === 'pre-launch' || testPreLaunch.value
+})
+
+const handleLogin = (userData) => {
+  // The authentication is handled by the useAuth composable
+  // This function is called after successful login
+  currentMode.value = userData.role
 }
 
 const switchMode = (mode) => {

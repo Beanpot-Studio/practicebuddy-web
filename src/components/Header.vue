@@ -14,9 +14,9 @@
           <a href="#" class="text-gray-800 no-underline font-semibold text-base px-4 py-2 rounded-lg transition-all duration-300 hover:bg-blue-50 hover:text-musical-primary hover:transform hover:-translate-y-0.5">Features</a>
           <a href="#" class="text-gray-800 no-underline font-semibold text-base px-4 py-2 rounded-lg transition-all duration-300 hover:bg-blue-50 hover:text-musical-primary hover:transform hover:-translate-y-0.5">Contact</a>
         </nav>
-        <button @click="$emit('logout')" class="btn bg-musical-purple btn-sm text-gray-800 border-yellow-600 hover:bg-yellow-50 hover:border-yellow-500">
+        <button @click="handleLogout" :disabled="isLoading" class="btn bg-musical-purple btn-sm text-gray-800 border-yellow-600 hover:bg-yellow-50 hover:border-yellow-500">
           <LogOut class="w-4 h-4" />
-          Logout
+          {{ isLoading ? 'Logging out...' : 'Logout' }}
         </button>
       </div>
     </div>
@@ -25,6 +25,11 @@
 
 <script setup>
 import { LogOut } from 'lucide-vue-next'
+import { useAuth } from '../composables/useAuth'
 
-defineEmits(['logout'])
+const { logoutUser, isLoading } = useAuth()
+
+const handleLogout = async () => {
+  await logoutUser()
+}
 </script>

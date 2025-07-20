@@ -83,7 +83,7 @@
 
   /* Cute Cards */
   .card {
-    @apply bg-musical-cream rounded-3xl p-6 shadow-[0_8px_0_rgba(0,0,0,0.1),0_12px_30px_rgba(0,0,0,0.15)] transition-all duration-300 border-2 border-gray-200 relative;
+    @apply bg-white rounded-3xl p-6 shadow-[0_8px_0_rgba(0,0,0,0.1),0_12px_30px_rgba(0,0,0,0.15)] transition-all duration-300 border-2 border-gray-200 relative;
   }
 
   

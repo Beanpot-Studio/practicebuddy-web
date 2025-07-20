@@ -7,19 +7,27 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@astrojs/vue": "^5.1.0",
     "@vueuse/core": "^13.5.0",
     "astro": "^5.11.0",
     "chart.js": "^4.5.0",
+    "firebase": "^12.0.0",
     "lucide-vue-next": "^0.400.0",
     "vue": "^3.5.17",
     "vue-chartjs": "^5.3.2"
   },
   "devDependencies": {
     "@astrojs/tailwind": "^6.0.2",
-    "tailwindcss": "^3.4.17"
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^3.4.17",
+    "vitest": "^3.2.4"
   }
 }
