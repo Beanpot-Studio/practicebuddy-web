@@ -1,18 +1,13 @@
 ---
-import Layout from '../components/Layout.astro';
-import LandingPage from '../components/LandingPage.vue';
+import Layout from "../components/Layout.astro";
 ---
-
 
 <Layout>
   <div id="app"></div>
 </Layout>
 
-
 <script>
-  import { createApp } from 'vue'
-  //import MusicApp from '../components/MusicApp.vue'
-  //createApp(MusicApp).mount('#app')
-  import LandingPage from '../components/LandingPage.vue'
-  createApp(LandingPage).mount('#app')
+  import { createApp } from "vue";
+  import MusicApp from "../components/MusicApp.vue";
+  createApp(MusicApp).mount("#app");
 </script>
