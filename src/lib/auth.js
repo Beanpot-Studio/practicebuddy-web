@@ -110,7 +110,7 @@ export const registerTeacher = async (email, password, displayName, teacherData 
 }
 
 /**
- * Register a new student account
+ * Register a new student account with class code
  * @param {string} name - Student name
  * @param {string} classCode - Class code provided by teacher
  * @param {Object} studentData - Additional student data
@@ -164,6 +164,73 @@ export const registerStudent = async (name, classCode, studentData = {}) => {
     logError(error, 'student-registration')
     const errorInfo = handleFirebaseError(error, 'student-registration')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'student-registration')
+  }
+}
+
+/**
+ * Register a new independent student account with email/password
+ * @param {string} email - Student email
+ * @param {string} password - Student password
+ * @param {string} displayName - Student display name
+ * @param {Object} studentData - Additional student data
+ */
+export const registerIndependentStudent = async (email, password, displayName, studentData = {}) => {
+  if (isDemoMode) {
+    // Demo mode - simulate successful registration
+    return {
+      success: true,
+      user: {
+        uid: 'demo-independent-student-id',
+        email: email,
+        displayName: displayName,
+        role: USER_ROLES.STUDENT,
+        isIndependent: true,
+        practiceMinutes: 0,
+        achievements: []
+      }
+    }
+  }
+
+  try {
+    // Create user account
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    const user = userCredential.user
+
+    // Update profile with display name
+    await updateProfile(user, {
+      displayName: displayName
+    })
+
+    // Store additional student data in Firestore
+    const studentDoc = {
+      uid: user.uid,
+      email: user.email,
+      displayName: displayName,
+      role: USER_ROLES.STUDENT,
+      isIndependent: true,
+      createdAt: new Date().toISOString(),
+      practiceMinutes: 0,
+      achievements: [],
+      ...studentData
+    }
+
+    await setDoc(doc(db, 'users', user.uid), studentDoc)
+
+    return {
+      success: true,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        displayName: displayName,
+        role: USER_ROLES.STUDENT,
+        isIndependent: true,
+        ...studentData
+      }
+    }
+  } catch (error) {
+    logError(error, 'independent-student-registration')
+    const errorInfo = handleFirebaseError(error, 'independent-student-registration')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'independent-student-registration')
   }
 }
 

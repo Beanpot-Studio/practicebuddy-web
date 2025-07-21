@@ -4,6 +4,7 @@ import {
   cleanupAuth, 
   registerTeacher, 
   registerStudent, 
+  registerIndependentStudent,
   loginTeacher, 
   loginStudent, 
   logout, 
@@ -56,6 +57,15 @@ const registerTeacherAccount = async (email, password, displayName, teacherData 
 
 const registerStudentAccount = async (name, classCode, studentData = {}) => {
   const result = await registerStudent(name, classCode, studentData)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const registerIndependentStudentAccount = async (email, password, displayName, studentData = {}) => {
+  const result = await registerIndependentStudent(email, password, displayName, studentData)
   
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
@@ -134,6 +144,7 @@ export function useAuth() {
     clearError,
     registerTeacherAccount,
     registerStudentAccount,
+    registerIndependentStudentAccount,
     loginTeacherAccount,
     loginStudentAccount,
     logoutUser,
