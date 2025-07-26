@@ -9,7 +9,14 @@
         <Header />
         <div class="app-content">
           <main class="main-content">
-            <StudentDashboard v-if="userRole === 'student'" :student-name="user?.name || user?.displayName" />
+            <StudentDashboard 
+              v-if="userRole === 'student' && user?.classCode" 
+              :student-name="user?.name || user?.displayName" 
+            />
+            <IndependentStudentDashboard 
+              v-if="userRole === 'student' && !user?.classCode" 
+              :student-name="user?.name || user?.displayName" 
+            />
             <TeacherDashboard v-if="userRole === 'teacher'" :teacher-email="user?.email" />
           </main>
           <Footer @switch-mode="switchMode" @go-home="handleGoHome" />
@@ -26,6 +33,7 @@ import { ref, computed, watch } from 'vue'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
 import StudentDashboard from './StudentDashboard.vue'
+import IndependentStudentDashboard from './IndependentStudentDashboard.vue'
 import TeacherDashboard from './TeacherDashboard.vue'
 import AuthGuard from './AuthGuard.vue'
 import PreLaunchScreen from './PreLaunchScreen.vue'

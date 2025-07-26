@@ -110,53 +110,91 @@ export const registerTeacher = async (email, password, displayName, teacherData 
 }
 
 /**
- * Register a new student account with class code
- * @param {string} name - Student name
- * @param {string} classCode - Class code provided by teacher
- * @param {Object} studentData - Additional student data
+ * Register a new student with email and password
+ * @param {string} email - Student email
+ * @param {string} password - Student password
+ * @param {string} displayName - Student display name
+ * @param {Object} studentData - Additional student data including optional classCode
  */
-export const registerStudent = async (name, classCode, studentData = {}) => {
+export const registerStudent = async (email, password, displayName, studentData = {}) => {
+  if (isDemoMode) {
+    // Demo mode - simulate successful registration
+    return {
+      success: true,
+      user: {
+        uid: 'demo-student-id',
+        email: email,
+        displayName: displayName,
+        role: USER_ROLES.STUDENT,
+        practiceMinutes: 0,
+        achievements: [],
+        classCode: studentData.classCode || null,
+        teacherId: studentData.teacherId || null
+      }
+    }
+  }
+
   try {
-    // For students, we'll use a simple system with class codes
-    // In a real app, you might want to generate temporary passwords or use email links
+    // Create user account
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    const user = userCredential.user
+
+    // Update profile with display name
+    await updateProfile(user, {
+      displayName: displayName
+    })
+
+    // If class code is provided, validate it and get teacher info
+    let classCode = null
+    let teacherId = null
     
-    // Check if class code exists and get teacher info
-    const classDoc = await getDoc(doc(db, 'classes', classCode))
-    
-    if (!classDoc.exists()) {
-      return {
-        success: false,
-        error: 'Invalid class code. Please check with your teacher.'
+    if (studentData.classCode) {
+      try {
+        const classDoc = await getDoc(doc(db, 'classes', studentData.classCode))
+        
+        if (classDoc.exists()) {
+          const classData = classDoc.data()
+          classCode = studentData.classCode
+          teacherId = classData.teacherId
+        } else {
+          // Class doesn't exist, but don't fail registration
+          console.warn('Class code provided but class not found:', studentData.classCode)
+        }
+      } catch (error) {
+        // Class validation failed, but don't fail registration
+        console.warn('Failed to validate class code:', error)
       }
     }
 
-    const classData = classDoc.data()
-    
-    // Create student document
+    // Store student data in Firestore
     const studentDoc = {
-      name: name,
-      classCode: classCode,
-      teacherId: classData.teacherId,
+      uid: user.uid,
+      email: user.email,
+      displayName: displayName,
       role: USER_ROLES.STUDENT,
+      classCode: classCode,
+      teacherId: teacherId,
+      instrument: studentData.instrument || '',
       createdAt: new Date().toISOString(),
       practiceMinutes: 0,
       achievements: [],
       ...studentData
     }
 
-    // Generate a unique student ID
-    const studentId = `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    await setDoc(doc(db, 'students', studentId), studentDoc)
+    await setDoc(doc(db, 'users', user.uid), studentDoc)
 
     return {
       success: true,
       user: {
-        uid: studentId,
-        name: name,
-        classCode: classCode,
-        teacherId: classData.teacherId,
+        uid: user.uid,
+        email: user.email,
+        displayName: displayName,
         role: USER_ROLES.STUDENT,
+        classCode: classCode,
+        teacherId: teacherId,
+        instrument: studentData.instrument || '',
+        practiceMinutes: 0,
+        achievements: [],
         ...studentData
       }
     }
@@ -354,75 +392,93 @@ export const loginIndependentStudent = async (email, password) => {
 }
 
 /**
- * Login student with name and class code
- * @param {string} name - Student name
- * @param {string} classCode - Class code
+ * Login student with email and password
+ * @param {string} email - Student email
+ * @param {string} password - Student password
+ * @param {string} classCode - Optional class code for joining a class
  */
-export const loginStudent = async (name, classCode) => {
+export const loginStudent = async (email, password, classCode = null) => {
   if (isDemoMode) {
     // Demo mode - simulate successful login for demo student
-    if (name && classCode === 'DEMO123') {
+    if (email === 'student@example.com' && password === 'student123') {
       return {
         success: true,
         user: {
           uid: 'demo-student-id',
-          name: name,
-          classCode: 'DEMO123',
-          teacherId: 'demo-teacher-id',
+          email: email,
+          displayName: 'Demo Student',
           role: USER_ROLES.STUDENT,
           practiceMinutes: 120,
-          achievements: ['First Practice', 'Week Warrior']
+          achievements: ['First Practice', 'Week Warrior'],
+          classCode: classCode || null,
+          teacherId: classCode ? 'demo-teacher-id' : null
         }
       }
     } else {
       return {
         success: false,
-        error: 'Invalid credentials. Use any name with class code DEMO123 for demo mode.'
+        error: 'Invalid credentials. Use student@example.com / student123 for demo mode.'
       }
     }
   }
 
   try {
-    // Check if class code exists
-    const classDoc = await getDoc(doc(db, 'classes', classCode))
+    // Authenticate with Firebase Auth
+    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    const user = userCredential.user
+
+    // Get user data from Firestore
+    const userDoc = await getDoc(doc(db, 'users', user.uid))
     
-    if (!classDoc.exists()) {
+    if (!userDoc.exists()) {
       return {
         success: false,
-        error: 'Invalid class code. Please check with your teacher.'
+        error: 'Student account not found. Please check your credentials.'
       }
     }
 
-    // Find student by name and class code
-    // In a real app, you might want to use a more secure authentication method
-    const studentsRef = collection(db, 'students')
-    const q = query(
-      studentsRef, 
-      where('name', '==', name),
-      where('classCode', '==', classCode)
-    )
+    const userData = userDoc.data()
     
-    const querySnapshot = await getDocs(q)
-    
-    if (querySnapshot.empty) {
-      return {
-        success: false,
-        error: 'Student not found. Please check your name and class code.'
+    // If class code is provided, try to join the class
+    if (classCode) {
+      try {
+        const classDoc = await getDoc(doc(db, 'classes', classCode))
+        
+        if (classDoc.exists()) {
+          const classData = classDoc.data()
+          
+          // Update user's class information
+          await updateDoc(doc(db, 'users', user.uid), {
+            classCode: classCode,
+            teacherId: classData.teacherId,
+            updatedAt: new Date().toISOString()
+          })
+          
+          userData.classCode = classCode
+          userData.teacherId = classData.teacherId
+        } else {
+          // Class doesn't exist, but don't fail the login
+          console.warn('Class code provided but class not found:', classCode)
+        }
+      } catch (error) {
+        // Class joining failed, but don't fail the login
+        console.warn('Failed to join class:', error)
       }
     }
-
-    const studentDoc = querySnapshot.docs[0]
-    const studentData = studentDoc.data()
 
     return {
       success: true,
       user: {
-        uid: studentDoc.id,
-        name: studentData.name,
-        classCode: studentData.classCode,
-        teacherId: studentData.teacherId,
+        uid: user.uid,
+        email: user.email,
+        displayName: userData.displayName,
         role: USER_ROLES.STUDENT,
-        ...studentData
+        classCode: userData.classCode,
+        teacherId: userData.teacherId,
+        instrument: userData.instrument,
+        practiceMinutes: userData.practiceMinutes || 0,
+        achievements: userData.achievements || [],
+        ...userData
       }
     }
   } catch (error) {

@@ -43,7 +43,7 @@
                   <div class="min-h-[28rem] w-full">
                     <!-- Demo Mode Indicator -->
                     <div v-if="isDemoMode" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">
-                      🎭 <strong>Demo Mode:</strong> Use demo@example.com / demo123 for teachers, any name with class code DEMO123 for class students, or student@example.com / student123 for independent students.
+                      🎭 <strong>Demo Mode:</strong> Use demo@example.com / demo123 for teachers, or student@example.com / student123 for students. Add a class code to join a class, or leave blank for independent practice.
                     </div>
                     
                     <!-- Error Message -->
@@ -53,7 +53,7 @@
                     
                     <!-- Success Message -->
                     <div v-if="registrationSuccess" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                      ✅ Thanks for registering! Please login with your email and password.
+                      ✅ Account created successfully! You can now login with your email and password.
                     </div>
                     
                     <!-- Password Reset Success Message -->
@@ -71,53 +71,64 @@
                         <p class="text-musical-graphite">Track practice time and collect rewards!</p>
                       </div>
                       
-                      <!-- Student Login Toggle -->
+                      <!-- Student Login/Create Account Toggle -->
                       <div class="flex justify-center mb-6">
                         <div class="bg-gray-100 rounded-xl p-1 flex">
                           <button 
-                            @click="toggleStudentIndependentLogin" 
+                            @click="toggleStudentMode" 
                             :class="[
                               'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
-                              !showStudentIndependentLogin ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+                              !showStudentCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
                             ]"
                           >
-                            🏫 Class Login
+                            🔐 Login
                           </button>
                           <button 
-                            @click="toggleStudentIndependentLogin" 
+                            @click="toggleStudentMode" 
                             :class="[
                               'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
-                              showStudentIndependentLogin ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+                              showStudentCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
                             ]"
                           >
-                            🎵 Independent Practice
+                            ➕ Create Account
                           </button>
                         </div>
                       </div>
                       
-                      <!-- Class Login Form -->
-                      <div v-if="!showStudentIndependentLogin">
+                      <!-- Student Login Form -->
+                      <div v-if="!showStudentCreateAccount">
                         <form @submit.prevent="loginStudent" class="space-y-6">
                           <div class="space-y-2">
-                            <label for="student-name" class="block text-sm font-semibold text-musical-graphite">Your Name</label>
+                            <label for="student-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
                             <input 
-                              id="student-name"
-                              v-model="studentForm.name" 
-                              type="text" 
-                              placeholder="Enter your name"
+                              id="student-email"
+                              v-model="studentForm.email" 
+                              type="email" 
+                              placeholder="your.email@example.com"
                               required
                               class="w-full px-4 py-3 border-3 bg-gray-200 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
                             />
                           </div>
                           
                           <div class="space-y-2">
-                            <label for="student-code" class="block text-sm font-semibold text-musical-graphite">Secret Class Code</label>
+                            <label for="student-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
                             <input 
-                              id="student-code"
+                              id="student-password"
+                              v-model="studentForm.password" 
+                              type="password" 
+                              placeholder="Enter your password"
+                              required
+                              class="w-full px-4 py-3 border-3 bg-gray-200 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                            />
+                          </div>
+                          
+                          <div class="space-y-2">
+                            <label for="student-class-code" class="block text-sm font-semibold text-musical-graphite">Class Code (Optional)</label>
+                            <input 
+                              id="student-class-code"
                               v-model="studentForm.classCode" 
                               type="text" 
-                              placeholder="Ask your teacher for the magic code"
-                              required
+                              placeholder="Enter class code if joining a class (optional)"
                               class="w-full px-4 py-3 border-3 bg-gray-200 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
                             />
                           </div>
@@ -125,9 +136,92 @@
                           <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isStudentLoginLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isStudentLoginLoading }">
                             <Play v-if="!isStudentLoginLoading" class="w-4 h-4" />
                             <div v-if="isStudentLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            {{ hasError ? 'Fix Errors First' : isStudentLoginLoading ? 'Validating...' : 'Make Some Music!' }}
+                            {{ hasError ? 'Fix Errors First' : isStudentLoginLoading ? 'Signing In...' : 'Make Some Music!' }}
                           </button>
                         </form>
+                        
+                        <!-- Student Registration Form -->
+                        <div v-if="showStudentCreateAccount" class="animate-fadeIn mt-6 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200 w-full">
+                          <h3 class="text-xl font-bold text-musical-graphite mb-4">Create Student Account</h3>
+                          <p class="text-gray-600 mb-6">Join Practice Buddy and start tracking your musical progress!</p>
+                          <form @submit.prevent="registerStudent" class="space-y-4">
+                            <div class="space-y-2">
+                              <label for="student-register-name" class="block text-sm font-semibold text-musical-graphite">Your Name</label>
+                              <input 
+                                id="student-register-name"
+                                v-model="studentRegisterForm.displayName" 
+                                type="text" 
+                                placeholder="Enter your full name"
+                                required
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="student-register-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
+                              <input 
+                                id="student-register-email"
+                                v-model="studentRegisterForm.email" 
+                                type="email" 
+                                placeholder="your.email@example.com"
+                                required
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="student-register-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
+                              <input 
+                                id="student-register-password"
+                                v-model="studentRegisterForm.password" 
+                                type="password" 
+                                placeholder="Create a password (min 6 characters)"
+                                required
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="student-register-confirm-password" class="block text-sm font-semibold text-musical-graphite">Confirm Password</label>
+                              <input 
+                                id="student-register-confirm-password"
+                                v-model="studentRegisterForm.confirmPassword" 
+                                type="password" 
+                                placeholder="Confirm your password"
+                                required
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="student-register-instrument" class="block text-sm font-semibold text-musical-graphite">Primary Instrument (Optional)</label>
+                              <input 
+                                id="student-register-instrument"
+                                v-model="studentRegisterForm.instrument" 
+                                type="text" 
+                                placeholder="e.g., Piano, Guitar, Violin, Voice"
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="student-register-class-code" class="block text-sm font-semibold text-musical-graphite">Class Code (Optional)</label>
+                              <input 
+                                id="student-register-class-code"
+                                v-model="studentRegisterForm.classCode" 
+                                type="text" 
+                                placeholder="Enter class code if joining a class (optional)"
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isStudentRegistrationLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isStudentRegistrationLoading }">
+                              <Play v-if="!isStudentRegistrationLoading" class="w-4 h-4" />
+                              <div v-if="isStudentRegistrationLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              {{ hasError ? 'Fix Errors First' : isStudentRegistrationLoading ? 'Creating Account...' : 'Create Account!' }}
+                            </button>
+                          </form>
+                        </div>
                       </div>
                       
                       <!-- Independent Student Login Form -->
@@ -577,6 +671,7 @@ const {
   loginStudentAccount, 
   loginIndependentStudentAccount,
   registerTeacherAccount,
+  registerStudentAccount,
   registerIndependentStudentAccount,
   resetUserPassword
 } = useAuth()
@@ -593,7 +688,7 @@ const {
 const activeTab = ref('student')
 const showRegisterForm = ref(false)
 const showResetPasswordForm = ref(false)
-const showStudentIndependentLogin = ref(false)
+const showStudentCreateAccount = ref(false)
 const registrationSuccess = ref(false)
 const passwordResetSuccess = ref(false)
 
@@ -610,7 +705,17 @@ watch(activeTab, (newTab, oldTab) => {
 })
 
 const studentForm = ref({
-  name: '',
+  email: '',
+  password: '',
+  classCode: ''
+})
+
+const studentRegisterForm = ref({
+  email: '',
+  password: '',
+  confirmPassword: '',
+  displayName: '',
+  instrument: '',
   classCode: ''
 })
 
@@ -742,7 +847,7 @@ const toggleResetPasswordForm = () => {
   passwordResetSuccess.value = false
 }
 
-const toggleStudentIndependentLogin = () => {
+const toggleStudentMode = () => {
   // Don't toggle if there are any errors (Firebase, validation, or other)
   if (hasError.value) {
     const error = new Error('Please resolve form errors before switching forms.')
@@ -751,12 +856,14 @@ const toggleStudentIndependentLogin = () => {
     return
   }
   
-  // Toggle student independent login
-  showStudentIndependentLogin.value = !showStudentIndependentLogin.value
+  // Toggle between login and create account modes
+  showStudentCreateAccount.value = !showStudentCreateAccount.value
   // Don't clear errors when toggling forms - let user see them
   registrationSuccess.value = false
   passwordResetSuccess.value = false
 }
+
+
 
 const loginStudent = async () => {
   // Check for existing errors first
@@ -765,8 +872,8 @@ const loginStudent = async () => {
   }
   
   // Validate required fields
-  if (!studentForm.value.name?.trim() || !studentForm.value.classCode?.trim()) {
-    handleError(new Error('Please fill in all required fields.'), 'form-validation')
+  if (!studentForm.value.email?.trim() || !studentForm.value.password) {
+    handleError(new Error('Please fill in your email and password.'), 'form-validation')
     return
   }
   
@@ -774,7 +881,7 @@ const loginStudent = async () => {
   isStudentLoginLoading.value = true
   
   try {
-    const result = await loginStudentAccount(studentForm.value.name.trim(), studentForm.value.classCode.trim())
+    const result = await loginStudentAccount(studentForm.value.email.trim(), studentForm.value.password, studentForm.value.classCode?.trim())
     
     if (result && result.success) {
       emit('login', result.user)
@@ -787,6 +894,103 @@ const loginStudent = async () => {
   } finally {
     // Clear loading state
     isStudentLoginLoading.value = false
+  }
+}
+
+const registerStudent = async () => {
+  // Check for existing errors first
+  if (hasError.value) {
+    return
+  }
+  
+  // Clear any previous errors
+  clearError()
+  
+  // Validation
+  const validationErrors = {}
+  
+  if (!studentRegisterForm.value.displayName?.trim()) {
+    validationErrors.displayName = 'Please enter your full name'
+  }
+  
+  if (!studentRegisterForm.value.email?.trim()) {
+    validationErrors.email = 'Please enter your email address'
+  }
+  
+  if (!studentRegisterForm.value.password) {
+    validationErrors.password = 'Please enter a password'
+  } else if (studentRegisterForm.value.password.length < 6) {
+    validationErrors.password = 'Password must be at least 6 characters long'
+  }
+  
+  if (studentRegisterForm.value.password !== studentRegisterForm.value.confirmPassword) {
+    validationErrors.confirmPassword = 'Passwords do not match'
+  }
+  
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (studentRegisterForm.value.email && !emailRegex.test(studentRegisterForm.value.email)) {
+    validationErrors.email = 'Please enter a valid email address'
+  }
+  
+  // If there are validation errors, handle them and return early
+  if (Object.keys(validationErrors).length > 0) {
+    handleError(new Error('Validation failed'), 'form-validation', { validationErrors })
+    return
+  }
+  
+  const studentData = {
+    instrument: studentRegisterForm.value.instrument?.trim() || '',
+    classCode: studentRegisterForm.value.classCode?.trim() || ''
+  }
+  
+  // Set loading state
+  isStudentRegistrationLoading.value = true
+  
+  try {
+    const result = await registerStudentAccount(
+      studentRegisterForm.value.email.trim(), 
+      studentRegisterForm.value.password, 
+      studentRegisterForm.value.displayName.trim(), 
+      studentData
+    )
+  
+    if (result && result.success) {
+      // Show success message
+      registrationSuccess.value = true
+      clearError()
+      
+      // Clear form
+      studentRegisterForm.value = {
+        email: '',
+        password: '',
+        confirmPassword: '',
+        displayName: '',
+        instrument: '',
+        classCode: ''
+      }
+      
+      // Pre-fill the login form
+      studentForm.value.email = result.user.email
+      studentForm.value.classCode = studentData.classCode
+      
+      // Hide registration form
+      showStudentCreateAccount.value = false
+      
+      // Show success message for 3 seconds
+      setTimeout(() => {
+        registrationSuccess.value = false
+      }, 3000)
+      
+    } else {
+      // Handle the error returned by registerStudentAccount
+      const errorObj = new Error(result.error)
+      errorObj.code = result.code // Preserve the Firebase error code
+      handleError(errorObj, 'student-registration', { autoClearTime: 5000 }) // Clear after 5 seconds
+    }
+  } finally {
+    // Clear loading state
+    isStudentRegistrationLoading.value = false
   }
 }
 

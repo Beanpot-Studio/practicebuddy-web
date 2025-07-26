@@ -58,8 +58,8 @@ const registerTeacherAccount = async (email, password, displayName, teacherData 
   return result
 }
 
-const registerStudentAccount = async (name, classCode, studentData = {}) => {
-  const result = await registerStudent(name, classCode, studentData)
+const registerStudentAccount = async (email, password, displayName, studentData = {}) => {
+  const result = await registerStudent(email, password, displayName, studentData)
   
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
@@ -94,8 +94,8 @@ const loginIndependentStudentAccount = async (email, password) => {
   return result
 }
 
-const loginStudentAccount = async (name, classCode) => {
-  const result = await loginStudent(name, classCode)
+const loginStudentAccount = async (email, password, classCode = null) => {
+  const result = await loginStudent(email, password, classCode)
   
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
