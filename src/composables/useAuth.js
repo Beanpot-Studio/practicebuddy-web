@@ -6,6 +6,7 @@ import {
   registerStudent, 
   registerIndependentStudent,
   loginTeacher, 
+  loginIndependentStudent,
   loginStudent, 
   logout, 
   resetPassword,
@@ -82,6 +83,15 @@ const loginTeacherAccount = async (email, password) => {
   return result
 }
 
+const loginIndependentStudentAccount = async (email, password) => {
+  const result = await loginIndependentStudent(email, password)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
 const loginStudentAccount = async (name, classCode) => {
   const result = await loginStudent(name, classCode)
   
@@ -146,6 +156,7 @@ export function useAuth() {
     registerStudentAccount,
     registerIndependentStudentAccount,
     loginTeacherAccount,
+    loginIndependentStudentAccount,
     loginStudentAccount,
     logoutUser,
     resetUserPassword,

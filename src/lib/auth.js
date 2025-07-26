@@ -293,6 +293,67 @@ export const loginTeacher = async (email, password) => {
 }
 
 /**
+ * Login independent student with email and password
+ * @param {string} email - User email
+ * @param {string} password - User password
+ */
+export const loginIndependentStudent = async (email, password) => {
+  if (isDemoMode) {
+    // Demo mode - simulate successful login for independent students
+    if (email === 'student@example.com' && password === 'student123') {
+      return {
+        success: true,
+        user: {
+          uid: 'demo-independent-student-id',
+          email: 'student@example.com',
+          displayName: 'Demo Student',
+          role: USER_ROLES.STUDENT,
+          isIndependent: true,
+          practiceMinutes: 60,
+          achievements: ['First Practice']
+        }
+      }
+    } else {
+      return {
+        success: false,
+        error: 'Invalid credentials. Use student@example.com / student123 for demo mode.'
+      }
+    }
+  }
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    const user = userCredential.user
+
+    // Get additional user data from Firestore
+    const userData = await getUserData(user.uid)
+    
+    // Check if the user is a student (either independent or class-based)
+    if (userData.role !== USER_ROLES.STUDENT) {
+      await signOut(auth)
+      return {
+        success: false,
+        error: 'This account is not registered as a student.'
+      }
+    }
+
+    return {
+      success: true,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        ...userData
+      }
+    }
+  } catch (error) {
+    logError(error, 'independent-student-login')
+    const errorInfo = handleFirebaseError(error, 'independent-student-login')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'independent-student-login')
+  }
+}
+
+/**
  * Login student with name and class code
  * @param {string} name - Student name
  * @param {string} classCode - Class code

@@ -43,7 +43,7 @@
                   <div class="min-h-[28rem] w-full">
                     <!-- Demo Mode Indicator -->
                     <div v-if="isDemoMode" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">
-                      🎭 <strong>Demo Mode:</strong> Use demo@example.com / demo123 for teachers or any name with class code DEMO123 for students.
+                      🎭 <strong>Demo Mode:</strong> Use demo@example.com / demo123 for teachers, any name with class code DEMO123 for class students, or student@example.com / student123 for independent students.
                     </div>
                     
                     <!-- Error Message -->
@@ -575,6 +575,7 @@ const emit = defineEmits(['login'])
 const { 
   loginTeacherAccount, 
   loginStudentAccount, 
+  loginIndependentStudentAccount,
   registerTeacherAccount,
   registerIndependentStudentAccount,
   resetUserPassword
@@ -947,20 +948,13 @@ const loginIndependentStudent = async () => {
   isStudentLoginLoading.value = true
   
   try {
-    const result = await loginTeacherAccount(independentStudentForm.value.email.trim(), independentStudentForm.value.password)
+    const result = await loginIndependentStudentAccount(independentStudentForm.value.email.trim(), independentStudentForm.value.password)
     
     if (result && result.success) {
-      // Check if the user is actually a student (not a teacher)
-      if (result.user.role === 'student') {
-        emit('login', result.user)
-      } else {
-        // User is a teacher, show error
-        const errorObj = new Error('This account is registered as a teacher. Please use the teacher login.')
-        errorObj.code = 'auth/wrong-account-type'
-        handleError(errorObj, 'student-login', { autoClearTime: 5000 })
-      }
+      // Independent student login successful
+      emit('login', result.user)
     } else {
-      // Handle the error returned by loginTeacherAccount
+      // Handle the error returned by loginIndependentStudentAccount
       const errorObj = new Error(result.error)
       errorObj.code = result.code // Preserve the Firebase error code
       handleError(errorObj, 'student-login', { autoClearTime: 5000 })
