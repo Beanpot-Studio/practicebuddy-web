@@ -10,150 +10,397 @@
         <p class="text-sm opacity-80 italic text-musical-graphite">Teaching with: {{ teacherEmail }}</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="card card-red">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 relative">
-              📊
+      <!-- Tab Navigation -->
+      <div class="flex justify-center mb-8">
+        <div class="bg-gray-100 rounded-xl p-1 flex shadow-[0_4px_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+          <button 
+            @click="activeTab = 'overview'"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'overview' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+            ]"
+          >
+            📊 Overview
+          </button>
+          <button 
+            @click="activeTab = 'create-class'"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'create-class' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+            ]"
+          >
+            ➕ Create Class
+          </button>
+          <button 
+            @click="activeTab = 'manage-classes'"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'manage-classes' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+            ]"
+          >
+            🎓 Manage Classes
+          </button>
+        </div>
+      </div>
+
+      <!-- Overview Tab -->
+      <div v-if="activeTab === 'overview'" class="animate-fadeIn">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div class="card card-red">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 relative">
+                📊
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Class Stats</h3>
             </div>
-            <h3 class="text-lg text-gray-800 font-bold">Class Stats</h3>
+            <div class="flex flex-col gap-3">
+              <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white">
+                <div class="text-2xl font-bold">{{ totalStudents }}</div>
+                <div class="text-sm opacity-90 font-semibold">Music Students</div>
+              </div>
+              <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white">
+                <div class="text-2xl font-bold">{{ pendingReviews }}</div>
+                <div class="text-sm opacity-90 font-semibold">Pending Reviews</div>
+              </div>
+              <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 text-white">
+                <div class="text-2xl font-bold">{{ stickersGiven }}</div>
+                <div class="text-sm opacity-90 font-semibold">Stickers Given</div>
+              </div>
+            </div>
           </div>
-          <div class="flex flex-col gap-3">
-            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white">
-              <div class="text-2xl font-bold">{{ totalStudents }}</div>
-              <div class="text-sm opacity-90 font-semibold">Music Students</div>
+
+          <div class="card card-blue">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+                🔔
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Recent Activity</h3>
             </div>
-            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white">
-              <div class="text-2xl font-bold">{{ pendingReviews }}</div>
-              <div class="text-sm opacity-90 font-semibold">Pending Reviews</div>
+            <div class="flex flex-col gap-3">
+              <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+                <div class="text-sm text-gray-800 font-semibold mb-1">🎹 Alex created a piano recording</div>
+                <div class="text-xs text-gray-500 font-medium">5 min ago</div>
+              </div>
+              <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+                <div class="text-sm text-gray-800 font-semibold mb-1">🎸 Sarah completed 45 min practice</div>
+                <div class="text-xs text-gray-500 font-medium">1 hour ago</div>
+              </div>
+              <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+                <div class="text-sm text-gray-800 font-semibold mb-1">🏆 Marcus earned a new badge</div>
+                <div class="text-xs text-gray-500 font-medium">2 hours ago</div>
+              </div>
             </div>
-            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 text-white">
-              <div class="text-2xl font-bold">{{ stickersGiven }}</div>
-              <div class="text-sm opacity-90 font-semibold">Stickers Given</div>
+          </div>
+
+          <div class="card card-green">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
+                ⚡
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Quick Tools</h3>
+            </div>
+            <div class="flex flex-col gap-3">
+              <button class="btn btn-primary" @click="showAllStudents = !showAllStudents">
+                <Users class="w-5 h-5" />
+                {{ showAllStudents ? 'Hide' : 'View' }} All Students
+              </button>
+              <button class="btn btn-secondary" @click="showStickerModal = true">
+                <Star class="w-5 h-5" />
+                Give Stickers
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="card card-blue">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
-              🔔
-            </div>
-            <h3 class="text-lg text-gray-800 font-bold">Recent Activity</h3>
-          </div>
-          <div class="flex flex-col gap-3">
-            <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-              <div class="text-sm text-gray-800 font-semibold mb-1">🎹 Alex created a piano recording</div>
-              <div class="text-xs text-gray-500 font-medium">5 min ago</div>
-            </div>
-            <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-              <div class="text-sm text-gray-800 font-semibold mb-1">🎸 Sarah completed 45 min practice</div>
-              <div class="text-xs text-gray-500 font-medium">1 hour ago</div>
-            </div>
-            <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-              <div class="text-sm text-gray-800 font-semibold mb-1">🏆 Marcus earned a new badge</div>
-              <div class="text-xs text-gray-500 font-medium">2 hours ago</div>
-            </div>
-          </div>
-        </div>
+        <div class="mt-10">
+          <h3 class="text-white text-2xl mb-6 text-center font-bold text-shadow-lg">🎼 Your Music Students</h3>
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div 
+              v-for="student in students" 
+              :key="student.id"
+              class="card card-yellow cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.1),0_18px_40px_rgba(0,0,0,0.2)]"
+              @click="selectStudent(student)"
+            >
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-3 border-gray-300 flex items-center justify-center text-2xl shadow-[0_4px_0_rgba(0,0,0,0.1)]">
+                  {{ student.avatar }}
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-base text-gray-800 font-bold mb-1">{{ student.name }}</h4>
+                  <p class="text-sm text-gray-500 font-semibold">{{ student.instrument }}</p>
+                </div>
+                <div>
+                  <span :class="[
+                    'px-3 py-1.5 rounded-2xl text-xs font-bold uppercase border-2 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
+                    student.status === 'active' 
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white border-green-600' 
+                      : 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 border-yellow-600'
+                  ]">
+                    {{ student.status }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="flex justify-between mb-4 gap-2">
+                <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white flex-1">
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">This Week</span>
+                  <span class="text-sm font-bold">{{ student.weeklyMinutes }}min</span>
+                </div>
+                <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white flex-1">
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Streak</span>
+                  <span class="text-sm font-bold">{{ student.streak }} days</span>
+                </div>
+                <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white flex-1">
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Creations</span>
+                  <span class="text-sm font-bold">{{ student.recordings.length }}</span>
+                </div>
+              </div>
 
-        <div class="card card-green">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
-              ⚡
+              <div class="border-t-3 border-gray-200 pt-4">
+                <div class="flex justify-between items-center mb-3">
+                  <h5 class="text-sm text-gray-800 font-bold">🎵 Recent Creations</h5>
+                  <span v-if="getPendingCount(student) > 0" class="bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 px-2 py-1 rounded-xl text-xs font-bold border-2 border-yellow-600 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+                    {{ getPendingCount(student) }} pending
+                  </span>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div 
+                    v-for="recording in student.recordings.slice(0, 3)" 
+                    :key="recording.id"
+                    :class="[
+                      'flex justify-between items-center p-2 rounded-xl border-2 transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
+                      !recording.reviewed 
+                        ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 border-yellow-600 text-gray-800' 
+                        : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300'
+                    ]"
+                  >
+                    <div class="flex-1">
+                      <div class="text-sm font-semibold">{{ recording.title }}</div>
+                      <div class="text-xs opacity-80 font-medium">{{ formatDate(recording.date) }}</div>
+                    </div>
+                    <div class="flex gap-1">
+                      <button class="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-blue-400 to-blue-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]" @click.stop="playRecording(recording)">
+                        <Play class="w-3 h-3" />
+                      </button>
+                      <button 
+                        v-if="!recording.reviewed"
+                        class="w-6 h-6 border-2 border-yellow-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-yellow-400 to-yellow-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]"
+                        @click.stop="reviewRecording(student, recording)"
+                      >
+                        <Star class="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 class="text-lg text-gray-800 font-bold">Quick Tools</h3>
-          </div>
-          <div class="flex flex-col gap-3">
-            <button class="btn btn-primary" @click="showAllStudents = !showAllStudents">
-              <Users class="w-5 h-5" />
-              {{ showAllStudents ? 'Hide' : 'View' }} All Students
-            </button>
-            <button class="btn btn-secondary" @click="showStickerModal = true">
-              <Star class="w-5 h-5" />
-              Give Stickers
-            </button>
           </div>
         </div>
       </div>
 
-      <div class="mt-10">
-        <h3 class="text-white text-2xl mb-6 text-center font-bold text-shadow-lg">🎼 Your Music Students</h3>
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div 
-            v-for="student in students" 
-            :key="student.id"
-            class="card card-yellow cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.1),0_18px_40px_rgba(0,0,0,0.2)]"
-            @click="selectStudent(student)"
-          >
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-3 border-gray-300 flex items-center justify-center text-2xl shadow-[0_4px_0_rgba(0,0,0,0.1)]">
-                {{ student.avatar }}
+      <!-- Create Class Tab -->
+      <div v-if="activeTab === 'create-class'" class="animate-fadeIn">
+        <div class="max-w-2xl mx-auto">
+          <div class="card card-blue">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+                ➕
               </div>
-              <div class="flex-1">
-                <h4 class="text-base text-gray-800 font-bold mb-1">{{ student.name }}</h4>
-                <p class="text-sm text-gray-500 font-semibold">{{ student.instrument }}</p>
-              </div>
-              <div>
-                <span :class="[
-                  'px-3 py-1.5 rounded-2xl text-xs font-bold uppercase border-2 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
-                  student.status === 'active' 
-                    ? 'bg-gradient-to-br from-green-400 to-green-500 text-white border-green-600' 
-                    : 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 border-yellow-600'
-                ]">
-                  {{ student.status }}
-                </span>
-              </div>
+              <h3 class="text-xl text-gray-800 font-bold">Create New Music Class</h3>
             </div>
             
-            <div class="flex justify-between mb-4 gap-2">
-              <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white flex-1">
-                <span class="block text-xs opacity-90 font-semibold mb-0.5">This Week</span>
-                <span class="text-sm font-bold">{{ student.weeklyMinutes }}min</span>
+            <form @submit.prevent="createClass" class="space-y-6">
+              <div class="space-y-2">
+                <label for="class-name" class="block text-sm font-semibold text-gray-700">Class Name</label>
+                <input 
+                  id="class-name"
+                  v-model="newClass.name" 
+                  type="text" 
+                  placeholder="e.g., Beginner Piano, Advanced Guitar, Music Theory"
+                  required
+                  class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md"
+                />
               </div>
-              <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white flex-1">
-                <span class="block text-xs opacity-90 font-semibold mb-0.5">Streak</span>
-                <span class="text-sm font-bold">{{ student.streak }} days</span>
+              
+              <div class="space-y-2">
+                <label for="class-description" class="block text-sm font-semibold text-gray-700">Description</label>
+                <textarea 
+                  id="class-description"
+                  v-model="newClass.description" 
+                  placeholder="Describe what students will learn in this class..."
+                  rows="3"
+                  class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md resize-vertical"
+                ></textarea>
               </div>
-              <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white flex-1">
-                <span class="block text-xs opacity-90 font-semibold mb-0.5">Creations</span>
-                <span class="text-sm font-bold">{{ student.recordings.length }}</span>
+              
+              <div class="space-y-2">
+                <label for="class-instrument" class="block text-sm font-semibold text-gray-700">Primary Instrument</label>
+                <select 
+                  id="class-instrument"
+                  v-model="newClass.instrument" 
+                  required
+                  class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md"
+                >
+                  <option value="">Select an instrument</option>
+                  <option value="piano">🎹 Piano</option>
+                  <option value="guitar">🎸 Guitar</option>
+                  <option value="violin">🎻 Violin</option>
+                  <option value="trumpet">🎺 Trumpet</option>
+                  <option value="drums">🥁 Drums</option>
+                  <option value="saxophone">🎷 Saxophone</option>
+                  <option value="voice">🎤 Voice</option>
+                  <option value="theory">📚 Music Theory</option>
+                  <option value="ensemble">🎼 Ensemble</option>
+                  <option value="other">🎵 Other</option>
+                </select>
+              </div>
+              
+              <div class="space-y-2">
+                <label for="class-level" class="block text-sm font-semibold text-gray-700">Skill Level</label>
+                <select 
+                  id="class-level"
+                  v-model="newClass.level" 
+                  required
+                  class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md"
+                >
+                  <option value="">Select skill level</option>
+                  <option value="beginner">🌱 Beginner</option>
+                  <option value="intermediate">🌿 Intermediate</option>
+                  <option value="advanced">🌳 Advanced</option>
+                  <option value="mixed">🌈 Mixed Levels</option>
+                </select>
+              </div>
+              
+              <div class="space-y-2">
+                <label for="class-schedule" class="block text-sm font-semibold text-gray-700">Class Schedule</label>
+                <input 
+                  id="class-schedule"
+                  v-model="newClass.schedule" 
+                  type="text" 
+                  placeholder="e.g., Mondays 4-5pm, Wednesdays 3-4pm"
+                  class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md"
+                />
+              </div>
+              
+              <button type="submit" class="btn btn-primary w-full" :disabled="isCreatingClass">
+                <div v-if="isCreatingClass" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span v-else>🎵 Create Music Class</span>
+                {{ isCreatingClass ? 'Creating...' : '' }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manage Classes Tab -->
+      <div v-if="activeTab === 'manage-classes'" class="animate-fadeIn">
+        <div class="space-y-6">
+          <!-- Class List -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div 
+              v-for="classItem in classes" 
+              :key="classItem.id"
+              class="card card-yellow cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.1),0_18px_40px_rgba(0,0,0,0.2)]"
+              @click="selectClass(classItem)"
+            >
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-3 border-gray-300 flex items-center justify-center text-2xl shadow-[0_4px_0_rgba(0,0,0,0.1)]">
+                  {{ classItem.icon }}
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-base text-gray-800 font-bold mb-1">{{ classItem.name }}</h4>
+                  <p class="text-sm text-gray-500 font-semibold">{{ classItem.instrument }}</p>
+                </div>
+                <div>
+                  <span :class="[
+                    'px-3 py-1.5 rounded-2xl text-xs font-bold uppercase border-2 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
+                    classItem.status === 'active' 
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white border-green-600' 
+                      : 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 border-yellow-600'
+                  ]">
+                    {{ classItem.status }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="flex justify-between mb-4 gap-2">
+                <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white flex-1">
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Students</span>
+                  <span class="text-sm font-bold">{{ classItem.studentCount }}</span>
+                </div>
+                <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white flex-1 relative group">
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Code</span>
+                  <span class="text-sm font-bold">{{ classItem.code }}</span>
+                  <button 
+                    @click.stop="copyClassCode(classItem.code)"
+                    class="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-green-600 text-xs font-bold shadow-md hover:bg-green-50 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                    :title="`Copy ${classItem.code}`"
+                  >
+                    📋
+                  </button>
+                </div>
+              </div>
+
+              <div class="border-t-3 border-gray-200 pt-4">
+                <div class="flex justify-between items-center mb-3">
+                  <h5 class="text-sm text-gray-800 font-bold">📚 Class Details</h5>
+                </div>
+                <div class="space-y-2">
+                  <div class="text-sm text-gray-600">
+                    <span class="font-semibold">Level:</span> {{ classItem.level }}
+                  </div>
+                  <div class="text-sm text-gray-600">
+                    <span class="font-semibold">Schedule:</span> {{ classItem.schedule || 'TBD' }}
+                  </div>
+                </div>
+                
+                <div class="flex gap-2 mt-4">
+                  <button 
+                    @click.stop="copyClassCode(classItem.code)"
+                    class="flex-1 btn btn-secondary text-xs py-2"
+                  >
+                    📋 Copy Code
+                  </button>
+                  <button 
+                    @click.stop="composeEmail(classItem)"
+                    class="flex-1 btn btn-primary text-xs py-2"
+                  >
+                    📧 Email Students
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div class="border-t-3 border-gray-200 pt-4">
-              <div class="flex justify-between items-center mb-3">
-                <h5 class="text-sm text-gray-800 font-bold">🎵 Recent Creations</h5>
-                <span v-if="getPendingCount(student) > 0" class="bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 px-2 py-1 rounded-xl text-xs font-bold border-2 border-yellow-600 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-                  {{ getPendingCount(student) }} pending
-                </span>
+          <!-- Student Management Section -->
+          <div v-if="selectedClass" class="mt-8">
+            <div class="card card-blue">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+                  👥
+                </div>
+                <h3 class="text-xl text-gray-800 font-bold">{{ selectedClass.name }} - Students</h3>
               </div>
-              <div class="flex flex-col gap-2">
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div 
-                  v-for="recording in student.recordings.slice(0, 3)" 
-                  :key="recording.id"
-                  :class="[
-                    'flex justify-between items-center p-2 rounded-xl border-2 transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
-                    !recording.reviewed 
-                      ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 border-yellow-600 text-gray-800' 
-                      : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300'
-                  ]"
+                  v-for="student in selectedClass.students" 
+                  :key="student.id"
+                  class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
                 >
-                  <div class="flex-1">
-                    <div class="text-sm font-semibold">{{ recording.title }}</div>
-                    <div class="text-xs opacity-80 font-medium">{{ formatDate(recording.date) }}</div>
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 flex items-center justify-center text-xl">
+                      {{ student.avatar }}
+                    </div>
+                    <div class="flex-1">
+                      <h4 class="text-sm text-gray-800 font-bold">{{ student.name }}</h4>
+                      <p class="text-xs text-gray-500">{{ student.instrument }}</p>
+                    </div>
                   </div>
-                  <div class="flex gap-1">
-                    <button class="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-blue-400 to-blue-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]" @click.stop="playRecording(recording)">
-                      <Play class="w-3 h-3" />
-                    </button>
-                    <button 
-                      v-if="!recording.reviewed"
-                      class="w-6 h-6 border-2 border-yellow-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-yellow-400 to-yellow-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]"
-                      @click.stop="reviewRecording(student, recording)"
-                    >
-                      <Star class="w-3 h-3" />
-                    </button>
+                  
+                  <div class="flex justify-between text-xs text-gray-600">
+                    <span>Practice: {{ student.weeklyMinutes }}min</span>
+                    <span>Streak: {{ student.streak }} days</span>
                   </div>
                 </div>
               </div>
@@ -238,12 +485,102 @@
         </div>
       </div>
     </div>
+
+    <!-- Email Composition Modal -->
+    <div v-if="showEmailModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" @click="showEmailModal = false">
+      <div class="card card-blue max-w-2xl w-11/12 max-h-[80vh] overflow-y-auto m-5" @click.stop>
+        <div class="flex items-center gap-3 mb-6 relative">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+            📧
+          </div>
+          <h3 class="flex-1 text-xl text-gray-800 font-bold">Email Students - {{ selectedClassForEmail?.name }}</h3>
+          <button @click="showEmailModal = false" class="w-10 h-10 border-2 border-gray-200 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_4px_0_rgba(0,0,0,0.1)] hover:bg-gray-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(0,0,0,0.1)]">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700 text-base">📧 To</label>
+            <div class="p-3 bg-gray-50 rounded-xl border-2 border-gray-200">
+              <div class="text-sm text-gray-600">
+                <strong>Class Code:</strong> {{ selectedClassForEmail?.code }}
+              </div>
+              <div class="text-sm text-gray-600 mt-1">
+                <strong>Students:</strong> {{ selectedClassForEmail?.studentCount || 0 }} enrolled
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700 text-base">📝 Subject</label>
+            <input 
+              v-model="emailData.subject"
+              type="text" 
+              placeholder="e.g., Welcome to Music Class!"
+              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md"
+            />
+          </div>
+          
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700 text-base">💬 Message</label>
+            <textarea 
+              v-model="emailData.message"
+              placeholder="Dear students, welcome to our music class! Here's your class code to get started..."
+              rows="8"
+              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md resize-vertical"
+            ></textarea>
+          </div>
+          
+          <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+            <h4 class="font-semibold text-blue-800 mb-2">📋 Quick Actions</h4>
+            <div class="flex flex-wrap gap-2">
+              <button 
+                @click="copyClassCode(selectedClassForEmail?.code)"
+                class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+              >
+                📋 Copy Class Code
+              </button>
+              <button 
+                @click="insertClassCode"
+                class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors"
+              >
+                🎵 Insert Class Code
+              </button>
+              <button 
+                @click="insertWelcomeMessage"
+                class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+              >
+                👋 Insert Welcome Message
+              </button>
+            </div>
+          </div>
+          
+          <div class="flex gap-3">
+            <button 
+              @click="sendEmail"
+              :disabled="!emailData.subject || !emailData.message"
+              class="flex-1 btn btn-primary"
+            >
+              📤 Send Email
+            </button>
+            <button 
+              @click="showEmailModal = false"
+              class="flex-1 btn btn-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Users, Star, Play, X, Heart } from 'lucide-vue-next'
+import { useAuth } from '../composables/useAuth'
 
 const props = defineProps({
   teacherEmail: {
@@ -252,11 +589,34 @@ const props = defineProps({
   }
 })
 
+// Authentication
+const { createTeacherClass, fetchTeacherClasses, currentUser } = useAuth()
+
+const activeTab = ref('overview')
 const totalStudents = ref(8)
 const pendingReviews = ref(5)
 const stickersGiven = ref(127)
 const showAllStudents = ref(false)
 const showStickerModal = ref(false)
+const showEmailModal = ref(false)
+const isCreatingClass = ref(false)
+const selectedClass = ref(null)
+const selectedClassForEmail = ref(null)
+
+const emailData = ref({
+  subject: '',
+  message: ''
+})
+
+const newClass = ref({
+  name: '',
+  description: '',
+  instrument: '',
+  level: '',
+  schedule: ''
+})
+
+const classes = ref([])
 
 const students = ref([
   {
@@ -410,4 +770,195 @@ const formatDate = (date) => {
     day: 'numeric' 
   })
 }
+
+const createClass = async () => {
+  if (!newClass.value.name || !newClass.value.instrument || !newClass.value.level) {
+    alert('Please fill in all required fields.')
+    return
+  }
+  
+  if (!currentUser.value) {
+    alert('You must be logged in to create a class.')
+    return
+  }
+  
+  isCreatingClass.value = true
+  
+  try {
+    const classData = {
+      name: newClass.value.name,
+      description: newClass.value.description,
+      instrument: newClass.value.instrument,
+      level: newClass.value.level,
+      schedule: newClass.value.schedule
+    }
+    
+    const result = await createTeacherClass(currentUser.value.uid, classData)
+    
+    if (result.success) {
+      // Add the new class to the local state
+      const newClassWithIcon = {
+        ...result.class,
+        icon: getInstrumentIcon(result.class.instrument)
+      }
+      classes.value.push(newClassWithIcon)
+      
+      // Reset form
+      newClass.value = {
+        name: '',
+        description: '',
+        instrument: '',
+        level: '',
+        schedule: ''
+      }
+      
+      // Switch to manage classes tab
+      activeTab.value = 'manage-classes'
+      
+      alert(`🎉 Class "${result.class.name}" created successfully! Class code: ${result.class.code}`)
+    } else {
+      alert(`Error creating class: ${result.error}`)
+    }
+  } catch (error) {
+    alert('Error creating class. Please try again.')
+  } finally {
+    isCreatingClass.value = false
+  }
+}
+
+const selectClass = (classItem) => {
+  selectedClass.value = classItem
+}
+
+const copyClassCode = async (code) => {
+  try {
+    await navigator.clipboard.writeText(code)
+    alert(`✅ Class code "${code}" copied to clipboard!`)
+  } catch (error) {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea')
+    textArea.value = code
+    document.body.appendChild(textArea)
+    textArea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textArea)
+    alert(`✅ Class code "${code}" copied to clipboard!`)
+  }
+}
+
+const composeEmail = (classItem) => {
+  selectedClassForEmail.value = classItem
+  emailData.value = {
+    subject: `Welcome to ${classItem.name}!`,
+    message: `Dear students,
+
+Welcome to ${classItem.name}! I'm excited to have you join our musical journey.
+
+🎵 Your Class Code: ${classItem.code}
+
+To get started:
+1. Go to Practice Buddy
+2. Click "Students" 
+3. Enter your name and the class code above
+4. Start practicing and tracking your progress!
+
+${classItem.schedule ? `📅 Class Schedule: ${classItem.schedule}` : ''}
+
+I can't wait to see your musical progress!
+
+Best regards,
+${currentUser.value?.displayName || 'Your Music Teacher'}`
+  }
+  showEmailModal.value = true
+}
+
+const insertClassCode = () => {
+  if (selectedClassForEmail.value?.code) {
+    emailData.value.message += `\n\n🎵 Class Code: ${selectedClassForEmail.value.code}`
+  }
+}
+
+const insertWelcomeMessage = () => {
+  const welcomeMessage = `Dear students,
+
+Welcome to ${selectedClassForEmail.value?.name || 'our music class'}! I'm excited to have you join our musical journey.
+
+Here's what you can expect:
+• Track your practice time
+• Record your musical creations
+• Earn stickers and achievements
+• See your progress over time
+
+Let's make beautiful music together! 🎵
+
+Best regards,
+${currentUser.value?.displayName || 'Your Music Teacher'}`
+  
+  emailData.value.message = welcomeMessage
+}
+
+const sendEmail = () => {
+  if (!emailData.value.subject || !emailData.value.message) {
+    alert('Please fill in both subject and message.')
+    return
+  }
+  
+  // Create Gmail compose URL
+  const subject = encodeURIComponent(emailData.value.subject)
+  const body = encodeURIComponent(emailData.value.message)
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=&su=${subject}&body=${body}`
+  
+  // Open Gmail compose window
+  window.open(gmailUrl, '_blank', 'width=800,height=600')
+  
+  // Close modal
+  showEmailModal.value = false
+  selectedClassForEmail.value = null
+  emailData.value = { subject: '', message: '' }
+  
+  alert('📧 Gmail compose window opened! The message is ready to send to your students.')
+}
+
+const getInstrumentIcon = (instrument) => {
+  const icons = {
+    piano: '🎹',
+    guitar: '🎸',
+    violin: '🎻',
+    trumpet: '🎺',
+    drums: '🥁',
+    saxophone: '🎷',
+    voice: '🎤',
+    theory: '📚',
+    ensemble: '🎼',
+    other: '🎵'
+  }
+  return icons[instrument] || '🎵'
+}
+
+const loadClasses = async () => {
+  if (!currentUser.value) {
+    return
+  }
+  
+  try {
+    const result = await fetchTeacherClasses(currentUser.value.uid)
+    
+    if (result.success) {
+      // Add icons to each class
+      classes.value = result.classes.map(classItem => ({
+        ...classItem,
+        icon: getInstrumentIcon(classItem.instrument)
+      }))
+    } else {
+      console.error('Error loading classes:', result.error)
+    }
+  } catch (error) {
+    console.error('Error loading classes:', error)
+  }
+}
+
+// Load classes when component mounts
+onMounted(() => {
+  loadClasses()
+})
 </script>

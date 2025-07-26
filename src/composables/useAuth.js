@@ -10,6 +10,8 @@ import {
   loginStudent, 
   logout, 
   resetPassword,
+  createClass,
+  getTeacherClasses,
   USER_ROLES 
 } from '../lib/auth'
 
@@ -127,6 +129,24 @@ const resetUserPassword = async (email) => {
   return result
 }
 
+const createTeacherClass = async (teacherId, classData) => {
+  const result = await createClass(teacherId, classData)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const fetchTeacherClasses = async (teacherId) => {
+  const result = await getTeacherClasses(teacherId)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
 // Export the composable
 export function useAuth() {
   onMounted(() => {
@@ -160,6 +180,8 @@ export function useAuth() {
     loginStudentAccount,
     logoutUser,
     resetUserPassword,
+    createTeacherClass,
+    fetchTeacherClasses,
     
     // Constants
     USER_ROLES

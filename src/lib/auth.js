@@ -496,4 +496,99 @@ export const cleanupAuth = () => {
     authStateListener()
     authStateListener = null
   }
+}
+
+/**
+ * Create a new class for a teacher
+ * @param {string} teacherId - Teacher's user ID
+ * @param {Object} classData - Class information
+ */
+export const createClass = async (teacherId, classData) => {
+  if (isDemoMode) {
+    // Demo mode - simulate successful class creation
+    return {
+      success: true,
+      class: {
+        id: `demo-class-${Date.now()}`,
+        teacherId: teacherId,
+        ...classData,
+        createdAt: new Date().toISOString(),
+        studentCount: 0,
+        students: []
+      }
+    }
+  }
+
+  try {
+    // Generate a unique class code
+    const code = `${classData.instrument.toUpperCase()}${Date.now().toString().slice(-3)}`
+    
+    // Create class document
+    const classDoc = {
+      teacherId: teacherId,
+      name: classData.name,
+      description: classData.description || '',
+      instrument: classData.instrument,
+      level: classData.level,
+      schedule: classData.schedule || '',
+      code: code,
+      status: 'active',
+      studentCount: 0,
+      students: [],
+      createdAt: new Date().toISOString()
+    }
+
+    // Add to Firestore
+    const classRef = doc(collection(db, 'classes'))
+    await setDoc(classRef, classDoc)
+
+    return {
+      success: true,
+      class: {
+        id: classRef.id,
+        ...classDoc
+      }
+    }
+  } catch (error) {
+    logError(error, 'class-creation')
+    const errorInfo = handleFirebaseError(error, 'class-creation')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'class-creation')
+  }
+}
+
+/**
+ * Get all classes for a teacher
+ * @param {string} teacherId - Teacher's user ID
+ */
+export const getTeacherClasses = async (teacherId) => {
+  if (isDemoMode) {
+    // Demo mode - return empty array
+    return {
+      success: true,
+      classes: []
+    }
+  }
+
+  try {
+    const classesRef = collection(db, 'classes')
+    const q = query(classesRef, where('teacherId', '==', teacherId))
+    const querySnapshot = await getDocs(q)
+    
+    const classes = []
+    querySnapshot.forEach((doc) => {
+      classes.push({
+        id: doc.id,
+        ...doc.data()
+      })
+    })
+
+    return {
+      success: true,
+      classes: classes
+    }
+  } catch (error) {
+    logError(error, 'get-teacher-classes')
+    const errorInfo = handleFirebaseError(error, 'get-teacher-classes')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-teacher-classes')
+  }
 } 
