@@ -1,13 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import HomePage from '../components/HomePage.vue'
 
-// Mock the useAuth composable
+// Mock the useAuth composable before importing the component
 const mockUseAuth = vi.fn()
 vi.mock('../composables/useAuth', () => ({
   useAuth: mockUseAuth
 }))
+
+// Mock the error handler
+vi.mock('../composables/useErrorHandler', () => ({
+  useErrorHandler: vi.fn(() => ({
+    handleError: vi.fn(),
+    clearError: vi.fn()
+  }))
+}))
+
+import HomePage from '../components/HomePage.vue'
 
 // Mock lucide icons
 vi.mock('lucide-vue-next', () => ({

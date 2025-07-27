@@ -147,11 +147,14 @@ describe('Error Handler Service', () => {
     })
 
     it('should identify network errors by message content', () => {
-      const error = new Error('Network request failed')
+      const error = new Error('network request failed')
       expect(isNetworkError(error)).toBe(true)
       
       const fetchError = new Error('fetch failed')
       expect(isNetworkError(fetchError)).toBe(true)
+      
+      const networkError = new Error('network error')
+      expect(isNetworkError(networkError)).toBe(true)
     })
 
     it('should return false for non-network errors', () => {

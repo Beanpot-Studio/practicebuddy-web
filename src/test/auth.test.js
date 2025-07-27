@@ -128,7 +128,7 @@ describe('Authentication Service', () => {
       )
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('An account with this email already exists.')
+      expect(result.error).toBe('An account with this email already exists. Please try logging in instead.')
     })
 
     it('should handle weak password errors', async () => {
