@@ -10,12 +10,8 @@
         <div class="app-content">
           <main class="main-content">
             <StudentDashboard 
-              v-if="userRole === 'student' && user?.classCode" 
-              :student-name="user?.name || user?.displayName" 
-            />
-            <IndependentStudentDashboard 
-              v-if="userRole === 'student' && !user?.classCode" 
-              :student-name="user?.name || user?.displayName" 
+              v-if="userRole === 'student'" 
+              :student-name="user?.displayName || user?.name" 
             />
             <TeacherDashboard v-if="userRole === 'teacher'" :teacher-email="user?.email" />
           </main>
@@ -33,7 +29,6 @@ import { ref, computed, watch } from 'vue'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
 import StudentDashboard from './StudentDashboard.vue'
-import IndependentStudentDashboard from './IndependentStudentDashboard.vue'
 import TeacherDashboard from './TeacherDashboard.vue'
 import AuthGuard from './AuthGuard.vue'
 import PreLaunchScreen from './PreLaunchScreen.vue'
@@ -52,6 +47,7 @@ const isPreLaunch = computed(() => {
 const handleLogin = (userData) => {
   // The authentication is handled by the useAuth composable
   // This function is called after successful login
+  console.log('Login successful:', userData)
   currentMode.value = userData.role
 }
 

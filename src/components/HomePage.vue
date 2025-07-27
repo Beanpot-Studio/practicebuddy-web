@@ -41,10 +41,7 @@
                   </div>
 
                   <div class="min-h-[28rem] w-full">
-                    <!-- Demo Mode Indicator -->
-                    <div v-if="isDemoMode" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">
-                      🎭 <strong>Demo Mode:</strong> Use demo@example.com / demo123 for teachers, or student@example.com / student123 for students. Add a class code to join a class, or leave blank for independent practice.
-                    </div>
+
                     
                     <!-- Error Message -->
                     <div v-if="hasError" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
@@ -139,9 +136,11 @@
                             {{ hasError ? 'Fix Errors First' : isStudentLoginLoading ? 'Signing In...' : 'Make Some Music!' }}
                           </button>
                         </form>
-                        
-                        <!-- Student Registration Form -->
-                        <div v-if="showStudentCreateAccount" class="animate-fadeIn mt-6 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200 w-full">
+                      </div>
+                      
+                      <!-- Student Registration Form -->
+                      <div v-if="showStudentCreateAccount" class="animate-fadeIn">
+                        <div class="p-6 bg-gray-50 rounded-2xl border-2 border-gray-200 w-full">
                           <h3 class="text-xl font-bold text-musical-graphite mb-4">Create Student Account</h3>
                           <p class="text-gray-600 mb-6">Join Practice Buddy and start tracking your musical progress!</p>
                           <form @submit.prevent="registerStudent" class="space-y-4">
@@ -224,115 +223,7 @@
                         </div>
                       </div>
                       
-                      <!-- Independent Student Login Form -->
-                      <div v-if="showStudentIndependentLogin">
-                        <form @submit.prevent="loginIndependentStudent" class="space-y-6">
-                          <div class="space-y-2">
-                            <label for="independent-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
-                            <input 
-                              id="independent-email"
-                              v-model="independentStudentForm.email" 
-                              type="email" 
-                              placeholder="your.email@example.com"
-                              required
-                              class="w-full px-4 py-3 border-3 bg-gray-200 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                            />
-                          </div>
-                          
-                          <div class="space-y-2">
-                            <label for="independent-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
-                            <input 
-                              id="independent-password"
-                              v-model="independentStudentForm.password" 
-                              type="password" 
-                              placeholder="Enter your password"
-                              required
-                              class="w-full px-4 py-3 border-3 bg-gray-200 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                            />
-                          </div>
-                          
-                          <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isStudentLoginLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isStudentLoginLoading }">
-                            <Play v-if="!isStudentLoginLoading" class="w-4 h-4" />
-                            <div v-if="isStudentLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            {{ hasError ? 'Fix Errors First' : isStudentLoginLoading ? 'Validating...' : 'Start Practicing!' }}
-                          </button>
-                        </form>
-                        
-                        <div class="flex justify-center items-center py-6 border-b-3 border-gray-200">
-                          <button 
-                            @click="toggleStudentIndependentLogin" 
-                            class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5"
-                          >
-                            ➕ Create Independent Account
-                          </button>
-                        </div>
-                        
-                        <!-- Independent Student Registration Form -->
-                        <div v-if="showStudentIndependentLogin" class="animate-fadeIn mt-6 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200 w-full">
-                          <h3 class="text-xl font-bold text-musical-graphite mb-4">Create Independent Student Account</h3>
-                          <p class="text-gray-600 mb-6">Practice on your own and track your musical progress!</p>
-                          <form @submit.prevent="registerIndependentStudent" class="space-y-4">
-                            <div class="space-y-2">
-                              <label for="independent-register-name" class="block text-sm font-semibold text-musical-graphite">Your Name</label>
-                              <input 
-                                id="independent-register-name"
-                                v-model="independentStudentRegisterForm.displayName" 
-                                type="text" 
-                                placeholder="Enter your name"
-                                required
-                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                              />
-                            </div>
-                            
-                            <div class="space-y-2">
-                              <label for="independent-register-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
-                              <input 
-                                id="independent-register-email"
-                                v-model="independentStudentRegisterForm.email" 
-                                type="email" 
-                                placeholder="your.email@example.com"
-                                required
-                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                              />
-                            </div>
-                            
-                            <div class="space-y-2">
-                              <label for="independent-register-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
-                              <input 
-                                id="independent-register-password"
-                                v-model="independentStudentRegisterForm.password" 
-                                type="password" 
-                                placeholder="Create a secure password"
-                                required
-                                minlength="6"
-                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                              />
-                            </div>
-                            
-                            <div class="space-y-2">
-                              <label for="independent-register-confirm-password" class="block text-sm font-semibold text-musical-graphite">Confirm Password</label>
-                              <input 
-                                id="independent-register-confirm-password"
-                                v-model="independentStudentRegisterForm.confirmPassword" 
-                                type="password" 
-                                placeholder="Confirm your password"
-                                required
-                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                              />
-                            </div>
-                            
-                            <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isStudentRegistrationLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isStudentRegistrationLoading }">
-                              <Users v-if="!isStudentRegistrationLoading" class="w-4 h-4" />
-                              <div v-if="isStudentRegistrationLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              {{ hasError ? 'Fix Errors First' : isStudentRegistrationLoading ? 'Creating Account...' : 'Create Account' }}
-                            </button>
-                            
-                            <div class="text-xs text-gray-500 text-center mt-2">
-                              By creating an account, you agree to our Terms of Service and Privacy Policy.
-                            </div>
-                          </form>
-                        </div>
-                      </div>
+
                     </div>
 
                     <!-- Teacher Tab -->
@@ -669,10 +560,8 @@ const emit = defineEmits(['login'])
 const { 
   loginTeacherAccount, 
   loginStudentAccount, 
-  loginIndependentStudentAccount,
   registerTeacherAccount,
   registerStudentAccount,
-  registerIndependentStudentAccount,
   resetUserPassword
 } = useAuth()
 
@@ -719,17 +608,7 @@ const studentRegisterForm = ref({
   classCode: ''
 })
 
-const independentStudentForm = ref({
-  email: '',
-  password: ''
-})
 
-const independentStudentRegisterForm = ref({
-  email: '',
-  password: '',
-  confirmPassword: '',
-  displayName: ''
-})
 
 const teacherForm = ref({
   email: '',
@@ -865,6 +744,8 @@ const toggleStudentMode = () => {
 
 
 
+
+
 const loginStudent = async () => {
   // Check for existing errors first
   if (hasError.value) {
@@ -884,7 +765,7 @@ const loginStudent = async () => {
     const result = await loginStudentAccount(studentForm.value.email.trim(), studentForm.value.password, studentForm.value.classCode?.trim())
     
     if (result && result.success) {
-      emit('login', result.user)
+      emit('login', result.userData)
     } else {
       // Handle the error returned by loginStudentAccount
       const errorObj = new Error(result.error)
@@ -1018,7 +899,7 @@ const loginTeacher = async () => {
     
     console.log('Teacher login result:', result)
     if (result && result.success) {
-      emit('login', result.user)
+      emit('login', result.userData)
     } else {
       // Handle the error returned by loginTeacherAccount
       console.log('Teacher login failed, displaying error:', result.error)
@@ -1136,130 +1017,7 @@ const registerTeacher = async () => {
   }
 }
 
-const loginIndependentStudent = async () => {
-  // Check for existing errors first
-  if (hasError.value) {
-    return
-  }
-  
-  // Validate required fields
-  if (!independentStudentForm.value.email?.trim() || !independentStudentForm.value.password) {
-    handleError(new Error('Please fill in all required fields.'), 'form-validation')
-    return
-  }
-  
-  // Set loading state
-  isStudentLoginLoading.value = true
-  
-  try {
-    const result = await loginIndependentStudentAccount(independentStudentForm.value.email.trim(), independentStudentForm.value.password)
-    
-    if (result && result.success) {
-      // Independent student login successful
-      emit('login', result.user)
-    } else {
-      // Handle the error returned by loginIndependentStudentAccount
-      const errorObj = new Error(result.error)
-      errorObj.code = result.code // Preserve the Firebase error code
-      handleError(errorObj, 'student-login', { autoClearTime: 5000 })
-    }
-  } finally {
-    // Clear loading state
-    isStudentLoginLoading.value = false
-  }
-}
 
-const registerIndependentStudent = async () => {
-  // Check for existing errors first
-  if (hasError.value) {
-    return
-  }
-  
-  // Clear any previous errors
-  clearError()
-  
-  // Validation
-  const validationErrors = {}
-  
-  if (!independentStudentRegisterForm.value.displayName?.trim()) {
-    validationErrors.displayName = 'Please enter your name'
-  }
-  
-  if (!independentStudentRegisterForm.value.email?.trim()) {
-    validationErrors.email = 'Please enter your email address'
-  }
-  
-  if (!independentStudentRegisterForm.value.password) {
-    validationErrors.password = 'Please enter a password'
-  } else if (independentStudentRegisterForm.value.password.length < 6) {
-    validationErrors.password = 'Password must be at least 6 characters long'
-  }
-  
-  if (independentStudentRegisterForm.value.password !== independentStudentRegisterForm.value.confirmPassword) {
-    validationErrors.confirmPassword = 'Passwords do not match'
-  }
-  
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (independentStudentRegisterForm.value.email && !emailRegex.test(independentStudentRegisterForm.value.email)) {
-    validationErrors.email = 'Please enter a valid email address'
-  }
-  
-  // If there are validation errors, handle them and return early
-  if (Object.keys(validationErrors).length > 0) {
-    handleError(new Error('Validation failed'), 'form-validation', { validationErrors })
-    return
-  }
-  
-  const studentData = {
-    isIndependent: true,
-    practiceMinutes: 0,
-    achievements: []
-  }
-  
-  // Set loading state
-  isStudentRegistrationLoading.value = true
-  
-  try {
-    const result = await registerIndependentStudentAccount(
-      independentStudentRegisterForm.value.email.trim(), 
-      independentStudentRegisterForm.value.password, 
-      independentStudentRegisterForm.value.displayName.trim(), 
-      studentData
-    )
-  
-    if (result && result.success) {
-      // Show success message
-      registrationSuccess.value = true
-      clearError()
-      
-      // Clear form
-      independentStudentRegisterForm.value = {
-        email: '',
-        password: '',
-        confirmPassword: '',
-        displayName: ''
-      }
-      
-      // Hide registration form and show success message briefly
-      showStudentIndependentLogin.value = false
-      
-      // Show login prompt instead of auto-login
-      setTimeout(() => {
-        registrationSuccess.value = false
-        // Don't auto-login - let user login manually
-      }, 3000)
-    } else {
-      // Handle the error returned by registerTeacherAccount
-      const errorObj = new Error(result.error)
-      errorObj.code = result.code // Preserve the Firebase error code
-      handleError(errorObj, 'student-registration', { autoClearTime: 5000 })
-    }
-  } finally {
-    // Clear loading state
-    isStudentRegistrationLoading.value = false
-  }
-}
 
 const resetPassword = async () => {
   // Check for existing errors first
@@ -1317,6 +1075,5 @@ const bringToFront = (index) => {
   currentCardIndex.value = index
 }
 
-// Check if we're in demo mode
-const isDemoMode = !import.meta.env.PUBLIC_FIREBASE_API_KEY || import.meta.env.PUBLIC_FIREBASE_API_KEY === 'demo-api-key'
+
 </script>

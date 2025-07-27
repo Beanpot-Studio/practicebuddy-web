@@ -9,7 +9,8 @@
         <p class="text-lg opacity-95 font-medium text-musical-graphite">Track your practice time and collect awesome stickers!</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Stats Card - Full Width -->
+      <div class="mb-8">
         <div class="card card-red">
           <div class="flex items-center gap-3 mb-5">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 relative">
@@ -32,7 +33,11 @@
             </div>
           </div>
         </div>
+      </div>
 
+      <!-- Other Cards - Half Width Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Start Practicing Card -->
         <div class="card card-blue">
           <div class="flex items-center gap-3 mb-5">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
@@ -68,9 +73,8 @@
             </button>
           </div>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Your Musical Creations Card -->
         <div class="card card-green">
           <div class="flex items-center gap-3 mb-5">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
@@ -105,7 +109,122 @@
             Record New Creation
           </button>
         </div>
+      
+      </div>
 
+       
+    
+
+      <!-- Class Enrollment/Assignments Section - Half Width -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Class Enrollment Section -->
+        <div v-if="!currentUser?.classCode" class="card card-purple">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+              <BookOpen class="w-5 h-5 text-white" />
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Join a Music Class</h3>
+          </div>
+          
+          <div class="text-center py-8">
+            <div class="text-4xl mb-4">🎓</div>
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">Ready to Learn with a Teacher?</h4>
+            <p class="text-gray-600 mb-6">Join a music class to get assignments, feedback, and guidance from your teacher!</p>
+            
+            <div class="max-w-md mx-auto">
+              <div class="mb-4">
+                <label class="block mb-2 font-semibold text-gray-700 text-base">📝 Class Code</label>
+                <input 
+                  v-model="classCodeToJoin" 
+                  placeholder="Enter your class code (e.g., MUSIC101)"
+                  class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] focus:transform focus:-translate-y-0.5"
+                />
+              </div>
+              
+              <button 
+                @click="joinClass" 
+                :disabled="!classCodeToJoin || isJoiningClass"
+                :class="[
+                  'btn w-full p-4 text-base font-bold',
+                  !classCodeToJoin || isJoiningClass ? 'opacity-50 cursor-not-allowed' : 'btn-purple'
+                ]"
+              >
+                <div v-if="isJoiningClass" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span v-else>🎯 Join Class</span>
+              </button>
+              
+              <div v-if="joinClassError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                {{ joinClassError }}
+              </div>
+              
+              <div v-if="joinClassSuccess" class="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+                ✅ Successfully joined the class! Your teacher will see you soon.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Class Assignments Section -->
+        <div v-if="currentUser?.classCode" class="card card-purple">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+              <BookOpen class="w-5 h-5 text-white" />
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Class Assignments</h3>
+          </div>
+          
+          <div v-if="isLoadingAssignments" class="text-center py-8">
+            <div class="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading assignments...</p>
+          </div>
+          
+          <div v-else-if="assignments.length === 0" class="text-center py-8">
+            <div class="text-4xl mb-4">📚</div>
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">No Assignments Yet</h4>
+            <p class="text-gray-600">Your teacher will post assignments here soon!</p>
+          </div>
+          
+          <div v-else class="space-y-4">
+            <div 
+              v-for="assignment in assignments" 
+              :key="assignment.id"
+              class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-3 border-gray-300 shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.1)]"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 text-lg mb-1">{{ assignment.title }}</h4>
+                  <p class="text-gray-600 text-sm mb-2">{{ assignment.description }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-1 text-sm text-gray-500">
+                    <Calendar class="w-4 h-4" />
+                    <span>{{ formatDueDate(assignment.dueDate) }}</span>
+                  </div>
+                  <div v-if="assignment.practiceMinutes" class="flex items-center gap-1 text-sm text-purple-600 font-semibold">
+                    <span>⏱️ {{ assignment.practiceMinutes }} min</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <button class="px-4 py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold hover:bg-purple-600 transition-colors">
+                    <CheckCircle class="w-4 h-4 inline mr-1" />
+                    Mark Complete
+                  </button>
+                  <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition-colors">
+                    View Details
+                  </button>
+                </div>
+                <div class="text-xs text-gray-500">
+                  Assigned {{ new Date(assignment.createdAt).toLocaleDateString() }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!--Achievements Card-->
         <div class="card card-yellow">
           <div class="flex items-center gap-3 mb-5">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 relative">
@@ -134,8 +253,12 @@
             </div>
           </div>
         </div>
+      
       </div>
-    </div>
+
+    
+      
+      </div>
 
     <!-- Recording Modal -->
     <div v-if="showRecordingModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" @click="showRecordingModal = false">
@@ -188,8 +311,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { Play, Mic, Square, X } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { Play, Mic, Square, X, BookOpen, Calendar, CheckCircle } from 'lucide-vue-next'
+import { useAuth } from '../composables/useAuth'
 
 const props = defineProps({
   studentName: {
@@ -197,6 +321,8 @@ const props = defineProps({
     default: 'Student'
   }
 })
+
+const { currentUser, fetchClassAssignments, joinClassAsStudent } = useAuth()
 
 const totalPracticeTime = ref(45)
 const currentStreak = ref(7)
@@ -272,6 +398,16 @@ const newRecordingTitle = ref('')
 const isRecording = ref(false)
 const recordingTime = ref(0)
 
+// Class enrollment
+const classCodeToJoin = ref('')
+const isJoiningClass = ref(false)
+const joinClassError = ref('')
+const joinClassSuccess = ref('')
+
+// Class assignments
+const assignments = ref([])
+const isLoadingAssignments = ref(false)
+
 const startPractice = () => {
   alert(`🎉 Starting ${practiceTime.value} minutes of ${selectedInstrument.value} practice!`)
   totalPracticeTime.value += parseInt(practiceTime.value)
@@ -317,4 +453,78 @@ const formatTime = (seconds) => {
   const secs = seconds % 60
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
+
+const joinClass = async () => {
+  if (!classCodeToJoin.value?.trim()) {
+    joinClassError.value = 'Please enter a class code'
+    return
+  }
+  
+  isJoiningClass.value = true
+  joinClassError.value = ''
+  joinClassSuccess.value = ''
+  
+  try {
+    const result = await joinClassAsStudent(
+      classCodeToJoin.value.trim(),
+      currentUser.value.uid,
+      currentUser.value.displayName,
+      currentUser.value.instrument || ''
+    )
+    
+    if (result && result.success) {
+      joinClassSuccess.value = 'Successfully joined the class!'
+      classCodeToJoin.value = ''
+      
+      // Reload the page to update the user data and show assignments
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    } else {
+      joinClassError.value = result.error || 'Failed to join class. Please check your class code.'
+    }
+  } catch (error) {
+    console.error('Error joining class:', error)
+    joinClassError.value = 'An error occurred while joining the class. Please try again.'
+  } finally {
+    isJoiningClass.value = false
+  }
+}
+
+const loadAssignments = async () => {
+  if (!currentUser.value?.classCode) return
+  
+  isLoadingAssignments.value = true
+  try {
+    const result = await fetchClassAssignments(currentUser.value.classCode)
+    if (result.success) {
+      assignments.value = result.assignments
+    }
+  } catch (error) {
+    console.error('Failed to load assignments:', error)
+  } finally {
+    isLoadingAssignments.value = false
+  }
+}
+
+const formatDueDate = (dueDate) => {
+  const date = new Date(dueDate)
+  const now = new Date()
+  const diffTime = date - now
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 0) {
+    return 'Overdue'
+  } else if (diffDays === 0) {
+    return 'Due today'
+  } else if (diffDays === 1) {
+    return 'Due tomorrow'
+  } else {
+    return `Due in ${diffDays} days`
+  }
+}
+
+onMounted(() => {
+  loadAssignments()
+})
 </script>

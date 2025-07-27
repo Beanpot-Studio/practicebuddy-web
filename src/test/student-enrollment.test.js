@@ -5,7 +5,7 @@ import { registerStudent, loginStudent } from '../lib/auth.js'
 vi.mock('../lib/firebase', () => ({
   db: {},
   auth: {},
-  isDemoMode: false
+  
 }))
 
 vi.mock('firebase/auth', () => ({

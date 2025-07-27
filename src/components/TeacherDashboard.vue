@@ -40,6 +40,24 @@
           >
             🎓 Manage Classes
           </button>
+          <button 
+            @click="activeTab = 'class-roster'"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'class-roster' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+            ]"
+          >
+            👥 Class Roster
+          </button>
+          <button 
+            @click="activeTab = 'assignments'"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'assignments' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+            ]"
+          >
+            📚 Assignments
+          </button>
         </div>
       </div>
 
@@ -410,6 +428,250 @@
       </div>
     </div>
 
+      <!-- Class Roster Tab -->
+      <div v-if="activeTab === 'class-roster'" class="animate-fadeIn">
+        <div class="space-y-6">
+          <!-- Class Selection -->
+          <div class="card card-blue">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+                👥
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Select Class to View Roster</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                v-for="classItem in classes" 
+                :key="classItem.id"
+                :class="[
+                  'p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
+                  selectedClassForRoster?.id === classItem.id
+                    ? 'bg-gradient-to-br from-blue-400 to-blue-500 border-blue-600 text-white'
+                    : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300 hover:border-blue-400'
+                ]"
+                @click="selectClassForRoster(classItem)"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl">
+                    {{ classItem.icon }}
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-semibold">{{ classItem.name }}</h4>
+                    <p class="text-sm opacity-80">{{ classItem.studentCount }} students</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Class Roster -->
+          <div v-if="selectedClassForRoster" class="card card-green">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
+                  📋
+                </div>
+                <h3 class="text-xl text-gray-800 font-bold">{{ selectedClassForRoster.name }} - Class Roster</h3>
+              </div>
+              <div class="text-sm text-gray-600">
+                Class Code: <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ selectedClassForRoster.code }}</span>
+              </div>
+            </div>
+            
+            <div v-if="isLoadingRoster" class="text-center py-8">
+              <div class="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p class="text-gray-600">Loading roster...</p>
+            </div>
+            
+            <div v-else-if="classRoster.length === 0" class="text-center py-8">
+              <div class="text-4xl mb-4">👥</div>
+              <h4 class="text-lg font-semibold text-gray-800 mb-2">No Students Yet</h4>
+              <p class="text-gray-600">Students will appear here when they join using the class code.</p>
+            </div>
+            
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                v-for="student in classRoster" 
+                :key="student.studentId"
+                class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
+              >
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 flex items-center justify-center text-xl">
+                    {{ getStudentAvatar(student.name) }}
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm text-gray-800 font-bold">{{ student.name }}</h4>
+                    <p class="text-xs text-gray-500">{{ student.instrument || 'No instrument specified' }}</p>
+                  </div>
+                </div>
+                
+                <div class="flex justify-between text-xs text-gray-600">
+                  <span>Joined: {{ formatDate(new Date(student.joinedAt)) }}</span>
+                  <span>Practice: {{ student.practiceMinutes || 0 }}min</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assignments Tab -->
+      <div v-if="activeTab === 'assignments'" class="animate-fadeIn">
+        <div class="space-y-6">
+          <!-- Class Selection for Assignments -->
+          <div class="card card-purple">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+                📚
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Select Class to Manage Assignments</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                v-for="classItem in classes" 
+                :key="classItem.id"
+                :class="[
+                  'p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
+                  selectedClassForAssignments?.id === classItem.id
+                    ? 'bg-gradient-to-br from-purple-400 to-purple-500 border-purple-600 text-white'
+                    : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300 hover:border-purple-400'
+                ]"
+                @click="selectClassForAssignments(classItem)"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl">
+                    {{ classItem.icon }}
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-semibold">{{ classItem.name }}</h4>
+                    <p class="text-sm opacity-80">{{ classItem.studentCount }} students</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Create Assignment -->
+          <div v-if="selectedClassForAssignments" class="card card-purple">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+                ➕
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Create New Assignment</h3>
+            </div>
+            
+            <form @submit.prevent="createNewAssignment" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block mb-2 font-semibold text-gray-700">Assignment Title</label>
+                  <input 
+                    v-model="newAssignment.title"
+                    type="text" 
+                    placeholder="Practice Scales"
+                    required
+                    class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div>
+                  <label class="block mb-2 font-semibold text-gray-700">Due Date</label>
+                  <input 
+                    v-model="newAssignment.dueDate"
+                    type="date" 
+                    required
+                    class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label class="block mb-2 font-semibold text-gray-700">Description</label>
+                <textarea 
+                  v-model="newAssignment.description"
+                  placeholder="Describe what students should practice..."
+                  rows="3"
+                  required
+                  class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500 resize-vertical"
+                ></textarea>
+              </div>
+              
+              <div>
+                <label class="block mb-2 font-semibold text-gray-700">Practice Minutes (Optional)</label>
+                <input 
+                  v-model="newAssignment.practiceMinutes"
+                  type="number" 
+                  min="0"
+                  placeholder="30"
+                  class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              
+              <button 
+                type="submit"
+                :disabled="isCreatingAssignment"
+                class="btn btn-purple w-full"
+              >
+                {{ isCreatingAssignment ? 'Creating...' : 'Create Assignment' }}
+              </button>
+            </form>
+          </div>
+
+          <!-- Existing Assignments -->
+          <div v-if="selectedClassForAssignments" class="card card-purple">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+                📋
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Existing Assignments</h3>
+            </div>
+            
+            <div v-if="isLoadingAssignments" class="text-center py-8">
+              <div class="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p class="text-gray-600">Loading assignments...</p>
+            </div>
+            
+            <div v-else-if="classAssignments.length === 0" class="text-center py-8">
+              <div class="text-4xl mb-4">📚</div>
+              <h4 class="text-lg font-semibold text-gray-800 mb-2">No Assignments Yet</h4>
+              <p class="text-gray-600">Create your first assignment above!</p>
+            </div>
+            
+            <div v-else class="space-y-4">
+              <div 
+                v-for="assignment in classAssignments" 
+                :key="assignment.id"
+                class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex-1">
+                    <h4 class="font-semibold text-gray-800 text-lg mb-1">{{ assignment.title }}</h4>
+                    <p class="text-gray-600 text-sm mb-2">{{ assignment.description }}</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="text-sm text-gray-500">
+                      Due: {{ formatDate(new Date(assignment.dueDate)) }}
+                    </div>
+                    <div v-if="assignment.practiceMinutes" class="text-sm text-purple-600 font-semibold">
+                      ⏱️ {{ assignment.practiceMinutes }} min
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <div class="text-xs text-gray-500">
+                    Created: {{ formatDate(new Date(assignment.createdAt)) }}
+                  </div>
+                  <button class="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     <!-- Sticker Modal -->
     <div v-if="showStickerModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" @click="showStickerModal = false">
       <div class="card card-green max-w-2xl w-11/12 max-h-[80vh] overflow-y-auto m-5" @click.stop>
@@ -590,7 +852,7 @@ const props = defineProps({
 })
 
 // Authentication
-const { createTeacherClass, fetchTeacherClasses, currentUser } = useAuth()
+const { createTeacherClass, fetchTeacherClasses, fetchClassRoster, createClassAssignment, fetchClassAssignments, currentUser } = useAuth()
 
 const activeTab = ref('overview')
 const totalStudents = ref(8)
@@ -602,6 +864,13 @@ const showEmailModal = ref(false)
 const isCreatingClass = ref(false)
 const selectedClass = ref(null)
 const selectedClassForEmail = ref(null)
+const selectedClassForRoster = ref(null)
+const selectedClassForAssignments = ref(null)
+const classRoster = ref([])
+const classAssignments = ref([])
+const isLoadingRoster = ref(false)
+const isLoadingAssignments = ref(false)
+const isCreatingAssignment = ref(false)
 
 const emailData = ref({
   subject: '',
@@ -614,6 +883,13 @@ const newClass = ref({
   instrument: '',
   level: '',
   schedule: ''
+})
+
+const newAssignment = ref({
+  title: '',
+  description: '',
+  dueDate: '',
+  practiceMinutes: ''
 })
 
 const classes = ref([])
@@ -940,6 +1216,8 @@ const loadClasses = async () => {
     return
   }
   
+
+  
   try {
     const result = await fetchTeacherClasses(currentUser.value.uid)
     
@@ -955,6 +1233,110 @@ const loadClasses = async () => {
   } catch (error) {
     console.error('Error loading classes:', error)
   }
+}
+
+// Class roster functions
+const selectClassForRoster = async (classItem) => {
+  selectedClassForRoster.value = classItem
+  await loadClassRoster(classItem.code)
+}
+
+const loadClassRoster = async (classCode) => {
+  if (!classCode) return
+  
+  isLoadingRoster.value = true
+  try {
+    const result = await fetchClassRoster(classCode)
+    if (result.success) {
+      classRoster.value = result.students
+    } else {
+      console.error('Error loading roster:', result.error)
+      classRoster.value = []
+    }
+  } catch (error) {
+    console.error('Error loading roster:', error)
+    classRoster.value = []
+  } finally {
+    isLoadingRoster.value = false
+  }
+}
+
+// Assignment functions
+const selectClassForAssignments = async (classItem) => {
+  selectedClassForAssignments.value = classItem
+  await loadClassAssignments(classItem.code)
+}
+
+const loadClassAssignments = async (classCode) => {
+  if (!classCode) return
+  
+  isLoadingAssignments.value = true
+  try {
+    const result = await fetchClassAssignments(classCode)
+    if (result.success) {
+      classAssignments.value = result.assignments
+    } else {
+      console.error('Error loading assignments:', result.error)
+      classAssignments.value = []
+    }
+  } catch (error) {
+    console.error('Error loading assignments:', error)
+    classAssignments.value = []
+  } finally {
+    isLoadingAssignments.value = false
+  }
+}
+
+const createNewAssignment = async () => {
+  if (!selectedClassForAssignments.value?.code) {
+    alert('Please select a class first.')
+    return
+  }
+  
+  if (!newAssignment.value.title || !newAssignment.value.description || !newAssignment.value.dueDate) {
+    alert('Please fill in all required fields.')
+    return
+  }
+  
+  isCreatingAssignment.value = true
+  
+  try {
+    const assignmentData = {
+      title: newAssignment.value.title,
+      description: newAssignment.value.description,
+      dueDate: newAssignment.value.dueDate,
+      practiceMinutes: newAssignment.value.practiceMinutes ? parseInt(newAssignment.value.practiceMinutes) : 0
+    }
+    
+    const result = await createClassAssignment(selectedClassForAssignments.value.code, assignmentData)
+    
+    if (result.success) {
+      // Add the new assignment to the local state
+      classAssignments.value.push(result.assignment)
+      
+      // Reset form
+      newAssignment.value = {
+        title: '',
+        description: '',
+        dueDate: '',
+        practiceMinutes: ''
+      }
+      
+      alert(`✅ Assignment "${result.assignment.title}" created successfully!`)
+    } else {
+      alert(`Error creating assignment: ${result.error}`)
+    }
+  } catch (error) {
+    alert('Error creating assignment. Please try again.')
+  } finally {
+    isCreatingAssignment.value = false
+  }
+}
+
+const getStudentAvatar = (name) => {
+  const avatars = ['🎹', '🎸', '🎻', '🎺', '🥁', '🎷', '🎤', '🎵']
+  const index = name.length % avatars.length
+  return avatars[index]
 }
 
 // Load classes when component mounts

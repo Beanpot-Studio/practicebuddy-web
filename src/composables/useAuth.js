@@ -4,14 +4,16 @@ import {
   cleanupAuth, 
   registerTeacher, 
   registerStudent, 
-  registerIndependentStudent,
   loginTeacher, 
-  loginIndependentStudent,
   loginStudent, 
   logout, 
   resetPassword,
   createClass,
   getTeacherClasses,
+  getClassRoster,
+  createAssignment,
+  getClassAssignments,
+  joinClass,
   USER_ROLES 
 } from '../lib/auth'
 
@@ -24,8 +26,13 @@ const authError = ref(null)
 // Initialize auth state
 const initializeAuth = () => {
   initAuthState((authState) => {
-    currentUser.value = authState.user
-    isAuthenticated.value = authState.isAuthenticated
+    if (authState.user && authState.userData) {
+      // Combine Firebase user with Firestore user data
+      currentUser.value = { ...authState.user, ...authState.userData }
+    } else {
+      currentUser.value = authState.user
+    }
+    isAuthenticated.value = !!authState.user
     isLoading.value = false
     authError.value = null
   })
@@ -67,14 +74,7 @@ const registerStudentAccount = async (email, password, displayName, studentData 
   return result
 }
 
-const registerIndependentStudentAccount = async (email, password, displayName, studentData = {}) => {
-  const result = await registerIndependentStudent(email, password, displayName, studentData)
-  
-  // Don't call handleAuthError here - let the component handle the error
-  // This allows for better error display control
-  
-  return result
-}
+
 
 const loginTeacherAccount = async (email, password) => {
   const result = await loginTeacher(email, password)
@@ -85,14 +85,7 @@ const loginTeacherAccount = async (email, password) => {
   return result
 }
 
-const loginIndependentStudentAccount = async (email, password) => {
-  const result = await loginIndependentStudent(email, password)
-  
-  // Don't call handleAuthError here - let the component handle the error
-  // This allows for better error display control
-  
-  return result
-}
+
 
 const loginStudentAccount = async (email, password, classCode = null) => {
   const result = await loginStudent(email, password, classCode)
@@ -147,6 +140,42 @@ const fetchTeacherClasses = async (teacherId) => {
   return result
 }
 
+const fetchClassRoster = async (classCode) => {
+  const result = await getClassRoster(classCode)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const createClassAssignment = async (classCode, assignmentData) => {
+  const result = await createAssignment(classCode, assignmentData)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const fetchClassAssignments = async (classCode) => {
+  const result = await getClassAssignments(classCode)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const joinClassAsStudent = async (classCode, studentId, studentName, instrument = '') => {
+  const result = await joinClass(classCode, studentId, studentName, instrument)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
 // Export the composable
 export function useAuth() {
   onMounted(() => {
@@ -174,14 +203,16 @@ export function useAuth() {
     clearError,
     registerTeacherAccount,
     registerStudentAccount,
-    registerIndependentStudentAccount,
     loginTeacherAccount,
-    loginIndependentStudentAccount,
     loginStudentAccount,
     logoutUser,
     resetUserPassword,
     createTeacherClass,
     fetchTeacherClasses,
+    fetchClassRoster,
+    createClassAssignment,
+    fetchClassAssignments,
+    joinClassAsStudent,
     
     // Constants
     USER_ROLES

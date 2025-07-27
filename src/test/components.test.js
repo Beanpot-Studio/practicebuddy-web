@@ -67,21 +67,7 @@ describe('HomePage Component', () => {
       expect(wrapper.find('[data-testid="teacher-tab"]').exists()).toBe(true)
     })
 
-    it('should show demo mode indicator when in demo mode', () => {
-      // Mock demo mode
-      vi.stubEnv('PUBLIC_FIREBASE_API_KEY', 'demo-api-key')
-      
-      const demoWrapper = mount(HomePage, {
-        global: {
-          stubs: {
-            'lucide-vue-next': true,
-            Footer: true
-          }
-        }
-      })
 
-      expect(demoWrapper.text()).toContain('Demo Mode')
-    })
   })
 
   describe('Tab Switching', () => {
