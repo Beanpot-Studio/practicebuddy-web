@@ -7,7 +7,11 @@ vi.mock('../lib/firebase', () => ({
   doc: vi.fn(),
   getDoc: vi.fn(),
   updateDoc: vi.fn(),
-  collection: vi.fn()
+  collection: vi.fn(),
+  setDoc: vi.fn(),
+  getDocs: vi.fn(),
+  query: vi.fn(),
+  where: vi.fn()
 }))
 
 // Mock error handler
@@ -31,7 +35,7 @@ describe('Assignment Management', () => {
   })
 
   describe('createAssignment', () => {
-    it('should create a new assignment successfully', async () => {
+    it('should create a new class assignment successfully', async () => {
       const mockGetDoc = vi.fn()
       const mockUpdateDoc = vi.fn()
       
@@ -58,7 +62,7 @@ describe('Assignment Management', () => {
         practiceMinutes: 15
       }
       
-      const result = await createAssignment(classCode, assignmentData)
+      const result = await createAssignment(classCode, assignmentData, 'class')
       
       expect(result.success).toBe(true)
       expect(result.assignment).toHaveProperty('id')
@@ -67,20 +71,103 @@ describe('Assignment Management', () => {
       expect(result.assignment.dueDate).toBe('2024-02-01')
       expect(result.assignment.practiceMinutes).toBe(15)
       expect(result.assignment.status).toBe('active')
+      expect(result.assignment.type).toBe('class')
       expect(result.assignment.createdAt).toBeDefined()
+    })
+
+    it('should create a new individual assignment successfully', async () => {
+      const mockGetDoc = vi.fn()
+      const mockUpdateDoc = vi.fn()
+      
+      // Mock successful class document
+      mockGetDoc.mockResolvedValue({
+        exists: () => true,
+        data: () => ({
+          individualAssignments: {}
+        })
+      })
+      
+      mockUpdateDoc.mockResolvedValue()
+      
+      const { doc, getDoc, updateDoc } = await import('../lib/firebase')
+      doc.mockReturnValue({})
+      getDoc.mockImplementation(mockGetDoc)
+      updateDoc.mockImplementation(mockUpdateDoc)
+      
+      const classCode = 'MUSIC123'
+      const assignmentData = {
+        title: 'Individual Practice',
+        description: 'Practice your solo piece',
+        dueDate: '2024-02-01',
+        practiceMinutes: 20
+      }
+      const studentId = 'student123'
+      
+      const result = await createAssignment(classCode, assignmentData, 'individual', studentId)
+      
+      expect(result.success).toBe(true)
+      expect(result.assignment).toHaveProperty('id')
+      expect(result.assignment.title).toBe('Individual Practice')
+      expect(result.assignment.type).toBe('individual')
+      expect(result.assignment.studentId).toBe(studentId)
+    })
+
+    it('should create a standalone assignment successfully', async () => {
+      const mockSetDoc = vi.fn()
+      const mockCollection = vi.fn()
+      const mockDoc = vi.fn()
+      
+      mockSetDoc.mockResolvedValue()
+      mockCollection.mockReturnValue({})
+      mockDoc.mockReturnValue({ id: 'standalone123' })
+      
+      const { collection, doc, setDoc } = await import('../lib/firebase')
+      collection.mockImplementation(mockCollection)
+      doc.mockImplementation(mockDoc)
+      setDoc.mockImplementation(mockSetDoc)
+      
+      const assignmentData = {
+        title: 'Standalone Practice',
+        description: 'Practice your instrument',
+        dueDate: '2024-02-01',
+        practiceMinutes: 30
+      }
+      const teacherId = 'teacher123'
+      const studentId = 'student123'
+      
+      const result = await createAssignment(null, assignmentData, 'standalone', studentId, teacherId)
+      
+      expect(result.success).toBe(true)
+      expect(result.assignment).toHaveProperty('id')
+      expect(result.assignment.title).toBe('Standalone Practice')
+      expect(result.assignment.type).toBe('standalone')
+      expect(result.assignment.studentId).toBe(studentId)
+      expect(result.assignment.teacherId).toBe(teacherId)
     })
 
     it('should handle class not found error', async () => {
       const mockGetDoc = vi.fn()
+      const mockGetDocs = vi.fn()
+      const mockQuery = vi.fn()
+      const mockWhere = vi.fn()
       
-      // Mock class not found
+      // Mock class not found by ID
       mockGetDoc.mockResolvedValue({
         exists: () => false
       })
       
-      const { doc, getDoc } = await import('../lib/firebase')
+      // Mock empty query results
+      mockGetDocs.mockResolvedValue({
+        empty: true,
+        docs: []
+      })
+      
+      const { doc, getDoc, getDocs, query, where } = await import('../lib/firebase')
       doc.mockReturnValue({})
       getDoc.mockImplementation(mockGetDoc)
+      getDocs.mockImplementation(mockGetDocs)
+      query.mockImplementation(mockQuery)
+      where.mockImplementation(mockWhere)
       
       const classCode = 'INVALID123'
       const assignmentData = {
@@ -89,7 +176,7 @@ describe('Assignment Management', () => {
         dueDate: '2024-02-01'
       }
       
-      const result = await createAssignment(classCode, assignmentData)
+      const result = await createAssignment(classCode, assignmentData, 'class')
       
       expect(result.success).toBe(false)
       expect(result.error).toBe('Class not found')
@@ -110,7 +197,8 @@ describe('Assignment Management', () => {
               description: 'Old assignment',
               dueDate: '2024-01-15',
               createdAt: '2024-01-01T00:00:00.000Z',
-              status: 'active'
+              status: 'active',
+              type: 'class'
             }
           ]
         })
@@ -130,7 +218,7 @@ describe('Assignment Management', () => {
         dueDate: '2024-02-01'
       }
       
-      const result = await createAssignment(classCode, assignmentData)
+      const result = await createAssignment(classCode, assignmentData, 'class')
       
       expect(result.success).toBe(true)
       expect(result.assignment.title).toBe('New Assignment')
@@ -149,7 +237,7 @@ describe('Assignment Management', () => {
   })
 
   describe('getClassAssignments', () => {
-    it('should retrieve assignments for a class', async () => {
+    it('should retrieve class assignments for a class', async () => {
       const mockGetDoc = vi.fn()
       
       const mockAssignments = [
@@ -160,7 +248,8 @@ describe('Assignment Management', () => {
           dueDate: '2024-02-01',
           practiceMinutes: 15,
           createdAt: '2024-01-01T00:00:00.000Z',
-          status: 'active'
+          status: 'active',
+          type: 'class'
         },
         {
           id: 'assignment_2',
@@ -169,14 +258,16 @@ describe('Assignment Management', () => {
           dueDate: '2024-02-08',
           practiceMinutes: 30,
           createdAt: '2024-01-02T00:00:00.000Z',
-          status: 'active'
+          status: 'active',
+          type: 'class'
         }
       ]
       
       mockGetDoc.mockResolvedValue({
         exists: () => true,
         data: () => ({
-          assignments: mockAssignments
+          assignments: mockAssignments,
+          individualAssignments: {}
         })
       })
       
@@ -190,6 +281,62 @@ describe('Assignment Management', () => {
       expect(result.success).toBe(true)
       expect(result.assignments).toEqual(mockAssignments)
       expect(result.assignments).toHaveLength(2)
+      expect(result.classAssignments).toEqual(mockAssignments)
+      expect(result.individualAssignments).toEqual([])
+    })
+
+    it('should retrieve both class and individual assignments for a student', async () => {
+      const mockGetDoc = vi.fn()
+      
+      const mockClassAssignments = [
+        {
+          id: 'class_assignment_1',
+          title: 'Practice Scales',
+          description: 'Practice C major scale',
+          dueDate: '2024-02-01',
+          practiceMinutes: 15,
+          createdAt: '2024-01-01T00:00:00.000Z',
+          status: 'active',
+          type: 'class'
+        }
+      ]
+      
+      const mockIndividualAssignments = {
+        'student123': [
+          {
+            id: 'individual_assignment_1',
+            title: 'Solo Practice',
+            description: 'Practice your solo piece',
+            dueDate: '2024-02-05',
+            practiceMinutes: 20,
+            createdAt: '2024-01-03T00:00:00.000Z',
+            status: 'active',
+            type: 'individual',
+            studentId: 'student123'
+          }
+        ]
+      }
+      
+      mockGetDoc.mockResolvedValue({
+        exists: () => true,
+        data: () => ({
+          assignments: mockClassAssignments,
+          individualAssignments: mockIndividualAssignments
+        })
+      })
+      
+      const { doc, getDoc } = await import('../lib/firebase')
+      doc.mockReturnValue({})
+      getDoc.mockImplementation(mockGetDoc)
+      
+      const classCode = 'MUSIC123'
+      const studentId = 'student123'
+      const result = await getClassAssignments(classCode, studentId)
+      
+      expect(result.success).toBe(true)
+      expect(result.assignments).toHaveLength(2) // Both class and individual
+      expect(result.classAssignments).toEqual(mockClassAssignments)
+      expect(result.individualAssignments).toEqual(mockIndividualAssignments['student123'])
     })
 
     it('should return empty array when no assignments exist', async () => {
@@ -211,18 +358,33 @@ describe('Assignment Management', () => {
       
       expect(result.success).toBe(true)
       expect(result.assignments).toEqual([])
+      expect(result.classAssignments).toEqual([])
+      expect(result.individualAssignments).toEqual([])
     })
 
     it('should handle class not found error', async () => {
       const mockGetDoc = vi.fn()
+      const mockGetDocs = vi.fn()
+      const mockQuery = vi.fn()
+      const mockWhere = vi.fn()
       
+      // Mock class not found by ID
       mockGetDoc.mockResolvedValue({
         exists: () => false
       })
       
-      const { doc, getDoc } = await import('../lib/firebase')
+      // Mock empty query results
+      mockGetDocs.mockResolvedValue({
+        empty: true,
+        docs: []
+      })
+      
+      const { doc, getDoc, getDocs, query, where } = await import('../lib/firebase')
       doc.mockReturnValue({})
       getDoc.mockImplementation(mockGetDoc)
+      getDocs.mockImplementation(mockGetDocs)
+      query.mockImplementation(mockQuery)
+      where.mockImplementation(mockWhere)
       
       const classCode = 'INVALID123'
       const result = await getClassAssignments(classCode)

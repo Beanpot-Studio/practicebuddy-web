@@ -12,7 +12,11 @@ vi.mock('../lib/firebase.js', () => ({
 vi.mock('firebase/firestore', () => ({
   doc: vi.fn(),
   getDoc: vi.fn(),
-  updateDoc: vi.fn()
+  updateDoc: vi.fn(),
+  collection: vi.fn(),
+  getDocs: vi.fn(),
+  query: vi.fn(),
+  where: vi.fn()
 }))
 
 // Mock error handler
@@ -21,6 +25,15 @@ vi.mock('../lib/errorHandler.js', () => ({
   handleFirebaseError: vi.fn((error) => ({ message: error.message, code: 'test-error' })),
   createErrorResponse: vi.fn((message, code, context) => ({ success: false, error: message, code, context }))
 }))
+
+// Mock the addStudentToClassRoster function
+vi.mock('../lib/auth.js', async () => {
+  const actual = await vi.importActual('../lib/auth.js')
+  return {
+    ...actual,
+    addStudentToClassRoster: vi.fn()
+  }
+})
 
 describe('Student Enrollment Debug', () => {
   beforeEach(async () => {
@@ -181,6 +194,7 @@ describe('Student Enrollment Debug', () => {
   describe('joinClass', () => {
     it('should join class and update user document', async () => {
       const { doc, getDoc, updateDoc } = await import('firebase/firestore')
+      const { addStudentToClassRoster } = await import('../lib/auth.js')
       
       const mockClassCode = 'ABC123'
       const mockStudentId = 'student123'
@@ -209,7 +223,10 @@ describe('Student Enrollment Debug', () => {
       }
       getDoc.mockResolvedValue(mockClassDocSnapshot)
 
-      // Mock updateDoc
+      // Mock addStudentToClassRoster to return success
+      addStudentToClassRoster.mockResolvedValue({ success: true })
+
+      // Mock updateDoc for user document update
       updateDoc.mockResolvedValue()
 
       const result = await joinClass(mockClassCode, mockStudentId, mockStudentName, mockInstrument)
@@ -217,6 +234,9 @@ describe('Student Enrollment Debug', () => {
       // Verify the class document was accessed
       expect(doc).toHaveBeenCalledWith({}, 'classes', mockClassCode)
       expect(getDoc).toHaveBeenCalledWith(mockClassDocRef)
+
+      // Verify addStudentToClassRoster was called
+      expect(addStudentToClassRoster).toHaveBeenCalledWith(mockClassCode, mockStudentId, mockStudentName, mockInstrument)
 
       // Verify the user document was updated
       expect(doc).toHaveBeenCalledWith({}, 'users', mockStudentId)
@@ -232,7 +252,7 @@ describe('Student Enrollment Debug', () => {
     })
 
     it('should handle class not found', async () => {
-      const { doc, getDoc, updateDoc } = await import('firebase/firestore')
+      const { doc, getDoc, updateDoc, collection, getDocs, query, where } = await import('firebase/firestore')
       
       const mockClassCode = 'INVALID123'
       const mockStudentId = 'student123'
@@ -249,6 +269,17 @@ describe('Student Enrollment Debug', () => {
         data: () => null
       }
       getDoc.mockResolvedValue(mockDocSnapshot)
+
+      // Mock empty query results for code field search
+      const mockQuerySnapshot = {
+        empty: true,
+        docs: []
+      }
+      getDocs.mockResolvedValue(mockQuerySnapshot)
+
+      // Mock query and where functions
+      query.mockReturnValue({})
+      where.mockReturnValue({})
 
       const result = await joinClass(mockClassCode, mockStudentId, mockStudentName, mockInstrument)
 
