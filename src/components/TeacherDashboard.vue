@@ -177,7 +177,7 @@
                 </div>
                 <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white flex-1">
                   <span class="block text-xs opacity-90 font-semibold mb-0.5">Assignments</span>
-                  <span class="text-sm font-bold">{{ student.assignments?.length || 0 }}</span>
+                  <span class="text-sm font-bold">{{ studentAssignments[student.studentId] || 0 }}</span>
                 </div>
               </div>
 
@@ -186,6 +186,9 @@
                   <h5 class="text-sm text-gray-800 font-bold">📊 Student Info</h5>
                 </div>
                 <div class="text-center py-2 text-gray-600 text-sm">
+                  <div class="mb-1">
+                    <span class="font-semibold">Class:</span> {{ student.className || 'Unknown' }}
+                  </div>
                   <div class="mb-1">
                     <span class="font-semibold">Joined:</span> {{ formatJoinDate(student.joinedAt) }}
                   </div>
@@ -943,8 +946,8 @@ const activeTab = ref('overview')
 
 const totalStudents = computed(() => allStudents.value.length)
 const totalAssignments = computed(() => {
-  return allStudents.value.reduce((total, student) => {
-    return total + (student.assignments?.length || 0)
+  return Object.values(studentAssignments.value).reduce((total, count) => {
+    return total + (count || 0)
   }, 0)
 })
 const recentActivity = ref([])
@@ -987,6 +990,7 @@ const newAssignment = ref({
 const classes = ref([])
 
 const allStudents = ref([])
+const studentAssignments = ref({})
 
 const selectedStudent = ref(null)
 const selectedRecording = ref(null)
@@ -1010,6 +1014,31 @@ const getStudentAvatar = (instrument) => {
     theory: '📚'
   }
   return avatars[instrument?.toLowerCase()] || '🎵'
+}
+
+const loadStudentAssignments = async () => {
+  const assignments = {}
+  
+  for (const student of allStudents.value) {
+    if (student.classCode) {
+      try {
+        const result = await fetchClassAssignments(student.classCode, student.studentId)
+        if (result.success) {
+          assignments[student.studentId] = result.assignments.length
+        } else {
+          assignments[student.studentId] = 0
+        }
+      } catch (error) {
+        console.error(`Error loading assignments for student ${student.studentId}:`, error)
+        assignments[student.studentId] = 0
+      }
+    } else {
+      assignments[student.studentId] = 0
+    }
+  }
+  
+  studentAssignments.value = assignments
+  console.log('Loaded student assignments:', assignments)
 }
 
 const formatJoinDate = (dateString) => {
@@ -1297,7 +1326,13 @@ const loadAllStudents = async () => {
     try {
       const result = await fetchClassRoster(classItem.id)
       if (result.success && result.students) {
-        allStudentsList.push(...result.students)
+        // Add class information to each student
+        const studentsWithClass = result.students.map(student => ({
+          ...student,
+          classCode: classItem.id,
+          className: classItem.name
+        }))
+        allStudentsList.push(...studentsWithClass)
       }
     } catch (error) {
       console.error(`Error loading students for class ${classItem.id}:`, error)
@@ -1306,6 +1341,9 @@ const loadAllStudents = async () => {
   
   allStudents.value = allStudentsList
   console.log('Loaded all students:', allStudents.value)
+  
+  // Load assignments for each student
+  await loadStudentAssignments()
 }
 
 // Class roster functions
@@ -1402,6 +1440,9 @@ const createNewAssignment = async () => {
       // Add the new assignment to the local state
       classAssignments.value.push(result.assignment)
       
+      // Refresh student assignments to update the total count
+      await loadStudentAssignments()
+      
       const assignmentType = result.assignment.type === 'class' ? 'Class' : 'Individual'
       alert(`✅ ${assignmentType} assignment "${result.assignment.title}" created successfully!`)
       
@@ -1454,6 +1495,9 @@ const deleteAssignment = async (assignmentId) => {
       if (assignmentIndex !== -1) {
         classAssignments.value.splice(assignmentIndex, 1)
       }
+      
+      // Refresh student assignments to update the total count
+      await loadStudentAssignments()
       
       alert('✅ Assignment deleted successfully!')
     } else {
