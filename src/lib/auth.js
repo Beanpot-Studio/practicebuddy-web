@@ -455,20 +455,45 @@ export const getTeacherClasses = async (teacherId) => {
  */
 export const addStudentToClassRoster = async (classCode, studentId, studentName, instrument = '') => {
   try {
-    const classRef = doc(db, 'classes', classCode)
+    console.log('addStudentToClassRoster called with:', { classCode, studentId, studentName, instrument })
     
-    // Get current class data
-    const classDoc = await getDoc(classRef)
+    // First, try to find the class by document ID
+    let classRef = doc(db, 'classes', classCode)
+    let classDoc = await getDoc(classRef)
+    console.log('Class document exists (by ID):', classDoc.exists())
+    
+    // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      throw new Error('Class not found')
+      console.log('Class not found by document ID, searching by code field...')
+      
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        // Found by code field, use the first match
+        const foundDoc = querySnapshot.docs[0]
+        classRef = foundDoc.ref
+        classDoc = foundDoc
+        console.log('Class found by code field with document ID:', foundDoc.id)
+      } else {
+        console.log('Class not found by code field either')
+        throw new Error('Class not found')
+      }
     }
 
     const classData = classDoc.data()
+    console.log('Class data retrieved:', classData)
+    
     const students = classData.students || []
+    console.log('Current students array:', students)
     
     // Check if student is already in the roster
     const existingStudent = students.find(s => s.studentId === studentId)
     if (existingStudent) {
+      console.log('Student already in roster:', existingStudent)
       return { success: true } // Student already in roster
     }
 
@@ -481,18 +506,23 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
       practiceMinutes: 0,
       assignments: []
     }
+    console.log('New student object:', newStudent)
 
     students.push(newStudent)
+    console.log('Updated students array:', students)
 
     // Update class document
+    console.log('Updating class document with students array...')
     await updateDoc(classRef, {
       students: students,
       studentCount: students.length,
       updatedAt: new Date().toISOString()
     })
+    console.log('Class document updated successfully')
 
     return { success: true }
   } catch (error) {
+    console.error('Error in addStudentToClassRoster:', error)
     logError(error, 'add-student-to-roster')
     const errorInfo = handleFirebaseError(error, 'add-student-to-roster')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'add-student-to-roster')
@@ -508,31 +538,71 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
  */
 export const joinClass = async (classCode, studentId, studentName, instrument = '') => {
   try {
-    // First, verify the class exists
-    const classRef = doc(db, 'classes', classCode)
-    const classDoc = await getDoc(classRef)
+    console.log('joinClass called with:', { classCode, studentId, studentName, instrument })
     
+    // First, try to find the class by document ID
+    let classRef = doc(db, 'classes', classCode)
+    let classDoc = await getDoc(classRef)
+    console.log('Class document exists (by ID):', classDoc.exists())
+    
+    // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      throw new Error('Class not found. Please check your class code.')
+      console.log('Class not found by document ID, searching by code field...')
+      
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        // Found by code field, use the first match
+        const foundDoc = querySnapshot.docs[0]
+        classRef = foundDoc.ref
+        classDoc = foundDoc
+        console.log('Class found by code field with document ID:', foundDoc.id)
+      } else {
+        console.log('Class not found by code field either')
+        console.log('Available classes in database:')
+        
+        // List all classes for debugging
+        try {
+          const allClassesQuery = query(collection(db, 'classes'))
+          const allQuerySnapshot = await getDocs(allClassesQuery)
+          allQuerySnapshot.forEach((doc) => {
+            console.log(`- Document ID: ${doc.id}, Code field: ${doc.data().code}`)
+          })
+        } catch (error) {
+          console.log('Could not list classes:', error)
+        }
+        
+        throw new Error('Class not found. Please check your class code.')
+      }
     }
 
     const classData = classDoc.data()
+    console.log('Class data:', classData)
     
     // Add student to class roster
-    await addStudentToClassRoster(classCode, studentId, studentName, instrument)
+    console.log('Calling addStudentToClassRoster...')
+    const rosterResult = await addStudentToClassRoster(classCode, studentId, studentName, instrument)
+    console.log('addStudentToClassRoster result:', rosterResult)
     
     // Update student's user document with class information
+    console.log('Updating user document with class information...')
     await updateDoc(doc(db, 'users', studentId), {
       classCode: classCode,
       teacherId: classData.teacherId,
       updatedAt: new Date().toISOString()
     })
+    console.log('User document updated successfully')
 
     return { 
       success: true,
       classData: classData
     }
   } catch (error) {
+    console.error('Error in joinClass:', error)
     logError(error, 'join-class')
     const errorInfo = handleFirebaseError(error, 'join-class')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'join-class')
@@ -545,21 +615,45 @@ export const joinClass = async (classCode, studentId, studentName, instrument = 
  */
 export const getClassRoster = async (classCode) => {
   try {
-    const classDoc = await getDoc(doc(db, 'classes', classCode))
+    console.log('getClassRoster called with classCode:', classCode)
     
+    // First, try to find the class by document ID
+    let classDoc = await getDoc(doc(db, 'classes', classCode))
+    console.log('Class document exists (by ID):', classDoc.exists())
+    
+    // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      return {
-        success: false,
-        error: 'Class not found'
+      console.log('Class not found by document ID, searching by code field...')
+      
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        // Found by code field, use the first match
+        classDoc = querySnapshot.docs[0]
+        console.log('Class found by code field with document ID:', classDoc.id)
+      } else {
+        console.log('Class not found by code field either')
+        return {
+          success: false,
+          error: 'Class not found'
+        }
       }
     }
 
     const classData = classDoc.data()
+    console.log('Class data:', classData)
+    console.log('Students array:', classData.students || [])
+    
     return {
       success: true,
       students: classData.students || []
     }
   } catch (error) {
+    console.error('Error in getClassRoster:', error)
     logError(error, 'get-class-roster')
     const errorInfo = handleFirebaseError(error, 'get-class-roster')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'get-class-roster')
@@ -573,12 +667,26 @@ export const getClassRoster = async (classCode) => {
  */
 export const createAssignment = async (classCode, assignmentData) => {
   try {
-    const classRef = doc(db, 'classes', classCode)
+    // First, try to find the class by document ID
+    let classRef = doc(db, 'classes', classCode)
+    let classDoc = await getDoc(classRef)
     
-    // Get current class data
-    const classDoc = await getDoc(classRef)
+    // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      throw new Error('Class not found')
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        // Found by code field, use the first match
+        const foundDoc = querySnapshot.docs[0]
+        classRef = foundDoc.ref
+        classDoc = foundDoc
+      } else {
+        throw new Error('Class not found')
+      }
     }
 
     const classData = classDoc.data()
@@ -617,21 +725,45 @@ export const createAssignment = async (classCode, assignmentData) => {
  */
 export const getClassAssignments = async (classCode) => {
   try {
-    const classDoc = await getDoc(doc(db, 'classes', classCode))
+    console.log('getClassAssignments called with classCode:', classCode)
     
+    // First, try to find the class by document ID
+    let classDoc = await getDoc(doc(db, 'classes', classCode))
+    console.log('Class document exists (by ID):', classDoc.exists())
+    
+    // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      return {
-        success: false,
-        error: 'Class not found'
+      console.log('Class not found by document ID, searching by code field...')
+      
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        // Found by code field, use the first match
+        classDoc = querySnapshot.docs[0]
+        console.log('Class found by code field with document ID:', classDoc.id)
+      } else {
+        console.log('Class not found by code field either')
+        return {
+          success: false,
+          error: 'Class not found'
+        }
       }
     }
 
     const classData = classDoc.data()
+    console.log('Class data:', classData)
+    console.log('Assignments array:', classData.assignments || [])
+    
     return {
       success: true,
       assignments: classData.assignments || []
     }
   } catch (error) {
+    console.error('Error in getClassAssignments:', error)
     logError(error, 'get-class-assignments')
     const errorInfo = handleFirebaseError(error, 'get-class-assignments')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'get-class-assignments')

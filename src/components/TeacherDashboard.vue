@@ -521,14 +521,55 @@
         <div class="space-y-6">
           <!-- Class Selection for Assignments -->
           <div class="card card-purple">
-            <div class="flex items-center gap-3 mb-5">
-              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
-                📚
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+                  📚
+                </div>
+                <h3 class="text-lg text-gray-800 font-bold">Select Class to Manage Assignments</h3>
               </div>
-              <h3 class="text-lg text-gray-800 font-bold">Select Class to Manage Assignments</h3>
+              <button 
+                @click="loadClasses"
+                class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+              >
+                🔄 Refresh Classes
+              </button>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-if="classes.length === 0" class="text-center py-8">
+              <div class="text-4xl mb-4">🎵</div>
+              <h4 class="text-lg font-semibold text-gray-800 mb-2">No Classes Found</h4>
+              <p class="text-gray-600 mb-4">
+                No classes were found for your account. This could mean:
+              </p>
+              <ul class="text-sm text-gray-600 mb-4 text-left max-w-md mx-auto">
+                <li>• You haven't created any classes yet</li>
+                <li>• The classes were created with a different account</li>
+                <li>• There's a loading issue (try the refresh button)</li>
+              </ul>
+              <div class="flex gap-3 justify-center">
+                <button 
+                  @click="loadClasses"
+                  class="btn btn-secondary"
+                >
+                  🔄 Refresh Classes
+                </button>
+                <button 
+                  @click="activeTab = 'create-class'"
+                  class="btn btn-purple"
+                >
+                  ➕ Create New Class
+                </button>
+              </div>
+              <div v-if="currentUser" class="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
+                <strong>Debug Info:</strong><br>
+                User ID: {{ currentUser.uid }}<br>
+                Role: {{ currentUser.role }}<br>
+                Email: {{ currentUser.email }}
+              </div>
+            </div>
+            
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div 
                 v-for="classItem in classes" 
                 :key="classItem.id"
@@ -559,7 +600,7 @@
               <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
                 ➕
               </div>
-              <h3 class="text-lg text-gray-800 font-bold">Create New Assignment</h3>
+              <h3 class="text-lg text-gray-800 font-bold">Create New Assignment for {{ selectedClassForAssignments.name }}</h3>
             </div>
             
             <form @submit.prevent="createNewAssignment" class="space-y-4">
@@ -615,6 +656,15 @@
                 {{ isCreatingAssignment ? 'Creating...' : 'Create Assignment' }}
               </button>
             </form>
+          </div>
+
+          <!-- No Class Selected Message -->
+          <div v-else-if="classes.length > 0" class="card card-purple">
+            <div class="text-center py-8">
+              <div class="text-4xl mb-4">📚</div>
+              <h4 class="text-lg font-semibold text-gray-800 mb-2">Select a Class</h4>
+              <p class="text-gray-600">Choose a class from above to create and manage assignments for your students.</p>
+            </div>
           </div>
 
           <!-- Existing Assignments -->
@@ -840,7 +890,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Users, Star, Play, X, Heart } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 
@@ -1108,6 +1158,8 @@ const selectClass = (classItem) => {
 
 const copyClassCode = async (code) => {
   try {
+    console.log('Copying class code:', code)
+    console.log('Type of code:', typeof code)
     await navigator.clipboard.writeText(code)
     alert(`✅ Class code "${code}" copied to clipboard!`)
   } catch (error) {
@@ -1212,14 +1264,16 @@ const getInstrumentIcon = (instrument) => {
 }
 
 const loadClasses = async () => {
+  console.log('Loading classes for user:', currentUser.value?.uid)
+  
   if (!currentUser.value) {
+    console.log('No current user, skipping class load')
     return
   }
   
-
-  
   try {
     const result = await fetchTeacherClasses(currentUser.value.uid)
+    console.log('Fetch teacher classes result:', result)
     
     if (result.success) {
       // Add icons to each class
@@ -1227,6 +1281,8 @@ const loadClasses = async () => {
         ...classItem,
         icon: getInstrumentIcon(classItem.instrument)
       }))
+      console.log('Loaded classes:', classes.value)
+      console.log('Class codes available:', classes.value.map(c => ({ id: c.id, code: c.code, name: c.name })))
     } else {
       console.error('Error loading classes:', result.error)
     }
@@ -1238,7 +1294,7 @@ const loadClasses = async () => {
 // Class roster functions
 const selectClassForRoster = async (classItem) => {
   selectedClassForRoster.value = classItem
-  await loadClassRoster(classItem.code)
+  await loadClassRoster(classItem.id)
 }
 
 const loadClassRoster = async (classCode) => {
@@ -1263,8 +1319,9 @@ const loadClassRoster = async (classCode) => {
 
 // Assignment functions
 const selectClassForAssignments = async (classItem) => {
+  console.log('selectClassForAssignments called with classItem:', classItem)
   selectedClassForAssignments.value = classItem
-  await loadClassAssignments(classItem.code)
+  await loadClassAssignments(classItem.id)
 }
 
 const loadClassAssignments = async (classCode) => {
@@ -1288,7 +1345,7 @@ const loadClassAssignments = async (classCode) => {
 }
 
 const createNewAssignment = async () => {
-  if (!selectedClassForAssignments.value?.code) {
+  if (!selectedClassForAssignments.value?.id) {
     alert('Please select a class first.')
     return
   }
@@ -1308,7 +1365,7 @@ const createNewAssignment = async () => {
       practiceMinutes: newAssignment.value.practiceMinutes ? parseInt(newAssignment.value.practiceMinutes) : 0
     }
     
-    const result = await createClassAssignment(selectedClassForAssignments.value.code, assignmentData)
+    const result = await createClassAssignment(selectedClassForAssignments.value.id, assignmentData)
     
     if (result.success) {
       // Add the new assignment to the local state
@@ -1324,9 +1381,14 @@ const createNewAssignment = async () => {
       
       alert(`✅ Assignment "${result.assignment.title}" created successfully!`)
     } else {
-      alert(`Error creating assignment: ${result.error}`)
+      if (result.error === 'Class not found') {
+        alert('❌ Error: Class not found. Please make sure you have created a class first and try again.')
+      } else {
+        alert(`Error creating assignment: ${result.error}`)
+      }
     }
   } catch (error) {
+    console.error('Assignment creation error:', error)
     alert('Error creating assignment. Please try again.')
   } finally {
     isCreatingAssignment.value = false
@@ -1343,4 +1405,13 @@ const getStudentAvatar = (name) => {
 onMounted(() => {
   loadClasses()
 })
+
+// Watch for current user changes and reload classes
+watch(currentUser, (newUser) => {
+  console.log('Current user changed:', newUser)
+  if (newUser && newUser.role === 'teacher') {
+    console.log('Loading classes for teacher:', newUser.uid)
+    loadClasses()
+  }
+}, { immediate: true })
 </script>
