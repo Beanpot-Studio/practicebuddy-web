@@ -65,6 +65,8 @@
     @apply bg-gradient-to-br from-musical-secondary to-yellow-400 text-musical-graphite border-2 border-yellow-600;
   }
 
+
+
   .btn-outline {
     @apply bg-transparent border-2 border-gray-300 text-gray-500 shadow-[0_2px_0_rgba(0,0,0,0.1)];
   }
@@ -148,6 +150,8 @@
       #FDD835 24px
     );
   }
+
+
 
 
 

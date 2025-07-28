@@ -322,7 +322,7 @@ const props = defineProps({
   }
 })
 
-const { currentUser, fetchClassAssignments, joinClassAsStudent } = useAuth()
+const { currentUser, fetchClassAssignments, fetchStudentStandaloneAssignments, joinClassAsStudent } = useAuth()
 
 const totalPracticeTime = ref(45)
 const currentStreak = ref(7)
@@ -492,14 +492,27 @@ const joinClass = async () => {
 }
 
 const loadAssignments = async () => {
-  if (!currentUser.value?.classCode) return
+  if (!currentUser.value?.uid) return
   
   isLoadingAssignments.value = true
   try {
-    const result = await fetchClassAssignments(currentUser.value.classCode, currentUser.value.uid)
-    if (result.success) {
-      assignments.value = result.assignments
+    let allAssignments = []
+    
+    // Load class assignments if student is enrolled in a class
+    if (currentUser.value?.classCode) {
+      const classResult = await fetchClassAssignments(currentUser.value.classCode, currentUser.value.uid)
+      if (classResult.success) {
+        allAssignments.push(...classResult.assignments)
+      }
     }
+    
+    // Load standalone assignments for this student
+    const standaloneResult = await fetchStudentStandaloneAssignments(currentUser.value.uid)
+    if (standaloneResult.success) {
+      allAssignments.push(...standaloneResult.assignments)
+    }
+    
+    assignments.value = allAssignments
   } catch (error) {
     console.error('Failed to load assignments:', error)
   } finally {

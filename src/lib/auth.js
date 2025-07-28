@@ -404,8 +404,7 @@ export const createClass = async (teacherId, classData) => {
 
     return { 
       success: true, 
-      classCode: classCode,
-      classData: classDoc
+      class: classDoc
     }
   } catch (error) {
     logError(error, 'create-class')
@@ -661,78 +660,108 @@ export const getClassRoster = async (classCode) => {
 }
 
 /**
- * Create a new assignment for a class
- * @param {string} classCode - Class code
+ * Create a new assignment
+ * @param {string} classCode - Class code (optional for standalone assignments)
  * @param {Object} assignmentData - Assignment data
- * @param {string} assignmentType - 'class' or 'individual'
+ * @param {string} assignmentType - 'class', 'individual', or 'standalone'
  * @param {string} studentId - Student ID (required for individual assignments)
+ * @param {string} teacherId - Teacher ID (required for standalone assignments)
  */
-export const createAssignment = async (classCode, assignmentData, assignmentType = 'class', studentId = null) => {
+export const createAssignment = async (classCode, assignmentData, assignmentType = 'class', studentId = null, teacherId = null) => {
   try {
-    // First, try to find the class by document ID
-    let classRef = doc(db, 'classes', classCode)
-    let classDoc = await getDoc(classRef)
-    
-    // If not found by ID, search by code field
-    if (!classDoc.exists()) {
-      const classesQuery = query(
-        collection(db, 'classes'),
-        where('code', '==', classCode)
-      )
-      const querySnapshot = await getDocs(classesQuery)
-      
-      if (!querySnapshot.empty) {
-        // Found by code field, use the first match
-        const foundDoc = querySnapshot.docs[0]
-        classRef = foundDoc.ref
-        classDoc = foundDoc
-      } else {
-        throw new Error('Class not found')
-      }
-    }
-
-    const classData = classDoc.data()
-    
     // Create new assignment
     const newAssignment = {
       id: `assignment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...assignmentData,
       type: assignmentType,
+      classCode: classCode, // null for standalone assignments
       studentId: studentId, // null for class assignments, student ID for individual
+      teacherId: teacherId, // required for standalone assignments
       createdAt: new Date().toISOString(),
       status: 'active'
     }
 
-    if (assignmentType === 'class') {
-      // Store class assignments in the class document
-      const assignments = classData.assignments || []
-      assignments.push(newAssignment)
+    if (assignmentType === 'standalone') {
+      // Store standalone assignments in a separate collection
+      if (!teacherId) {
+        throw new Error('Teacher ID is required for standalone assignments')
+      }
       
-      await updateDoc(classRef, {
-        assignments: assignments,
-        updatedAt: new Date().toISOString()
-      })
-    } else if (assignmentType === 'individual') {
       if (!studentId) {
-        throw new Error('Student ID is required for individual assignments')
+        throw new Error('Student ID is required for standalone assignments')
       }
       
-      // Store individual assignments in the class document under individualAssignments
-      const individualAssignments = classData.individualAssignments || {}
-      if (!individualAssignments[studentId]) {
-        individualAssignments[studentId] = []
-      }
-      individualAssignments[studentId].push(newAssignment)
-      
-      await updateDoc(classRef, {
-        individualAssignments: individualAssignments,
-        updatedAt: new Date().toISOString()
+      const standaloneAssignmentRef = doc(collection(db, 'standalone_assignments'))
+      await setDoc(standaloneAssignmentRef, {
+        ...newAssignment,
+        id: standaloneAssignmentRef.id // Use Firestore-generated ID
       })
-    }
+      
+      return { 
+        success: true, 
+        assignment: { ...newAssignment, id: standaloneAssignmentRef.id }
+      }
+    } else {
+      // Handle class-based assignments (existing logic)
+      if (!classCode) {
+        throw new Error('Class code is required for class-based assignments')
+      }
+      
+      // First, try to find the class by document ID
+      let classRef = doc(db, 'classes', classCode)
+      let classDoc = await getDoc(classRef)
+      
+      // If not found by ID, search by code field
+      if (!classDoc.exists()) {
+        const classesQuery = query(
+          collection(db, 'classes'),
+          where('code', '==', classCode)
+        )
+        const querySnapshot = await getDocs(classesQuery)
+        
+        if (!querySnapshot.empty) {
+          // Found by code field, use the first match
+          const foundDoc = querySnapshot.docs[0]
+          classRef = foundDoc.ref
+          classDoc = foundDoc
+        } else {
+          throw new Error('Class not found')
+        }
+      }
 
-    return { 
-      success: true, 
-      assignment: newAssignment
+      const classData = classDoc.data()
+      
+      if (assignmentType === 'class') {
+        // Store class assignments in the class document
+        const assignments = classData.assignments || []
+        assignments.push(newAssignment)
+        
+        await updateDoc(classRef, {
+          assignments: assignments,
+          updatedAt: new Date().toISOString()
+        })
+      } else if (assignmentType === 'individual') {
+        if (!studentId) {
+          throw new Error('Student ID is required for individual assignments')
+        }
+        
+        // Store individual assignments in the class document under individualAssignments
+        const individualAssignments = classData.individualAssignments || {}
+        if (!individualAssignments[studentId]) {
+          individualAssignments[studentId] = []
+        }
+        individualAssignments[studentId].push(newAssignment)
+        
+        await updateDoc(classRef, {
+          individualAssignments: individualAssignments,
+          updatedAt: new Date().toISOString()
+        })
+      }
+      
+      return { 
+        success: true, 
+        assignment: newAssignment
+      }
     }
   } catch (error) {
     logError(error, 'create-assignment')
@@ -810,99 +839,207 @@ export const getClassAssignments = async (classCode, studentId = null) => {
 }
 
 /**
- * Delete an assignment from a class
- * @param {string} classCode - Class code
- * @param {string} assignmentId - Assignment ID to delete
+ * Get standalone assignments for a teacher
+ * @param {string} teacherId - Teacher ID
+ * @param {string} studentId - Student ID (optional, for getting assignments for a specific student)
  */
-export const deleteAssignment = async (classCode, assignmentId) => {
+export const getStandaloneAssignments = async (teacherId, studentId = null) => {
   try {
-    console.log('deleteAssignment called with classCode:', classCode, 'assignmentId:', assignmentId)
+    console.log('getStandaloneAssignments called with teacherId:', teacherId, 'studentId:', studentId)
     
-    // First, try to find the class by document ID
-    let classRef = doc(db, 'classes', classCode)
-    let classDoc = await getDoc(classRef)
-    
-    // If not found by ID, search by code field
-    if (!classDoc.exists()) {
-      console.log('Class not found by document ID, searching by code field...')
-      
-      const classesQuery = query(
-        collection(db, 'classes'),
-        where('code', '==', classCode)
+    let standaloneQuery
+    if (studentId) {
+      // Get standalone assignments for a specific student
+      standaloneQuery = query(
+        collection(db, 'standalone_assignments'),
+        where('teacherId', '==', teacherId),
+        where('studentId', '==', studentId),
+        where('status', '==', 'active')
       )
-      const querySnapshot = await getDocs(classesQuery)
+    } else {
+      // Get all standalone assignments for the teacher
+      standaloneQuery = query(
+        collection(db, 'standalone_assignments'),
+        where('teacherId', '==', teacherId),
+        where('status', '==', 'active')
+      )
+    }
+    
+    const querySnapshot = await getDocs(standaloneQuery)
+    const assignments = querySnapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id
+    }))
+    
+    console.log('Standalone assignments:', assignments)
+    
+    return {
+      success: true,
+      assignments: assignments
+    }
+  } catch (error) {
+    console.error('Error in getStandaloneAssignments:', error)
+    logError(error, 'get-standalone-assignments')
+    const errorInfo = handleFirebaseError(error, 'get-standalone-assignments')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-standalone-assignments')
+  }
+}
+
+/**
+ * Get standalone assignments for a student
+ * @param {string} studentId - Student ID
+ */
+export const getStudentStandaloneAssignments = async (studentId) => {
+  try {
+    console.log('getStudentStandaloneAssignments called with studentId:', studentId)
+    
+    const standaloneQuery = query(
+      collection(db, 'standalone_assignments'),
+      where('studentId', '==', studentId),
+      where('status', '==', 'active')
+    )
+    
+    const querySnapshot = await getDocs(standaloneQuery)
+    const assignments = querySnapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id
+    }))
+    
+    console.log('Student standalone assignments:', assignments)
+    
+    return {
+      success: true,
+      assignments: assignments
+    }
+  } catch (error) {
+    console.error('Error in getStudentStandaloneAssignments:', error)
+    logError(error, 'get-student-standalone-assignments')
+    const errorInfo = handleFirebaseError(error, 'get-student-standalone-assignments')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-student-standalone-assignments')
+  }
+}
+
+/**
+ * Delete an assignment
+ * @param {string} classCode - Class code (optional for standalone assignments)
+ * @param {string} assignmentId - Assignment ID to delete
+ * @param {string} assignmentType - 'class', 'individual', or 'standalone'
+ */
+export const deleteAssignment = async (classCode, assignmentId, assignmentType = 'class') => {
+  try {
+    console.log('deleteAssignment called with classCode:', classCode, 'assignmentId:', assignmentId, 'type:', assignmentType)
+    
+    if (assignmentType === 'standalone') {
+      // Delete standalone assignment
+      const standaloneRef = doc(db, 'standalone_assignments', assignmentId)
+      const standaloneDoc = await getDoc(standaloneRef)
       
-      if (!querySnapshot.empty) {
-        // Found by code field, use the first match
-        const foundDoc = querySnapshot.docs[0]
-        classRef = foundDoc.ref
-        classDoc = foundDoc
-        console.log('Class found by code field with document ID:', foundDoc.id)
-      } else {
-        console.log('Class not found by code field either')
+      if (!standaloneDoc.exists()) {
+        console.log('Standalone assignment not found')
         return {
           success: false,
-          error: 'Class not found'
+          error: 'Assignment not found'
         }
       }
-    }
-
-    const classData = classDoc.data()
-    
-    // Try to find and delete from class assignments
-    const assignments = classData.assignments || []
-    const assignmentIndex = assignments.findIndex(assignment => assignment.id === assignmentId)
-    
-    if (assignmentIndex !== -1) {
-      // Found in class assignments
-      assignments.splice(assignmentIndex, 1)
       
-      await updateDoc(classRef, {
-        assignments: assignments,
-        updatedAt: new Date().toISOString()
-      })
-      
-      console.log('Class assignment deleted successfully')
+      await deleteDoc(standaloneRef)
+      console.log('Standalone assignment deleted successfully')
       return { 
         success: true,
-        message: 'Class assignment deleted successfully'
+        message: 'Standalone assignment deleted successfully'
       }
-    }
-    
-    // Try to find and delete from individual assignments
-    const individualAssignments = classData.individualAssignments || {}
-    let deletedFromIndividual = false
-    
-    for (const studentId in individualAssignments) {
-      const studentAssignments = individualAssignments[studentId]
-      const individualIndex = studentAssignments.findIndex(assignment => assignment.id === assignmentId)
+    } else {
+      // Handle class-based assignments (existing logic)
+      if (!classCode) {
+        throw new Error('Class code is required for class-based assignments')
+      }
       
-      if (individualIndex !== -1) {
-        // Found in individual assignments
-        studentAssignments.splice(individualIndex, 1)
+      // First, try to find the class by document ID
+      let classRef = doc(db, 'classes', classCode)
+      let classDoc = await getDoc(classRef)
+      
+      // If not found by ID, search by code field
+      if (!classDoc.exists()) {
+        console.log('Class not found by document ID, searching by code field...')
+        
+        const classesQuery = query(
+          collection(db, 'classes'),
+          where('code', '==', classCode)
+        )
+        const querySnapshot = await getDocs(classesQuery)
+        
+        if (!querySnapshot.empty) {
+          // Found by code field, use the first match
+          const foundDoc = querySnapshot.docs[0]
+          classRef = foundDoc.ref
+          classDoc = foundDoc
+          console.log('Class found by code field with document ID:', foundDoc.id)
+        } else {
+          console.log('Class not found by code field either')
+          return {
+            success: false,
+            error: 'Class not found'
+          }
+        }
+      }
+
+      const classData = classDoc.data()
+      
+      // Try to find and delete from class assignments
+      const assignments = classData.assignments || []
+      const assignmentIndex = assignments.findIndex(assignment => assignment.id === assignmentId)
+      
+      if (assignmentIndex !== -1) {
+        // Found in class assignments
+        assignments.splice(assignmentIndex, 1)
         
         await updateDoc(classRef, {
-          individualAssignments: individualAssignments,
+          assignments: assignments,
           updatedAt: new Date().toISOString()
         })
         
-        console.log('Individual assignment deleted successfully')
-        deletedFromIndividual = true
-        break
+        console.log('Class assignment deleted successfully')
+        return { 
+          success: true,
+          message: 'Class assignment deleted successfully'
+        }
       }
-    }
-    
-    if (!deletedFromIndividual) {
-      console.log('Assignment not found')
-      return {
-        success: false,
-        error: 'Assignment not found'
+      
+      // Try to find and delete from individual assignments
+      const individualAssignments = classData.individualAssignments || {}
+      let deletedFromIndividual = false
+      
+      for (const studentId in individualAssignments) {
+        const studentAssignments = individualAssignments[studentId]
+        const individualIndex = studentAssignments.findIndex(assignment => assignment.id === assignmentId)
+        
+        if (individualIndex !== -1) {
+          // Found in individual assignments
+          studentAssignments.splice(individualIndex, 1)
+          
+          await updateDoc(classRef, {
+            individualAssignments: individualAssignments,
+            updatedAt: new Date().toISOString()
+          })
+          
+          console.log('Individual assignment deleted successfully')
+          deletedFromIndividual = true
+          break
+        }
       }
-    }
-    
-    return { 
-      success: true,
-      message: 'Individual assignment deleted successfully'
+      
+      if (!deletedFromIndividual) {
+        console.log('Assignment not found')
+        return {
+          success: false,
+          error: 'Assignment not found'
+        }
+      }
+      
+      return { 
+        success: true,
+        message: 'Individual assignment deleted successfully'
+      }
     }
   } catch (error) {
     console.error('Error in deleteAssignment:', error)

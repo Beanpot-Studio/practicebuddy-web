@@ -58,6 +58,7 @@
           >
             📚 Assignments
           </button>
+
         </div>
       </div>
 
@@ -758,6 +759,8 @@
         </div>
       </div>
 
+
+
     <!-- Sticker Modal -->
     <div v-if="showStickerModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" @click="showStickerModal = false">
       <div class="card card-green max-w-2xl w-11/12 max-h-[80vh] overflow-y-auto m-5" @click.stop>
@@ -930,17 +933,14 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Users, Star, Play, X, Heart, Plus, BookOpen } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 
-const props = defineProps({
-  teacherEmail: {
-    type: String,
-    default: 'teacher@school.edu'
-  }
-})
+const teacherEmail = computed(() => currentUser.value?.email || 'teacher@school.edu')
 
 // Authentication
 const { createTeacherClass, fetchTeacherClasses, fetchClassRoster, createClassAssignment, fetchClassAssignments, deleteClassAssignment, currentUser } = useAuth()
 
 const activeTab = ref('overview')
+
+
 const totalStudents = computed(() => allStudents.value.length)
 const totalAssignments = computed(() => {
   return allStudents.value.reduce((total, student) => {
@@ -1467,9 +1467,11 @@ const deleteAssignment = async (assignmentId) => {
 
 
 
+
+
 // Load classes when component mounts
-onMounted(() => {
-  loadClasses()
+onMounted(async () => {
+  await loadClasses()
 })
 
 // Watch for current user changes and reload classes

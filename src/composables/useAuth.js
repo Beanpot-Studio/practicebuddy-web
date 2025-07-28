@@ -150,8 +150,8 @@ const fetchClassRoster = async (classCode) => {
   return result
 }
 
-const createClassAssignment = async (classCode, assignmentData, assignmentType = 'class', studentId = null) => {
-  const result = await createAssignment(classCode, assignmentData, assignmentType, studentId)
+const createClassAssignment = async (classCode, assignmentData, assignmentType = 'class', studentId = null, teacherId = null) => {
+  const result = await createAssignment(classCode, assignmentData, assignmentType, studentId, teacherId)
   
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
@@ -168,8 +168,26 @@ const fetchClassAssignments = async (classCode, studentId = null) => {
   return result
 }
 
-const deleteClassAssignment = async (classCode, assignmentId) => {
-  const result = await deleteAssignment(classCode, assignmentId)
+const fetchStandaloneAssignments = async (teacherId, studentId = null) => {
+  const result = await getStandaloneAssignments(teacherId, studentId)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const fetchStudentStandaloneAssignments = async (studentId) => {
+  const result = await getStudentStandaloneAssignments(studentId)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const deleteClassAssignment = async (classCode, assignmentId, assignmentType = 'class') => {
+  const result = await deleteAssignment(classCode, assignmentId, assignmentType)
   
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
@@ -222,6 +240,8 @@ export function useAuth() {
     fetchClassRoster,
     createClassAssignment,
     fetchClassAssignments,
+    fetchStandaloneAssignments,
+    fetchStudentStandaloneAssignments,
     deleteClassAssignment,
     joinClassAsStudent,
     
