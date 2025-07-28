@@ -31,7 +31,7 @@ Practice Buddy now uses a simplified student authentication system with just two
 
 #### 4. **Dashboard Routing**
 - **With Class Code**: Students are directed to the **Class Dashboard** (StudentDashboard)
-- **Without Class Code**: Students are directed to the **Independent Practice Dashboard** (IndependentStudentDashboard)
+
 
 #### 5. **Class Code Integration**
 - Class codes can be provided during registration OR login
@@ -106,11 +106,7 @@ Practice Buddy now uses a simplified student authentication system with just two
   :student-name="user?.name || user?.displayName" 
 />
 
-// Students without class codes go to independent dashboard
-<IndependentStudentDashboard 
-  v-if="userRole === 'student' && !user?.classCode" 
-  :student-name="user?.name || user?.displayName" 
-/>
+
 ```
 
 ## User Experience Features
@@ -146,15 +142,6 @@ Practice Buddy now uses a simplified student authentication system with just two
   - Class community features
   - Progress reports for teachers
 
-### Independent Practice Dashboard (IndependentStudentDashboard)
-- **For**: Students practicing independently
-- **Features**:
-  - Personal practice timer
-  - Self-directed practice tracking
-  - Personal achievements
-  - Practice history
-  - Option to join a class later
-  - Independent goal setting
 
 ## Security Considerations
 

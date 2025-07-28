@@ -13,6 +13,7 @@ import {
   getClassRoster,
   createAssignment,
   getClassAssignments,
+  deleteAssignment,
   joinClass,
   USER_ROLES 
 } from '../lib/auth'
@@ -149,8 +150,8 @@ const fetchClassRoster = async (classCode) => {
   return result
 }
 
-const createClassAssignment = async (classCode, assignmentData) => {
-  const result = await createAssignment(classCode, assignmentData)
+const createClassAssignment = async (classCode, assignmentData, assignmentType = 'class', studentId = null) => {
+  const result = await createAssignment(classCode, assignmentData, assignmentType, studentId)
   
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
@@ -158,8 +159,17 @@ const createClassAssignment = async (classCode, assignmentData) => {
   return result
 }
 
-const fetchClassAssignments = async (classCode) => {
-  const result = await getClassAssignments(classCode)
+const fetchClassAssignments = async (classCode, studentId = null) => {
+  const result = await getClassAssignments(classCode, studentId)
+  
+  // Don't call handleAuthError here - let the component handle the error
+  // This allows for better error display control
+  
+  return result
+}
+
+const deleteClassAssignment = async (classCode, assignmentId) => {
+  const result = await deleteAssignment(classCode, assignmentId)
   
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
@@ -212,6 +222,7 @@ export function useAuth() {
     fetchClassRoster,
     createClassAssignment,
     fetchClassAssignments,
+    deleteClassAssignment,
     joinClassAsStudent,
     
     // Constants

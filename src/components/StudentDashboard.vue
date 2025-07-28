@@ -496,7 +496,7 @@ const loadAssignments = async () => {
   
   isLoadingAssignments.value = true
   try {
-    const result = await fetchClassAssignments(currentUser.value.classCode)
+    const result = await fetchClassAssignments(currentUser.value.classCode, currentUser.value.uid)
     if (result.success) {
       assignments.value = result.assignments
     }

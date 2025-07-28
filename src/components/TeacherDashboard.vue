@@ -77,12 +77,12 @@
                 <div class="text-sm opacity-90 font-semibold">Music Students</div>
               </div>
               <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white">
-                <div class="text-2xl font-bold">{{ pendingReviews }}</div>
-                <div class="text-sm opacity-90 font-semibold">Pending Reviews</div>
+                <div class="text-2xl font-bold">{{ classes.length }}</div>
+                <div class="text-sm opacity-90 font-semibold">Active Classes</div>
               </div>
-              <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 text-white">
-                <div class="text-2xl font-bold">{{ stickersGiven }}</div>
-                <div class="text-sm opacity-90 font-semibold">Stickers Given</div>
+              <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white">
+                <div class="text-2xl font-bold">{{ totalAssignments }}</div>
+                <div class="text-sm opacity-90 font-semibold">Total Assignments</div>
               </div>
             </div>
           </div>
@@ -95,17 +95,16 @@
               <h3 class="text-lg text-gray-800 font-bold">Recent Activity</h3>
             </div>
             <div class="flex flex-col gap-3">
-              <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-                <div class="text-sm text-gray-800 font-semibold mb-1">🎹 Alex created a piano recording</div>
-                <div class="text-xs text-gray-500 font-medium">5 min ago</div>
+              <div v-if="recentActivity.length === 0" class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
+                <div class="text-sm text-gray-600 font-medium text-center">No recent activity</div>
               </div>
-              <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-                <div class="text-sm text-gray-800 font-semibold mb-1">🎸 Sarah completed 45 min practice</div>
-                <div class="text-xs text-gray-500 font-medium">1 hour ago</div>
-              </div>
-              <div class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-                <div class="text-sm text-gray-800 font-semibold mb-1">🏆 Marcus earned a new badge</div>
-                <div class="text-xs text-gray-500 font-medium">2 hours ago</div>
+              <div 
+                v-for="activity in recentActivity.slice(0, 3)" 
+                :key="activity.id"
+                class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
+              >
+                <div class="text-sm text-gray-800 font-semibold mb-1">{{ activity.message }}</div>
+                <div class="text-xs text-gray-500 font-medium">{{ activity.time }}</div>
               </div>
             </div>
           </div>
@@ -118,96 +117,80 @@
               <h3 class="text-lg text-gray-800 font-bold">Quick Tools</h3>
             </div>
             <div class="flex flex-col gap-3">
-              <button class="btn btn-primary" @click="showAllStudents = !showAllStudents">
-                <Users class="w-5 h-5" />
-                {{ showAllStudents ? 'Hide' : 'View' }} All Students
+              <button class="btn btn-primary" @click="activeTab = 'create-class'">
+                <Plus class="w-5 h-5" />
+                Create New Class
               </button>
-              <button class="btn btn-secondary" @click="showStickerModal = true">
-                <Star class="w-5 h-5" />
-                Give Stickers
+              <button class="btn btn-secondary" @click="activeTab = 'assignments'">
+                <BookOpen class="w-5 h-5" />
+                Manage Assignments
               </button>
             </div>
           </div>
         </div>
 
         <div class="mt-10">
-          <h3 class="text-white text-2xl mb-6 text-center font-bold text-shadow-lg">🎼 Your Music Students</h3>
-          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <h3 class="text-white text-2xl mb-6 text-center font-bold text-shadow-lg">🎼 Your Enrolled Students</h3>
+          <div v-if="allStudents.length === 0" class="text-center">
+            <div class="card card-yellow">
+              <div class="text-center py-8">
+                <div class="text-6xl mb-4">🎵</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">No Students Enrolled Yet</h3>
+                <p class="text-gray-600 mb-4">Students will appear here once they join your classes using the class codes.</p>
+                <button class="btn btn-primary" @click="activeTab = 'create-class'">
+                  Create Your First Class
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             <div 
-              v-for="student in students" 
-              :key="student.id"
+              v-for="student in allStudents" 
+              :key="student.studentId"
               class="card card-yellow cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.1),0_18px_40px_rgba(0,0,0,0.2)]"
               @click="selectStudent(student)"
             >
               <div class="flex items-center gap-3 mb-4">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-3 border-gray-300 flex items-center justify-center text-2xl shadow-[0_4px_0_rgba(0,0,0,0.1)]">
-                  {{ student.avatar }}
+                  {{ getStudentAvatar(student.instrument) }}
                 </div>
                 <div class="flex-1">
                   <h4 class="text-base text-gray-800 font-bold mb-1">{{ student.name }}</h4>
-                  <p class="text-sm text-gray-500 font-semibold">{{ student.instrument }}</p>
+                  <p class="text-sm text-gray-500 font-semibold">{{ student.instrument || 'Music Student' }}</p>
                 </div>
                 <div>
-                  <span :class="[
-                    'px-3 py-1.5 rounded-2xl text-xs font-bold uppercase border-2 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
-                    student.status === 'active' 
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white border-green-600' 
-                      : 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 border-yellow-600'
-                  ]">
-                    {{ student.status }}
+                  <span class="px-3 py-1.5 rounded-2xl text-xs font-bold uppercase border-2 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-green-400 to-green-500 text-white border-green-600">
+                    Active
                   </span>
                 </div>
               </div>
               
               <div class="flex justify-between mb-4 gap-2">
                 <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white flex-1">
-                  <span class="block text-xs opacity-90 font-semibold mb-0.5">This Week</span>
-                  <span class="text-sm font-bold">{{ student.weeklyMinutes }}min</span>
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Joined</span>
+                  <span class="text-sm font-bold">{{ formatJoinDate(student.joinedAt) }}</span>
                 </div>
                 <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white flex-1">
-                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Streak</span>
-                  <span class="text-sm font-bold">{{ student.streak }} days</span>
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Practice</span>
+                  <span class="text-sm font-bold">{{ student.practiceMinutes || 0 }}min</span>
                 </div>
                 <div class="text-center p-2 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.1)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white flex-1">
-                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Creations</span>
-                  <span class="text-sm font-bold">{{ student.recordings.length }}</span>
+                  <span class="block text-xs opacity-90 font-semibold mb-0.5">Assignments</span>
+                  <span class="text-sm font-bold">{{ student.assignments?.length || 0 }}</span>
                 </div>
               </div>
 
               <div class="border-t-3 border-gray-200 pt-4">
                 <div class="flex justify-between items-center mb-3">
-                  <h5 class="text-sm text-gray-800 font-bold">🎵 Recent Creations</h5>
-                  <span v-if="getPendingCount(student) > 0" class="bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-800 px-2 py-1 rounded-xl text-xs font-bold border-2 border-yellow-600 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-                    {{ getPendingCount(student) }} pending
-                  </span>
+                  <h5 class="text-sm text-gray-800 font-bold">📊 Student Info</h5>
                 </div>
-                <div class="flex flex-col gap-2">
-                  <div 
-                    v-for="recording in student.recordings.slice(0, 3)" 
-                    :key="recording.id"
-                    :class="[
-                      'flex justify-between items-center p-2 rounded-xl border-2 transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)]',
-                      !recording.reviewed 
-                        ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 border-yellow-600 text-gray-800' 
-                        : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300'
-                    ]"
-                  >
-                    <div class="flex-1">
-                      <div class="text-sm font-semibold">{{ recording.title }}</div>
-                      <div class="text-xs opacity-80 font-medium">{{ formatDate(recording.date) }}</div>
-                    </div>
-                    <div class="flex gap-1">
-                      <button class="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-blue-400 to-blue-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]" @click.stop="playRecording(recording)">
-                        <Play class="w-3 h-3" />
-                      </button>
-                      <button 
-                        v-if="!recording.reviewed"
-                        class="w-6 h-6 border-2 border-yellow-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.1)] bg-gradient-to-br from-yellow-400 to-yellow-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_3px_0_rgba(0,0,0,0.1)]"
-                        @click.stop="reviewRecording(student, recording)"
-                      >
-                        <Star class="w-3 h-3" />
-                      </button>
-                    </div>
+                <div class="text-center py-2 text-gray-600 text-sm">
+                  <div class="mb-1">
+                    <span class="font-semibold">Joined:</span> {{ formatJoinDate(student.joinedAt) }}
+                  </div>
+                  <div>
+                    <span class="font-semibold">Status:</span> 
+                    <span class="text-green-600 font-medium">Active</span>
                   </div>
                 </div>
               </div>
@@ -604,6 +587,46 @@
             </div>
             
             <form @submit.prevent="createNewAssignment" class="space-y-4">
+              <!-- Assignment Type Selection -->
+              <div>
+                <label class="block mb-2 font-semibold text-gray-700">Assignment Type</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      v-model="newAssignment.type" 
+                      value="class"
+                      class="w-4 h-4 text-purple-600"
+                    />
+                    <span>📚 Class Assignment (for all students)</span>
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      v-model="newAssignment.type" 
+                      value="individual"
+                      class="w-4 h-4 text-purple-600"
+                    />
+                    <span>👤 Individual Assignment</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Student Selection for Individual Assignments -->
+              <div v-if="newAssignment.type === 'individual'">
+                <label class="block mb-2 font-semibold text-gray-700">Select Student</label>
+                <select 
+                  v-model="newAssignment.studentId"
+                  required
+                  class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
+                >
+                  <option value="">Choose a student</option>
+                  <option v-for="student in classRoster" :key="student.studentId" :value="student.studentId">
+                    {{ student.name }}
+                  </option>
+                </select>
+              </div>
+              
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block mb-2 font-semibold text-gray-700">Assignment Title</label>
@@ -695,7 +718,17 @@
               >
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex-1">
-                    <h4 class="font-semibold text-gray-800 text-lg mb-1">{{ assignment.title }}</h4>
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-semibold text-gray-800 text-lg">{{ assignment.title }}</h4>
+                      <span :class="[
+                        'px-2 py-1 rounded-lg text-xs font-bold',
+                        assignment.type === 'class' 
+                          ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                          : 'bg-green-100 text-green-700 border border-green-300'
+                      ]">
+                        {{ assignment.type === 'class' ? '📚 Class' : '👤 Individual' }}
+                      </span>
+                    </div>
                     <p class="text-gray-600 text-sm mb-2">{{ assignment.description }}</p>
                   </div>
                   <div class="flex items-center gap-2">
@@ -712,7 +745,10 @@
                   <div class="text-xs text-gray-500">
                     Created: {{ formatDate(new Date(assignment.createdAt)) }}
                   </div>
-                  <button class="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors">
+                  <button 
+                    @click="deleteAssignment(assignment.id)"
+                    class="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                  >
                     Delete
                   </button>
                 </div>
@@ -891,7 +927,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { Users, Star, Play, X, Heart } from 'lucide-vue-next'
+import { Users, Star, Play, X, Heart, Plus, BookOpen } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 
 const props = defineProps({
@@ -902,12 +938,16 @@ const props = defineProps({
 })
 
 // Authentication
-const { createTeacherClass, fetchTeacherClasses, fetchClassRoster, createClassAssignment, fetchClassAssignments, currentUser } = useAuth()
+const { createTeacherClass, fetchTeacherClasses, fetchClassRoster, createClassAssignment, fetchClassAssignments, deleteClassAssignment, currentUser } = useAuth()
 
 const activeTab = ref('overview')
-const totalStudents = ref(8)
-const pendingReviews = ref(5)
-const stickersGiven = ref(127)
+const totalStudents = computed(() => allStudents.value.length)
+const totalAssignments = computed(() => {
+  return allStudents.value.reduce((total, student) => {
+    return total + (student.assignments?.length || 0)
+  }, 0)
+})
+const recentActivity = ref([])
 const showAllStudents = ref(false)
 const showStickerModal = ref(false)
 const showEmailModal = ref(false)
@@ -936,6 +976,8 @@ const newClass = ref({
 })
 
 const newAssignment = ref({
+  type: 'class',
+  studentId: '',
   title: '',
   description: '',
   dueDate: '',
@@ -944,94 +986,7 @@ const newAssignment = ref({
 
 const classes = ref([])
 
-const students = ref([
-  {
-    id: 1,
-    name: 'Alex Johnson',
-    avatar: '🎹',
-    instrument: 'Piano Player',
-    status: 'active',
-    weeklyMinutes: 180,
-    streak: 7,
-    recordings: [
-      {
-        id: 1,
-        title: 'Scales Practice',
-        date: new Date(2024, 0, 15),
-        reviewed: false,
-        stickers: []
-      },
-      {
-        id: 2,
-        title: 'Beethoven Performance',
-        date: new Date(2024, 0, 14),
-        reviewed: true,
-        stickers: ['⭐', '🎵', '👍']
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Sarah Chen',
-    avatar: '🎸',
-    instrument: 'Guitar Creator',
-    status: 'active',
-    weeklyMinutes: 220,
-    streak: 12,
-    recordings: [
-      {
-        id: 3,
-        title: 'Chord Practice Session',
-        date: new Date(2024, 0, 15),
-        reviewed: false,
-        stickers: []
-      },
-      {
-        id: 4,
-        title: 'Fingerpicking Performance',
-        date: new Date(2024, 0, 13),
-        reviewed: true,
-        stickers: ['🎸', '💫', '🔥']
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Marcus Williams',
-    avatar: '🎻',
-    instrument: 'Violin Virtuoso',
-    status: 'needs-attention',
-    weeklyMinutes: 95,
-    streak: 3,
-    recordings: [
-      {
-        id: 5,
-        title: 'Bow Technique Practice',
-        date: new Date(2024, 0, 12),
-        reviewed: false,
-        stickers: []
-      }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Emma Davis',
-    avatar: '🎺',
-    instrument: 'Trumpet Star',
-    status: 'active',
-    weeklyMinutes: 165,
-    streak: 5,
-    recordings: [
-      {
-        id: 6,
-        title: 'Scale Exercises',
-        date: new Date(2024, 0, 14),
-        reviewed: true,
-        stickers: ['🎺', '⭐']
-      }
-    ]
-  }
-])
+const allStudents = ref([])
 
 const selectedStudent = ref(null)
 const selectedRecording = ref(null)
@@ -1043,9 +998,45 @@ const availableStickers = ref([
   '👍', '👏', '💯', '🔥', '💪', '🏆', '🎯', '💖', '🌈', '🎊', '🎉', '🎼'
 ])
 
-const getPendingCount = (student) => {
-  return student.recordings.filter(r => !r.reviewed).length
+const getStudentAvatar = (instrument) => {
+  const avatars = {
+    piano: '🎹',
+    guitar: '🎸',
+    violin: '🎻',
+    trumpet: '🎺',
+    drums: '🥁',
+    saxophone: '🎷',
+    voice: '🎤',
+    theory: '📚'
+  }
+  return avatars[instrument?.toLowerCase()] || '🎵'
 }
+
+const formatJoinDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+const formatDueDate = (dateString) => {
+  if (!dateString) return 'No due date'
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = date - now
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays < 0) {
+    return 'Overdue'
+  } else if (diffDays === 0) {
+    return 'Due today'
+  } else if (diffDays === 1) {
+    return 'Due tomorrow'
+  } else {
+    return `Due in ${diffDays} days`
+  }
+}
+
+
 
 const selectStudent = (student) => {
   console.log('Selected music student:', student.name)
@@ -1283,12 +1274,38 @@ const loadClasses = async () => {
       }))
       console.log('Loaded classes:', classes.value)
       console.log('Class codes available:', classes.value.map(c => ({ id: c.id, code: c.code, name: c.name })))
+      
+      // Load all students from all classes
+      await loadAllStudents()
     } else {
       console.error('Error loading classes:', result.error)
     }
   } catch (error) {
     console.error('Error loading classes:', error)
   }
+}
+
+const loadAllStudents = async () => {
+  if (!classes.value.length) {
+    allStudents.value = []
+    return
+  }
+  
+  const allStudentsList = []
+  
+  for (const classItem of classes.value) {
+    try {
+      const result = await fetchClassRoster(classItem.id)
+      if (result.success && result.students) {
+        allStudentsList.push(...result.students)
+      }
+    } catch (error) {
+      console.error(`Error loading students for class ${classItem.id}:`, error)
+    }
+  }
+  
+  allStudents.value = allStudentsList
+  console.log('Loaded all students:', allStudents.value)
 }
 
 // Class roster functions
@@ -1322,6 +1339,7 @@ const selectClassForAssignments = async (classItem) => {
   console.log('selectClassForAssignments called with classItem:', classItem)
   selectedClassForAssignments.value = classItem
   await loadClassAssignments(classItem.id)
+  await loadClassRoster(classItem.id) // Load roster for individual assignment student selection
 }
 
 const loadClassAssignments = async (classCode) => {
@@ -1332,6 +1350,9 @@ const loadClassAssignments = async (classCode) => {
     const result = await fetchClassAssignments(classCode)
     if (result.success) {
       classAssignments.value = result.assignments
+      console.log('Loaded assignments:', result.assignments)
+      console.log('Class assignments:', result.classAssignments)
+      console.log('Individual assignments:', result.individualAssignments)
     } else {
       console.error('Error loading assignments:', result.error)
       classAssignments.value = []
@@ -1355,6 +1376,11 @@ const createNewAssignment = async () => {
     return
   }
   
+  if (newAssignment.value.type === 'individual' && !newAssignment.value.studentId) {
+    alert('Please select a student for individual assignments.')
+    return
+  }
+  
   isCreatingAssignment.value = true
   
   try {
@@ -1365,21 +1391,29 @@ const createNewAssignment = async () => {
       practiceMinutes: newAssignment.value.practiceMinutes ? parseInt(newAssignment.value.practiceMinutes) : 0
     }
     
-    const result = await createClassAssignment(selectedClassForAssignments.value.id, assignmentData)
+    const result = await createClassAssignment(
+      selectedClassForAssignments.value.id, 
+      assignmentData, 
+      newAssignment.value.type, 
+      newAssignment.value.studentId || null
+    )
     
     if (result.success) {
       // Add the new assignment to the local state
       classAssignments.value.push(result.assignment)
       
+      const assignmentType = result.assignment.type === 'class' ? 'Class' : 'Individual'
+      alert(`✅ ${assignmentType} assignment "${result.assignment.title}" created successfully!`)
+      
       // Reset form
       newAssignment.value = {
+        type: 'class',
+        studentId: '',
         title: '',
         description: '',
         dueDate: '',
         practiceMinutes: ''
       }
-      
-      alert(`✅ Assignment "${result.assignment.title}" created successfully!`)
     } else {
       if (result.error === 'Class not found') {
         alert('❌ Error: Class not found. Please make sure you have created a class first and try again.')
@@ -1395,11 +1429,43 @@ const createNewAssignment = async () => {
   }
 }
 
-const getStudentAvatar = (name) => {
-  const avatars = ['🎹', '🎸', '🎻', '🎺', '🥁', '🎷', '🎤', '🎵']
-  const index = name.length % avatars.length
-  return avatars[index]
+const deleteAssignment = async (assignmentId) => {
+  if (!selectedClassForAssignments.value?.id) {
+    alert('Please select a class first.')
+    return
+  }
+  
+  if (!assignmentId) {
+    alert('Please select an assignment to delete.')
+    return
+  }
+  
+  // Confirm deletion
+  if (!confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) {
+    return
+  }
+  
+  try {
+    const result = await deleteClassAssignment(selectedClassForAssignments.value.id, assignmentId)
+    
+    if (result.success) {
+      // Remove the assignment from the local state
+      const assignmentIndex = classAssignments.value.findIndex(assignment => assignment.id === assignmentId)
+      if (assignmentIndex !== -1) {
+        classAssignments.value.splice(assignmentIndex, 1)
+      }
+      
+      alert('✅ Assignment deleted successfully!')
+    } else {
+      alert(`Error deleting assignment: ${result.error}`)
+    }
+  } catch (error) {
+    console.error('Assignment deletion error:', error)
+    alert('Error deleting assignment. Please try again.')
+  }
 }
+
+
 
 // Load classes when component mounts
 onMounted(() => {
