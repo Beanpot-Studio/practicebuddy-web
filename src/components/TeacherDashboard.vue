@@ -192,9 +192,33 @@
                   <div class="mb-1">
                     <span class="font-semibold">Joined:</span> {{ formatJoinDate(student.joinedAt) }}
                   </div>
-                  <div>
+                  <div class="mb-1">
                     <span class="font-semibold">Status:</span> 
-                    <span class="text-green-600 font-medium">Active</span>
+                    <span :class="[
+                      'px-2 py-1 rounded text-xs font-medium',
+                      getStudentActivityStatus(student).statusBg,
+                      getStudentActivityStatus(student).statusColor
+                    ]">
+                      {{ getStudentActivityStatus(student).activityLevel === 'active' ? '🟢 Active' : 
+                         getStudentActivityStatus(student).activityLevel === 'needs_attention' ? '🟡 Needs Attention' : '🔴 Inactive' }}
+                    </span>
+                  </div>
+                  <div v-if="getStudentActivityStatus(student).activityLevel !== 'active'" class="mb-1">
+                    <span class="text-xs text-gray-500">{{ getStudentActivityStatus(student).activityReason }}</span>
+                  </div>
+                  <div class="mb-1">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-semibold">Weekly Practice:</span>
+                      <span class="text-purple-600 font-medium">
+                        {{ getStudentActivityStatus(student).weeklyProgress }}/{{ getStudentActivityStatus(student).weeklyGoal }} min
+                      </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                      <div 
+                        class="bg-purple-500 h-1.5 rounded-full transition-all duration-300"
+                        :style="{ width: Math.min(getStudentActivityStatus(student).weeklyPercentage, 100) + '%' }"
+                      ></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -581,6 +605,31 @@
             </div>
           </div>
 
+          <!-- Assignment Summary -->
+          <div v-if="selectedClassForAssignments" class="card card-blue">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+                📊
+              </div>
+              <h3 class="text-lg text-gray-800 font-bold">Assignment Summary for {{ selectedClassForAssignments.name }}</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-300">
+                <div class="text-2xl font-bold text-blue-700">{{ classAssignments.length }}</div>
+                <div class="text-sm text-blue-600 font-semibold">Total Assignments</div>
+              </div>
+              <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-300">
+                <div class="text-2xl font-bold text-green-700">{{ classRoster.length }}</div>
+                <div class="text-sm text-green-600 font-semibold">Enrolled Students</div>
+              </div>
+              <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-300">
+                <div class="text-2xl font-bold text-purple-700">{{ getTotalEnrollees() }}</div>
+                <div class="text-sm text-purple-600 font-semibold">Total Enrollees</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Create Assignment -->
           <div v-if="selectedClassForAssignments" class="card card-purple">
             <div class="flex items-center gap-3 mb-5">
@@ -746,8 +795,19 @@
                 </div>
                 
                 <div class="flex items-center justify-between">
-                  <div class="text-xs text-gray-500">
-                    Created: {{ formatDate(new Date(assignment.createdAt)) }}
+                  <div class="flex items-center gap-4 text-xs text-gray-500">
+                    <div>
+                      Created: {{ formatDate(new Date(assignment.createdAt)) }}
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <span class="font-semibold">Enrollees:</span>
+                      <span v-if="assignment.type === 'class'" class="text-blue-600 font-bold">
+                        {{ classRoster.length }} students
+                      </span>
+                      <span v-else class="text-green-600 font-bold">
+                        1 student
+                      </span>
+                    </div>
                   </div>
                   <button 
                     @click="deleteAssignment(assignment.id)"
@@ -755,6 +815,36 @@
                   >
                     Delete
                   </button>
+                </div>
+                
+                <!-- Enrollee Details -->
+                <div v-if="assignment.type === 'class' && classRoster.length > 0" class="mt-3 pt-3 border-t border-gray-200">
+                  <div class="text-xs text-gray-600 mb-2">
+                    <span class="font-semibold">📚 Class Assignment - All Students:</span>
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    <span 
+                      v-for="student in classRoster.slice(0, 5)" 
+                      :key="student.studentId"
+                      class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium"
+                    >
+                      {{ student.name }}
+                    </span>
+                    <span v-if="classRoster.length > 5" class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                      +{{ classRoster.length - 5 }} more
+                    </span>
+                  </div>
+                </div>
+                
+                <div v-else-if="assignment.type === 'individual' && assignment.studentId" class="mt-3 pt-3 border-t border-gray-200">
+                  <div class="text-xs text-gray-600 mb-2">
+                    <span class="font-semibold">👤 Individual Assignment - Assigned to:</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                      {{ getStudentName(assignment.studentId) }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1039,6 +1129,81 @@ const loadStudentAssignments = async () => {
   
   studentAssignments.value = assignments
   console.log('Loaded student assignments:', assignments)
+}
+
+const getStudentName = (studentId) => {
+  // First try to find in classRoster (current class)
+  const studentInClass = classRoster.value.find(student => student.studentId === studentId)
+  if (studentInClass) {
+    return studentInClass.name
+  }
+  
+  // Then try to find in allStudents (all classes)
+  const studentInAll = allStudents.value.find(student => student.studentId === studentId)
+  if (studentInAll) {
+    return studentInAll.name
+  }
+  
+  return 'Unknown Student'
+}
+
+const getStudentActivityStatus = (student) => {
+  const now = new Date()
+  const lastLoginDate = new Date(student.lastLoginAt || student.joinedAt)
+  const lastPracticeDate = student.lastPracticeAt ? new Date(student.lastPracticeAt) : null
+  
+  const daysSinceLogin = (now - lastLoginDate) / (1000 * 60 * 60 * 24)
+  const daysSincePractice = lastPracticeDate ? (now - lastPracticeDate) / (1000 * 60 * 60 * 24) : null
+  
+  // Activity thresholds
+  const LOGIN_THRESHOLD = 30 // days
+  const PRACTICE_THRESHOLD = 14 // days
+  
+  // Determine activity level
+  let activityLevel = 'active'
+  let activityReason = 'Engaged student'
+  let statusColor = 'text-green-600'
+  let statusBg = 'bg-green-100'
+  
+  if (daysSinceLogin > LOGIN_THRESHOLD) {
+    activityLevel = 'inactive'
+    activityReason = `No login for ${Math.floor(daysSinceLogin)} days`
+    statusColor = 'text-red-600'
+    statusBg = 'bg-red-100'
+  } else if (daysSincePractice > PRACTICE_THRESHOLD && student.practiceMinutes > 0) {
+    activityLevel = 'needs_attention'
+    activityReason = `No practice for ${Math.floor(daysSincePractice)} days`
+    statusColor = 'text-yellow-600'
+    statusBg = 'bg-yellow-100'
+  }
+  
+  return {
+    activityLevel,
+    activityReason,
+    statusColor,
+    statusBg,
+    daysSinceLogin: Math.floor(daysSinceLogin),
+    daysSincePractice: daysSincePractice ? Math.floor(daysSincePractice) : null,
+    weeklyProgress: student.currentWeekPracticeMinutes || 0,
+    weeklyGoal: student.weeklyPracticeGoal || 120,
+    weeklyPercentage: ((student.currentWeekPracticeMinutes || 0) / (student.weeklyPracticeGoal || 120)) * 100
+  }
+}
+
+const getTotalEnrollees = () => {
+  let total = 0
+  
+  for (const assignment of classAssignments.value) {
+    if (assignment.type === 'class') {
+      // Class assignments go to all students in the class
+      total += classRoster.value.length
+    } else if (assignment.type === 'individual') {
+      // Individual assignments go to 1 student
+      total += 1
+    }
+  }
+  
+  return total
 }
 
 const formatJoinDate = (dateString) => {

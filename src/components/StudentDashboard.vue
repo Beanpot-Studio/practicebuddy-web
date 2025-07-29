@@ -322,7 +322,7 @@ const props = defineProps({
   }
 })
 
-const { currentUser, fetchClassAssignments, fetchStudentStandaloneAssignments, joinClassAsStudent } = useAuth()
+const { currentUser, fetchClassAssignments, fetchStudentStandaloneAssignments, joinClassAsStudent, updateStudentLoginActivity, updateStudentPracticeActivity } = useAuth()
 
 const totalPracticeTime = ref(45)
 const currentStreak = ref(7)
@@ -408,9 +408,34 @@ const joinClassSuccess = ref('')
 const assignments = ref([])
 const isLoadingAssignments = ref(false)
 
-const startPractice = () => {
+const startPractice = async () => {
   alert(`🎉 Starting ${practiceTime.value} minutes of ${selectedInstrument.value} practice!`)
   totalPracticeTime.value += parseInt(practiceTime.value)
+  
+  // Track practice activity if student is enrolled in a class
+  if (currentUser.value?.classCode) {
+    try {
+      await updateStudentPracticeActivity(
+        currentUser.value.classCode,
+        currentUser.value.uid,
+        parseInt(practiceTime.value)
+      )
+      console.log('Practice activity tracked successfully')
+    } catch (error) {
+      console.error('Error tracking practice activity:', error)
+    }
+  }
+}
+
+const trackLoginActivity = async () => {
+  if (currentUser.value?.classCode && currentUser.value?.uid) {
+    try {
+      await updateStudentLoginActivity(currentUser.value.classCode, currentUser.value.uid)
+      console.log('Login activity tracked successfully')
+    } catch (error) {
+      console.error('Error tracking login activity:', error)
+    }
+  }
 }
 
 const playRecording = (recording) => {
@@ -537,7 +562,8 @@ const formatDueDate = (dueDate) => {
   }
 }
 
-onMounted(() => {
-  loadAssignments()
+onMounted(async () => {
+  await loadAssignments()
+  await trackLoginActivity()
 })
 </script>
