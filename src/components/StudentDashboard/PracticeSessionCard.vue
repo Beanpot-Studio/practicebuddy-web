@@ -10,7 +10,7 @@
       <!-- Instrument Selection -->
       <div class="relative">
         <label class="block mb-2 font-semibold text-gray-700 text-base">
-          <Music class="inline w-5 h-5 mr-1" />Choose your instrument
+         Choose your instrument
         </label>
         <div class="relative">
           <button 
@@ -57,7 +57,7 @@
       <!-- Class Selection (if enrolled in classes) -->
       <div v-if="enrolledClasses && enrolledClasses.length > 0" class="relative">
         <label class="block mb-2 font-semibold text-gray-700 text-base">
-          <BookOpen class="inline w-5 h-5 mr-1" />Practice for Class (Optional)
+          Practice for Class (Optional)
         </label>
         <div class="relative">
           <button 
@@ -107,7 +107,7 @@
 
       <!-- Practice Time -->
       <div>
-        <label class="block mb-2 font-semibold text-gray-700 text-base">⏰ Practice Time (minutes)</label>
+        <label class="block mb-2 font-semibold text-gray-700 text-base">Practice Time (minutes)</label>
         <input 
           type="number" 
           :value="practiceTime"
@@ -125,7 +125,6 @@
         :disabled="!selectedInstrument || !practiceTime"
         class="btn btn-blue w-full p-4 text-base font-bold"
       >
-        <Play class="w-5 h-5" />
         {{ selectedClass ? `Start Practice for ${selectedClass.name || selectedClass.code}` : 'Start Practice Session!' }}
       </button>
     </div>
@@ -134,7 +133,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Play, Music, BookOpen } from 'lucide-vue-next'
+import { Music, BookOpen } from 'lucide-vue-next'
 import { instruments, getInstrumentImage, getInstrumentName } from '../../lib/instruments'
 
 const props = defineProps({

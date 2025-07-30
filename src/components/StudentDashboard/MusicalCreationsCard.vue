@@ -4,7 +4,7 @@
       <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
         <Mic class="w-6 h-6 text-white" />
       </div>
-      <h3 class="text-lg text-gray-800 font-bold">Your Musical Creations</h3>
+      <h3 class="text-lg text-gray-800 font-bold">Your Recordings</h3>
     </div>
     <div class="flex flex-col gap-3">
       <div 
@@ -30,7 +30,7 @@
     </div>
     <button @click="$emit('show-recording-modal')" class="btn btn-secondary w-full p-4 text-base font-bold mt-4">
       <Mic class="w-5 h-5" />
-      Record New Creation
+      Record New Clip
     </button>
   </div>
 </template>
