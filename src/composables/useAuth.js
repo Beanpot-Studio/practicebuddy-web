@@ -4,18 +4,25 @@ import {
   cleanupAuth, 
   registerTeacher, 
   registerStudent, 
+  registerIndependentStudent,
   loginTeacher, 
   loginStudent, 
+  loginIndependentStudent,
   logout, 
   resetPassword,
   createClass,
   getTeacherClasses,
+  addStudentToClassRoster,
   getClassRoster,
   createAssignment,
   getClassAssignments,
   deleteAssignment,
   joinClass,
-  USER_ROLES 
+  USER_ROLES,
+  getStandaloneAssignments,
+  getStudentStandaloneAssignments,
+  updateStudentLoginActivity,
+  updateStudentPracticeActivity
 } from '../lib/auth'
 
 // Global auth state
@@ -187,12 +194,33 @@ const fetchStudentStandaloneAssignments = async (studentId) => {
 }
 
 const deleteClassAssignment = async (classCode, assignmentId, assignmentType = 'class') => {
-  const result = await deleteAssignment(classCode, assignmentId, assignmentType)
-  
-  // Don't call handleAuthError here - let the component handle the error
-  // This allows for better error display control
-  
-  return result
+  try {
+    const result = await deleteAssignment(classCode, assignmentId, assignmentType)
+    return result
+  } catch (error) {
+    console.error('Error deleting assignment:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+const updateStudentLoginActivityWrapper = async (classCode, studentId) => {
+  try {
+    const result = await updateStudentLoginActivity(classCode, studentId)
+    return result
+  } catch (error) {
+    console.error('Error updating student login activity:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+const updateStudentPracticeActivityWrapper = async (classCode, studentId, practiceMinutes) => {
+  try {
+    const result = await updateStudentPracticeActivity(classCode, studentId, practiceMinutes)
+    return result
+  } catch (error) {
+    console.error('Error updating student practice activity:', error)
+    return { success: false, error: error.message }
+  }
 }
 
 const joinClassAsStudent = async (classCode, studentId, studentName, instrument = '') => {
@@ -243,6 +271,8 @@ export function useAuth() {
     fetchStandaloneAssignments,
     fetchStudentStandaloneAssignments,
     deleteClassAssignment,
+    updateStudentLoginActivity: updateStudentLoginActivityWrapper,
+    updateStudentPracticeActivity: updateStudentPracticeActivityWrapper,
     joinClassAsStudent,
     
     // Constants

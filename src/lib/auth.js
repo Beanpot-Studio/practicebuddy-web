@@ -15,7 +15,8 @@ import {
   where, 
   getDocs,
   addDoc,
-  serverTimestamp 
+  serverTimestamp,
+  deleteDoc
 } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import { handleFirebaseError, logError, createErrorResponse } from './errorHandler'
@@ -503,6 +504,16 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
       instrument: instrument,
       joinedAt: new Date().toISOString(),
       practiceMinutes: 0,
+      lastLoginAt: new Date().toISOString(),
+      lastPracticeAt: null,
+      lastAssignmentAt: null,
+      lastRecordingAt: null,
+      lastDashboardVisit: new Date().toISOString(),
+      status: 'active', // active, inactive, suspended
+      totalAssignmentsCompleted: 0,
+      totalRecordingsCreated: 0,
+      weeklyPracticeGoal: 120, // minutes per week
+      currentWeekPracticeMinutes: 0,
       assignments: []
     }
     console.log('New student object:', newStudent)
@@ -1046,6 +1057,180 @@ export const deleteAssignment = async (classCode, assignmentId, assignmentType =
     logError(error, 'delete-assignment')
     const errorInfo = handleFirebaseError(error, 'delete-assignment')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'delete-assignment')
+  }
+}
+
+/**
+ * Update student activity when they log in
+ * @param {string} classCode - Class code
+ * @param {string} studentId - Student ID
+ */
+export const updateStudentLoginActivity = async (classCode, studentId) => {
+  try {
+    // Find the class and update student's lastLoginAt
+    let classRef = doc(db, 'classes', classCode)
+    let classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      // Try to find by code field
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        const foundDoc = querySnapshot.docs[0]
+        classRef = foundDoc.ref
+        classDoc = foundDoc
+      } else {
+        throw new Error('Class not found')
+      }
+    }
+
+    const classData = classDoc.data()
+    const students = classData.students || []
+    
+    const studentIndex = students.findIndex(s => s.studentId === studentId)
+    if (studentIndex !== -1) {
+      students[studentIndex].lastLoginAt = new Date().toISOString()
+      students[studentIndex].lastDashboardVisit = new Date().toISOString()
+      
+      await updateDoc(classRef, {
+        students: students,
+        updatedAt: new Date().toISOString()
+      })
+    }
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating student login activity:', error)
+    logError(error, 'update-student-login-activity')
+    const errorInfo = handleFirebaseError(error, 'update-student-login-activity')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'update-student-login-activity')
+  }
+}
+
+/**
+ * Update student practice activity
+ * @param {string} classCode - Class code
+ * @param {string} studentId - Student ID
+ * @param {number} practiceMinutes - Minutes practiced
+ */
+export const updateStudentPracticeActivity = async (classCode, studentId, practiceMinutes) => {
+  try {
+    let classRef = doc(db, 'classes', classCode)
+    let classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        const foundDoc = querySnapshot.docs[0]
+        classRef = foundDoc.ref
+        classDoc = foundDoc
+      } else {
+        throw new Error('Class not found')
+      }
+    }
+
+    const classData = classDoc.data()
+    const students = classData.students || []
+    
+    const studentIndex = students.findIndex(s => s.studentId === studentId)
+    if (studentIndex !== -1) {
+      const student = students[studentIndex]
+      student.lastPracticeAt = new Date().toISOString()
+      student.practiceMinutes += practiceMinutes
+      student.currentWeekPracticeMinutes += practiceMinutes
+      
+      // Reset weekly practice if it's a new week
+      const lastPracticeDate = new Date(student.lastPracticeAt)
+      const now = new Date()
+      const daysSinceLastPractice = (now - lastPracticeDate) / (1000 * 60 * 60 * 24)
+      
+      if (daysSinceLastPractice > 7) {
+        student.currentWeekPracticeMinutes = practiceMinutes
+      }
+      
+      await updateDoc(classRef, {
+        students: students,
+        updatedAt: new Date().toISOString()
+      })
+    }
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating student practice activity:', error)
+    logError(error, 'update-student-practice-activity')
+    const errorInfo = handleFirebaseError(error, 'update-student-practice-activity')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'update-student-practice-activity')
+  }
+}
+
+/**
+ * Determine if a student is active based on various metrics
+ * @param {Object} student - Student object
+ * @returns {Object} Activity status and details
+ */
+export const getStudentActivityStatus = (student) => {
+  const now = new Date()
+  const lastLoginDate = new Date(student.lastLoginAt || student.joinedAt)
+  const lastPracticeDate = student.lastPracticeAt ? new Date(student.lastPracticeAt) : null
+  const lastAssignmentDate = student.lastAssignmentAt ? new Date(student.lastAssignmentAt) : null
+  const lastRecordingDate = student.lastRecordingAt ? new Date(student.lastRecordingAt) : null
+  
+  const daysSinceLogin = (now - lastLoginDate) / (1000 * 60 * 60 * 24)
+  const daysSincePractice = lastPracticeDate ? (now - lastPracticeDate) / (1000 * 60 * 60 * 24) : null
+  const daysSinceAssignment = lastAssignmentDate ? (now - lastAssignmentDate) / (1000 * 60 * 60 * 24) : null
+  const daysSinceRecording = lastRecordingDate ? (now - lastRecordingDate) / (1000 * 60 * 60 * 24) : null
+  
+  // Activity thresholds
+  const LOGIN_THRESHOLD = 30 // days
+  const PRACTICE_THRESHOLD = 14 // days
+  const ASSIGNMENT_THRESHOLD = 21 // days
+  const RECORDING_THRESHOLD = 30 // days
+  
+  // Determine activity level
+  let activityLevel = 'active'
+  let activityReason = 'Engaged student'
+  
+  if (daysSinceLogin > LOGIN_THRESHOLD) {
+    activityLevel = 'inactive'
+    activityReason = `No login for ${Math.floor(daysSinceLogin)} days`
+  } else if (daysSincePractice > PRACTICE_THRESHOLD && student.practiceMinutes > 0) {
+    activityLevel = 'needs_attention'
+    activityReason = `No practice for ${Math.floor(daysSincePractice)} days`
+  } else if (daysSinceAssignment > ASSIGNMENT_THRESHOLD && student.totalAssignmentsCompleted > 0) {
+    activityLevel = 'needs_attention'
+    activityReason = `No assignment completion for ${Math.floor(daysSinceAssignment)} days`
+  } else if (daysSinceRecording > RECORDING_THRESHOLD && student.totalRecordingsCreated > 0) {
+    activityLevel = 'needs_attention'
+    activityReason = `No recordings for ${Math.floor(daysSinceRecording)} days`
+  }
+  
+  // Check weekly practice goals
+  const weeklyProgress = student.currentWeekPracticeMinutes || 0
+  const weeklyGoal = student.weeklyPracticeGoal || 120
+  const weeklyPercentage = (weeklyProgress / weeklyGoal) * 100
+  
+  return {
+    activityLevel, // 'active', 'needs_attention', 'inactive'
+    activityReason,
+    daysSinceLogin: Math.floor(daysSinceLogin),
+    daysSincePractice: daysSincePractice ? Math.floor(daysSincePractice) : null,
+    daysSinceAssignment: daysSinceAssignment ? Math.floor(daysSinceAssignment) : null,
+    daysSinceRecording: daysSinceRecording ? Math.floor(daysSinceRecording) : null,
+    weeklyProgress,
+    weeklyGoal,
+    weeklyPercentage,
+    totalPracticeMinutes: student.practiceMinutes || 0,
+    totalAssignmentsCompleted: student.totalAssignmentsCompleted || 0,
+    totalRecordingsCreated: student.totalRecordingsCreated || 0
   }
 }
 
