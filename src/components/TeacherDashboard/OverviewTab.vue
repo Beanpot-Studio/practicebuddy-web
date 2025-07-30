@@ -1,6 +1,6 @@
 <template>
   <div class="animate-fadeIn">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <div class="card card-red">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 relative">
@@ -35,29 +35,6 @@
           <div v-if="recentActivity.length === 0" class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
             <div class="text-sm text-gray-600 font-medium text-center">No recent activity</div>
           </div>
-        </div>
-      </div>
-
-      <div class="card card-green">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
-            ⚡
-          </div>
-          <h3 class="text-lg text-gray-800 font-bold">Quick Tools</h3>
-        </div>
-        <div class="flex flex-col gap-3">
-          <button 
-            @click="$emit('changeTab', 'create-class')"
-            class="btn btn-primary w-full"
-          >
-            ➕ Create New Class
-          </button>
-          <button 
-            @click="$emit('changeTab', 'assignments')"
-            class="btn btn-secondary w-full"
-          >
-            📚 Manage Assignments
-          </button>
         </div>
       </div>
     </div>
