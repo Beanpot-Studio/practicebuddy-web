@@ -194,13 +194,46 @@
                             
                             <div class="space-y-2">
                               <label for="student-register-instrument" class="block text-sm font-semibold text-musical-graphite">Primary Instrument (Optional)</label>
-                              <input 
-                                id="student-register-instrument"
-                                v-model="studentRegisterForm.instrument" 
-                                type="text" 
-                                placeholder="e.g., Piano, Guitar, Violin, Voice"
-                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                              />
+                              <div class="relative">
+                                <button 
+                                  @click="showStudentInstrumentDropdown = !showStudentInstrumentDropdown"
+                                  type="button"
+                                  class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md flex items-center justify-between"
+                                >
+                                  <div class="flex items-center gap-3">
+                                    <img 
+                                      v-if="studentRegisterForm.instrument" 
+                                      :src="`/instruments/${getStudentInstrumentImage()}`" 
+                                      :alt="getStudentInstrumentName()"
+                                      class="w-5 h-5 object-contain"
+                                    />
+                                    <span v-else class="text-gray-500">Select an instrument (optional)</span>
+                                    <span v-if="studentRegisterForm.instrument" class="text-gray-800">{{ getStudentInstrumentName() }}</span>
+                                  </div>
+                                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                  </svg>
+                                </button>
+                                
+                                <div 
+                                  v-if="showStudentInstrumentDropdown"
+                                  class="absolute z-50 w-full mt-1 bg-white border-3 border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                                >
+                                  <div 
+                                    v-for="instrument in instruments" 
+                                    :key="instrument.value"
+                                    @click="selectStudentInstrument(instrument.value)"
+                                    class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                                  >
+                                    <img 
+                                      :src="`/instruments/${instrument.image}`" 
+                                      :alt="instrument.name"
+                                      class="w-5 h-5 object-contain"
+                                    />
+                                    <span class="text-gray-800">{{ instrument.name }}</span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                             
                             <div class="space-y-2">
@@ -330,13 +363,46 @@
                           
                           <div class="space-y-2">
                             <label for="register-instrument" class="block text-sm font-semibold text-musical-graphite">Primary Instrument</label>
-                            <input 
-                              id="register-instrument"
-                              v-model="registerForm.instrument" 
-                              type="text" 
-                              placeholder="e.g., Piano, Guitar, Violin"
-                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                            />
+                            <div class="relative">
+                              <button 
+                                @click="showTeacherInstrumentDropdown = !showTeacherInstrumentDropdown"
+                                type="button"
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md flex items-center justify-between"
+                              >
+                                <div class="flex items-center gap-3">
+                                  <img 
+                                    v-if="registerForm.instrument" 
+                                    :src="`/instruments/${getTeacherInstrumentImage()}`" 
+                                    :alt="getTeacherInstrumentName()"
+                                    class="w-5 h-5 object-contain"
+                                  />
+                                  <span v-else class="text-gray-500">Select an instrument</span>
+                                  <span v-if="registerForm.instrument" class="text-gray-800">{{ getTeacherInstrumentName() }}</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                              </button>
+                              
+                              <div 
+                                v-if="showTeacherInstrumentDropdown"
+                                class="absolute z-50 w-full mt-1 bg-white border-3 border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                              >
+                                <div 
+                                  v-for="instrument in instruments" 
+                                  :key="instrument.value"
+                                  @click="selectTeacherInstrument(instrument.value)"
+                                  class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                                >
+                                  <img 
+                                    :src="`/instruments/${instrument.image}`" 
+                                    :alt="instrument.name"
+                                    class="w-5 h-5 object-contain"
+                                  />
+                                  <span class="text-gray-800">{{ instrument.name }}</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           
                           <div class="space-y-2">
@@ -509,28 +575,31 @@
     
     <div class="bg-musical-cream py-20 border-t-4 border-musical-primary">
       <div class="container max-w-7xl mx-auto px-4">
-        <h2 class="text-center text-4xl font-bold text-musical-graphite mb-12">🎼 Let's Make Music Together! </h2>
+        <h2 class="text-center text-4xl font-bold text-musical-graphite mb-12">Let's Make Music Together! </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div class="p-8 rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-red-600 bg-musical-coral transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5">🎵</div>
+            <div class="text-5xl mb-5 flex justify-center"><Music class="w-10 h-10 text-white" /></div>
             <h3 class="text-2xl font-bold mb-4">Practice Made Fun</h3>
             <p class="opacity-95 leading-relaxed font-medium">Track practice minutes and watch your musical skills grow! Every session brings you closer to your goals.</p>
           </div>
           
           <div class="p-8 rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-blue-600 bg-musical-primary transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5">👩‍🏫</div>
+            <div class="text-5xl mb-5 flex justify-center"><Wand class="w-10 h-10 text-white" /></div>
+            
             <h3 class="text-2xl font-bold mb-4">Teacher Magic</h3>
             <p class="opacity-95 leading-relaxed font-medium">Teachers listen, guide, and help you create musical masterpieces! Get personalized feedback on your progress.</p>
           </div>
           
           <div class="p-8 rounded-3xl text-center text-musical-graphite shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-yellow-600 bg-musical-secondary transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5">📈</div>
+            <div class="text-5xl mb-5 flex justify-center"><BarChart class="w-10 h-10 text-black" /></div>
+            
             <h3 class="text-2xl font-bold mb-4">Watch Yourself Grow</h3>
             <p class="opacity-95 leading-relaxed font-medium">See your musical skills develop day by day with colorful charts and exciting achievements!</p>
           </div>
           
           <div class="p-8 rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-green-600 bg-musical-success transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5">🌟</div>
+            <div class="text-5xl mb-5 flex justify-center"><Star class="w-10 h-10 text-white" /></div>
+            
             <h3 class="text-2xl font-bold mb-4">Sticker Collection</h3>
             <p class="opacity-95 leading-relaxed font-medium">Earn amazing stickers for every milestone - collect them all and show off your progress!</p>
           </div>
@@ -545,14 +614,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { 
-  Music, Users, GraduationCap, Play, BookOpen, Clock, Mic, Star, Trophy, 
-  Headphones, Award, BarChart3 
-} from 'lucide-vue-next'
+import { ref, watch } from 'vue'
+import { Play, Music, Users, BookOpen, GraduationCap, BarChart, Star, Wand, AudioLines } from 'lucide-vue-next'
 import Footer from './Footer.vue'
 import { useAuth } from '../composables/useAuth'
 import { useErrorHandler } from '../composables/useErrorHandler'
+import { instruments, getInstrumentImage, getInstrumentName } from '../lib/instruments'
 
 const emit = defineEmits(['login'])
 
@@ -565,7 +632,6 @@ const {
   resetUserPassword
 } = useAuth()
 
-// Error handling
 const { 
   hasError, 
   errorMessage, 
@@ -607,8 +673,6 @@ const studentRegisterForm = ref({
   instrument: '',
   classCode: ''
 })
-
-
 
 const teacherForm = ref({
   email: '',
@@ -652,196 +716,79 @@ const stopTiltShuffle = () => {
 
 const switchToStudentTab = () => {
   console.log('switchToStudentTab called, hasError:', hasError.value, 'activeTab:', activeTab.value)
-  // Don't switch if already on student tab
-  if (activeTab.value === 'student') return
-  
-  // Don't switch if there are any errors (Firebase, validation, or other)
   if (hasError.value) {
-    console.log('Blocking tab switch due to error')
-    const error = new Error('Please resolve form errors before switching tabs.')
-    error.code = 'tab-switch'
-    handleError(error, 'tab-switch')
-    return
+    clearError()
   }
-  
-  // Switch to student tab
-  console.log('Switching to student tab')
   activeTab.value = 'student'
-  // Don't clear errors when switching tabs - let user see them
-  registrationSuccess.value = false
 }
 
 const switchToTeacherTab = () => {
   console.log('switchToTeacherTab called, hasError:', hasError.value, 'activeTab:', activeTab.value)
-  // Don't switch if already on teacher tab
-  if (activeTab.value === 'teacher') return
-  
-  // Don't switch if there are any errors (Firebase, validation, or other)
   if (hasError.value) {
-    console.log('Blocking tab switch due to error')
-    const error = new Error('Please resolve form errors before switching tabs.')
-    error.code = 'tab-switch'
-    handleError(error, 'tab-switch')
-    return
+    clearError()
   }
-  
-  // Switch to teacher tab
-  console.log('Switching to teacher tab')
   activeTab.value = 'teacher'
-  // Don't clear errors when switching tabs - let user see them
-  registrationSuccess.value = false
 }
 
 const toggleRegisterForm = () => {
-  // Don't toggle if there are any errors (Firebase, validation, or other)
-  if (hasError.value) {
-    const error = new Error('Please resolve form errors before switching forms.')
-    error.code = 'form-switch'
-    handleError(error, 'form-switch')
-    return
-  }
-  
-  // Toggle registration form
   showRegisterForm.value = !showRegisterForm.value
-  showResetPasswordForm.value = false // Hide reset password form
-  // Don't clear errors when toggling forms - let user see them
-  registrationSuccess.value = false
-  passwordResetSuccess.value = false
+  showResetPasswordForm.value = false
+  showStudentCreateAccount.value = false
+  clearError()
 }
 
 const toggleResetPasswordForm = () => {
-  // Don't toggle if there are any errors (Firebase, validation, or other)
-  if (hasError.value) {
-    const error = new Error('Please resolve form errors before switching forms.')
-    error.code = 'form-switch'
-    handleError(error, 'form-switch')
-    return
-  }
-  
-  // Toggle reset password form
   showResetPasswordForm.value = !showResetPasswordForm.value
-  showRegisterForm.value = false // Hide registration form
-  // Don't clear errors when toggling forms - let user see them
-  registrationSuccess.value = false
-  passwordResetSuccess.value = false
+  showRegisterForm.value = false
+  showStudentCreateAccount.value = false
+  clearError()
 }
 
 const toggleStudentMode = () => {
-  // Don't toggle if there are any errors (Firebase, validation, or other)
-  if (hasError.value) {
-    const error = new Error('Please resolve form errors before switching forms.')
-    error.code = 'form-switch'
-    handleError(error, 'form-switch')
-    return
-  }
-  
-  // Toggle between login and create account modes
   showStudentCreateAccount.value = !showStudentCreateAccount.value
-  // Don't clear errors when toggling forms - let user see them
-  registrationSuccess.value = false
-  passwordResetSuccess.value = false
+  showRegisterForm.value = false
+  showResetPasswordForm.value = false
+  clearError()
 }
 
-
-
-
-
 const loginStudent = async () => {
-  // Check for existing errors first
-  if (hasError.value) {
-    return
-  }
-  
-  // Validate required fields
-  if (!studentForm.value.email?.trim() || !studentForm.value.password) {
-    handleError(new Error('Please fill in your email and password.'), 'form-validation')
-    return
-  }
-  
-  // Set loading state
-  isStudentLoginLoading.value = true
-  
-  try {
-    const result = await loginStudentAccount(studentForm.value.email.trim(), studentForm.value.password, studentForm.value.classCode?.trim())
+  await executeWithErrorHandling(async () => {
+    isStudentLoginLoading.value = true
+    clearError()
     
-    if (result && result.success) {
-      emit('login', result.userData)
+    const result = await loginStudentAccount(studentForm.value.email, studentForm.value.password, studentForm.value.classCode)
+    
+    if (result.success) {
+      console.log('Student login successful')
+      // Redirect or update UI as needed
     } else {
-      // Handle the error returned by loginStudentAccount
-      const errorObj = new Error(result.error)
-      errorObj.code = result.code // Preserve the Firebase error code
-      handleError(errorObj, 'student-login', { autoClearTime: 5000 }) // Clear after 5 seconds
+      handleError(result.error || 'Login failed')
     }
-  } finally {
-    // Clear loading state
+  }).finally(() => {
     isStudentLoginLoading.value = false
-  }
+  })
 }
 
 const registerStudent = async () => {
-  // Check for existing errors first
-  if (hasError.value) {
-    return
-  }
-  
-  // Clear any previous errors
-  clearError()
-  
-  // Validation
-  const validationErrors = {}
-  
-  if (!studentRegisterForm.value.displayName?.trim()) {
-    validationErrors.displayName = 'Please enter your full name'
-  }
-  
-  if (!studentRegisterForm.value.email?.trim()) {
-    validationErrors.email = 'Please enter your email address'
-  }
-  
-  if (!studentRegisterForm.value.password) {
-    validationErrors.password = 'Please enter a password'
-  } else if (studentRegisterForm.value.password.length < 6) {
-    validationErrors.password = 'Password must be at least 6 characters long'
-  }
-  
-  if (studentRegisterForm.value.password !== studentRegisterForm.value.confirmPassword) {
-    validationErrors.confirmPassword = 'Passwords do not match'
-  }
-  
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (studentRegisterForm.value.email && !emailRegex.test(studentRegisterForm.value.email)) {
-    validationErrors.email = 'Please enter a valid email address'
-  }
-  
-  // If there are validation errors, handle them and return early
-  if (Object.keys(validationErrors).length > 0) {
-    handleError(new Error('Validation failed'), 'form-validation', { validationErrors })
-    return
-  }
-  
-  const studentData = {
-    instrument: studentRegisterForm.value.instrument?.trim() || '',
-    classCode: studentRegisterForm.value.classCode?.trim() || ''
-  }
-  
-  // Set loading state
-  isStudentRegistrationLoading.value = true
-  
-  try {
+  await executeWithErrorHandling(async () => {
+    isStudentRegistrationLoading.value = true
+    clearError()
+    
+    if (studentRegisterForm.value.password !== studentRegisterForm.value.confirmPassword) {
+      handleError('Passwords do not match')
+      return
+    }
+    
     const result = await registerStudentAccount(
-      studentRegisterForm.value.email.trim(), 
-      studentRegisterForm.value.password, 
-      studentRegisterForm.value.displayName.trim(), 
-      studentData
+      studentRegisterForm.value.email,
+      studentRegisterForm.value.password,
+      studentRegisterForm.value.displayName,
+      studentRegisterForm.value.instrument,
+      studentRegisterForm.value.classCode
     )
-  
-    if (result && result.success) {
-      // Show success message
+    
+    if (result.success) {
       registrationSuccess.value = true
-      clearError()
-      
-      // Clear form
       studentRegisterForm.value = {
         email: '',
         password: '',
@@ -850,230 +797,121 @@ const registerStudent = async () => {
         instrument: '',
         classCode: ''
       }
-      
-      // Pre-fill the login form
-      studentForm.value.email = result.user.email
-      studentForm.value.classCode = studentData.classCode
-      
-      // Hide registration form
-      showStudentCreateAccount.value = false
-      
-      // Show success message for 3 seconds
-      setTimeout(() => {
-        registrationSuccess.value = false
-      }, 3000)
-      
+      console.log('Student registration successful')
     } else {
-      // Handle the error returned by registerStudentAccount
-      const errorObj = new Error(result.error)
-      errorObj.code = result.code // Preserve the Firebase error code
-      handleError(errorObj, 'student-registration', { autoClearTime: 5000 }) // Clear after 5 seconds
+      handleError(result.error || 'Registration failed')
     }
-  } finally {
-    // Clear loading state
+  }).finally(() => {
     isStudentRegistrationLoading.value = false
-  }
+  })
 }
 
 const loginTeacher = async () => {
-  console.log('loginTeacher called, hasError:', hasError.value, 'activeTab:', activeTab.value)
-  // Check for existing errors first
-  if (hasError.value) {
-    console.log('Returning early due to existing error')
-    return
-  }
-  
-  // Validate required fields
-  if (!teacherForm.value.email?.trim() || !teacherForm.value.password) {
-    console.log('Validation error - missing fields')
-    handleError(new Error('Please fill in all required fields.'), 'form-validation')
-    return
-  }
-  
-  // Set loading state
-  isTeacherLoginLoading.value = true
-  
-  try {
-    console.log('Calling loginTeacherAccount directly')
-    const result = await loginTeacherAccount(teacherForm.value.email.trim(), teacherForm.value.password)
+  await executeWithErrorHandling(async () => {
+    isTeacherLoginLoading.value = true
+    clearError()
     
-    console.log('Teacher login result:', result)
-    if (result && result.success) {
-      emit('login', result.userData)
+    const result = await loginTeacherAccount(teacherForm.value.email, teacherForm.value.password)
+    
+    if (result.success) {
+      console.log('Teacher login successful')
+      // Redirect or update UI as needed
     } else {
-      // Handle the error returned by loginTeacherAccount
-      console.log('Teacher login failed, displaying error:', result.error)
-      console.log('Full result object:', result)
-      
-      // Create an error object that preserves the original Firebase error code
-      const errorObj = new Error(result.error)
-      errorObj.code = result.code // Preserve the Firebase error code
-      handleError(errorObj, 'teacher-login', { autoClearTime: 5000 }) // Clear after 5 seconds
+      handleError(result.error || 'Login failed')
     }
-  } finally {
-    // Clear loading state
+  }).finally(() => {
     isTeacherLoginLoading.value = false
-  }
+  })
 }
 
 const registerTeacher = async () => {
-  // Check for existing errors first
-  if (hasError.value) {
-    return
-  }
-  
-  // Clear any previous errors
-  clearError()
-  
-  // Validation
-  const validationErrors = {}
-  
-  if (!registerForm.value.displayName?.trim()) {
-    validationErrors.displayName = 'Please enter your full name'
-  }
-  
-  if (!registerForm.value.email?.trim()) {
-    validationErrors.email = 'Please enter your email address'
-  }
-  
-  if (!registerForm.value.password) {
-    validationErrors.password = 'Please enter a password'
-  } else if (registerForm.value.password.length < 6) {
-    validationErrors.password = 'Password must be at least 6 characters long'
-  }
-  
-  if (registerForm.value.password !== registerForm.value.confirmPassword) {
-    validationErrors.confirmPassword = 'Passwords do not match'
-  }
-  
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (registerForm.value.email && !emailRegex.test(registerForm.value.email)) {
-    validationErrors.email = 'Please enter a valid email address'
-  }
-  
-  // If there are validation errors, handle them and return early
-  if (Object.keys(validationErrors).length > 0) {
-    handleError(new Error('Validation failed'), 'form-validation', { validationErrors })
-    return
-  }
-  
-  const teacherData = {
-    school: registerForm.value.school?.trim() || '',
-    instrument: registerForm.value.instrument?.trim() || '',
-    experience: registerForm.value.experience || 'beginner'
-  }
-  
-  // Set loading state
-  isTeacherRegistrationLoading.value = true
-  
-  try {
-    const result = await registerTeacherAccount(
-      registerForm.value.email.trim(), 
-      registerForm.value.password, 
-      registerForm.value.displayName.trim(), 
-      teacherData
-    )
-  
-  if (result && result.success) {
-    // Show success message
-    registrationSuccess.value = true
+  await executeWithErrorHandling(async () => {
+    isTeacherRegistrationLoading.value = true
     clearError()
     
-    // Clear form
-    registerForm.value = {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      displayName: '',
-      school: '',
-      instrument: '',
-      experience: 'beginner'
+    if (registerForm.value.password !== registerForm.value.confirmPassword) {
+      handleError('Passwords do not match')
+      return
     }
     
-    // Hide registration form and show success message briefly
-    showRegisterForm.value = false
+    const result = await registerTeacherAccount(
+      registerForm.value.email,
+      registerForm.value.password,
+      registerForm.value.displayName,
+      registerForm.value.school,
+      registerForm.value.instrument,
+      registerForm.value.experience
+    )
     
-    // Ensure we stay on the teacher tab
-    activeTab.value = 'teacher'
-    
-    // Pre-fill the login form with the registered email
-    teacherForm.value.email = result.user.email
-    
-    // Show login prompt instead of auto-login
-    setTimeout(() => {
-      registrationSuccess.value = false
-      // Don't auto-login - let user login manually
-    }, 3000)
-  } else {
-    // Handle the error returned by registerTeacherAccount
-    const errorObj = new Error(result.error)
-    errorObj.code = result.code // Preserve the Firebase error code
-    handleError(errorObj, 'teacher-registration', { autoClearTime: 5000 }) // Clear after 5 seconds
-  }
-  } finally {
-    // Clear loading state
+    if (result.success) {
+      registrationSuccess.value = true
+      registerForm.value = {
+        email: '',
+        password: '',
+        confirmPassword: '',
+        displayName: '',
+        school: '',
+        instrument: '',
+        experience: 'beginner'
+      }
+      console.log('Teacher registration successful')
+    } else {
+      handleError(result.error || 'Registration failed')
+    }
+  }).finally(() => {
     isTeacherRegistrationLoading.value = false
-  }
+  })
 }
 
-
-
 const resetPassword = async () => {
-  // Check for existing errors first
-  if (hasError.value) {
-    return
-  }
-  
-  // Validate required fields
-  if (!resetPasswordForm.value.email?.trim()) {
-    handleError(new Error('Please enter your email address.'), 'form-validation')
-    return
-  }
-  
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(resetPasswordForm.value.email.trim())) {
-    handleError(new Error('Please enter a valid email address.'), 'form-validation')
-    return
-  }
-  
-  // Set loading state
-  isPasswordResetLoading.value = true
-  
-  try {
-    const result = await resetUserPassword(resetPasswordForm.value.email.trim())
+  await executeWithErrorHandling(async () => {
+    isPasswordResetLoading.value = true
+    clearError()
     
-    if (result && result.success) {
-      // Show success message
+    const result = await resetUserPassword(resetPasswordForm.value.email)
+    
+    if (result.success) {
       passwordResetSuccess.value = true
-      clearError()
-      
-      // Clear form
       resetPasswordForm.value.email = ''
-      
-      // Hide reset password form
-      showResetPasswordForm.value = false
-      
-      // Show success message briefly
-      setTimeout(() => {
-        passwordResetSuccess.value = false
-      }, 5000)
+      console.log('Password reset email sent')
     } else {
-      // Handle the error returned by resetUserPassword
-      const errorObj = new Error(result.error)
-      errorObj.code = result.code // Preserve the Firebase error code
-      handleError(errorObj, 'password-reset', { autoClearTime: 5000 })
+      handleError(result.error || 'Password reset failed')
     }
-  } finally {
-    // Clear loading state
+  }).finally(() => {
     isPasswordResetLoading.value = false
-  }
+  })
 }
 
 const bringToFront = (index) => {
   currentCardIndex.value = index
 }
 
+const showStudentInstrumentDropdown = ref(false)
+const showTeacherInstrumentDropdown = ref(false)
 
+const selectStudentInstrument = (value) => {
+  studentRegisterForm.value.instrument = value
+  showStudentInstrumentDropdown.value = false
+}
+
+const selectTeacherInstrument = (value) => {
+  registerForm.value.instrument = value
+  showTeacherInstrumentDropdown.value = false
+}
+
+const getStudentInstrumentImage = () => {
+  return getInstrumentImage(studentRegisterForm.value.instrument)
+}
+
+const getStudentInstrumentName = () => {
+  return getInstrumentName(studentRegisterForm.value.instrument)
+}
+
+const getTeacherInstrumentImage = () => {
+  return getInstrumentImage(registerForm.value.instrument)
+}
+
+const getTeacherInstrumentName = () => {
+  return getInstrumentName(registerForm.value.instrument)
+}
 </script>

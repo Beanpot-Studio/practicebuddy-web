@@ -22,7 +22,12 @@ import {
   getStandaloneAssignments,
   getStudentStandaloneAssignments,
   updateStudentLoginActivity,
-  updateStudentPracticeActivity
+  updateStudentPracticeActivity,
+  createStandalonePractice,
+  getStandalonePractices,
+  updateUserPracticeStats,
+  getUserPracticeStats,
+  deleteStandalonePractice
 } from '../lib/auth'
 
 // Global auth state
@@ -223,6 +228,56 @@ const updateStudentPracticeActivityWrapper = async (classCode, studentId, practi
   }
 }
 
+const createStandalonePracticeWrapper = async (teacherId, practiceData) => {
+  try {
+    const result = await createStandalonePractice(teacherId, practiceData)
+    return result
+  } catch (error) {
+    console.error('Error creating standalone practice:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+const fetchStandalonePractices = async (teacherId, studentId = null) => {
+  try {
+    const result = await getStandalonePractices(teacherId, studentId)
+    return result
+  } catch (error) {
+    console.error('Error fetching standalone practices:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+const updateUserPracticeStatsWrapper = async (userId, practiceStats) => {
+  try {
+    const result = await updateUserPracticeStats(userId, practiceStats)
+    return result
+  } catch (error) {
+    console.error('Error updating user practice stats:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+const getUserPracticeStatsWrapper = async (userId) => {
+  try {
+    const result = await getUserPracticeStats(userId)
+    return result
+  } catch (error) {
+    console.error('Error getting user practice stats:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+const deleteStandalonePracticeWrapper = async (practiceId) => {
+  try {
+    const result = await deleteStandalonePractice(practiceId)
+    return result
+  } catch (error) {
+    console.error('Error deleting standalone practice:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 const joinClassAsStudent = async (classCode, studentId, studentName, instrument = '') => {
   const result = await joinClass(classCode, studentId, studentName, instrument)
   
@@ -273,6 +328,11 @@ export function useAuth() {
     deleteClassAssignment,
     updateStudentLoginActivity: updateStudentLoginActivityWrapper,
     updateStudentPracticeActivity: updateStudentPracticeActivityWrapper,
+    createStandalonePractice: createStandalonePracticeWrapper,
+    fetchStandalonePractices: fetchStandalonePractices,
+    updateUserPracticeStats: updateUserPracticeStatsWrapper,
+    getUserPracticeStats: getUserPracticeStatsWrapper,
+    deleteStandalonePractice: deleteStandalonePracticeWrapper,
     joinClassAsStudent,
     
     // Constants

@@ -92,13 +92,46 @@
 
             <div class="space-y-2">
               <label for="instrument" class="block text-sm font-semibold text-gray-700">Primary Instrument (Optional)</label>
-              <input 
-                id="instrument"
-                v-model="instrument"
-                type="text" 
-                placeholder="e.g., Piano, Guitar, Violin, Voice"
-                class="w-full px-6 py-4 border-3 border-gray-300 rounded-2xl text-lg transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-lg focus:shadow-musical-primary/20"
-              />
+              <div class="relative">
+                <button 
+                  @click="showInstrumentDropdown = !showInstrumentDropdown"
+                  type="button"
+                  class="w-full px-6 py-4 border-3 border-gray-300 rounded-2xl text-lg transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-lg focus:shadow-musical-primary/20 flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-3">
+                    <img 
+                      v-if="instrument" 
+                      :src="`/instruments/${getInstrumentImage(instrument)}`" 
+                      :alt="getInstrumentName(instrument)"
+                      class="w-6 h-6 object-contain"
+                    />
+                    <span v-else class="text-gray-500">Select an instrument (optional)</span>
+                    <span v-if="instrument" class="text-gray-800">{{ getInstrumentName(instrument) }}</span>
+                  </div>
+                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+                
+                <div 
+                  v-if="showInstrumentDropdown"
+                  class="absolute z-50 w-full mt-1 bg-white border-3 border-gray-300 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
+                >
+                  <div 
+                    v-for="inst in instruments" 
+                    :key="inst.value"
+                    @click="selectInstrument(inst.value)"
+                    class="flex items-center gap-3 p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <img 
+                      :src="`/instruments/${inst.image}`" 
+                      :alt="inst.name"
+                      class="w-6 h-6 object-contain"
+                    />
+                    <span class="text-gray-800 text-lg">{{ inst.name }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Error Message -->
@@ -157,6 +190,7 @@
 <script setup>
 import { ref } from 'vue'
 import { submitPreLaunchSignup, isEmailAlreadySignedUp } from '../lib/preLaunchSignups'
+import { instruments, getInstrumentImage, getInstrumentName } from '../lib/instruments'
 
 defineEmits(['exit-pre-launch'])
 
@@ -167,6 +201,12 @@ const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 const hasError = ref(false)
 const errorMessage = ref('')
+const showInstrumentDropdown = ref(false)
+
+const selectInstrument = (value) => {
+  instrument.value = value
+  showInstrumentDropdown.value = false
+}
 
 const submitEmail = async () => {
   if (!email.value.trim()) {

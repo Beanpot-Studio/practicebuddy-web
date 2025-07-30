@@ -693,7 +693,7 @@ export const createAssignment = async (classCode, assignmentData, assignmentType
     }
 
     if (assignmentType === 'standalone') {
-      // Store standalone assignments in a separate collection
+      // Store standalone assignments in the student's user document
       if (!teacherId) {
         throw new Error('Teacher ID is required for standalone assignments')
       }
@@ -702,15 +702,32 @@ export const createAssignment = async (classCode, assignmentData, assignmentType
         throw new Error('Student ID is required for standalone assignments')
       }
       
-      const standaloneAssignmentRef = doc(collection(db, 'standalone_assignments'))
-      await setDoc(standaloneAssignmentRef, {
-        ...newAssignment,
-        id: standaloneAssignmentRef.id // Use Firestore-generated ID
+      const studentRef = doc(db, 'users', studentId)
+      const studentDoc = await getDoc(studentRef)
+      
+      if (!studentDoc.exists()) {
+        throw new Error('Student not found')
+      }
+      
+      const studentData = studentDoc.data()
+      const assignments = studentData.assignments || []
+      
+      // Add new assignment to the array
+      assignments.unshift(newAssignment) // Add to beginning of array
+      
+      // Keep only the last 50 assignments to prevent document size issues
+      if (assignments.length > 50) {
+        assignments.splice(50)
+      }
+      
+      await updateDoc(studentRef, {
+        assignments: assignments,
+        updatedAt: new Date().toISOString()
       })
       
       return { 
         success: true, 
-        assignment: { ...newAssignment, id: standaloneAssignmentRef.id }
+        assignment: newAssignment
       }
     } else {
       // Handle class-based assignments (existing logic)
@@ -858,35 +875,61 @@ export const getStandaloneAssignments = async (teacherId, studentId = null) => {
   try {
     console.log('getStandaloneAssignments called with teacherId:', teacherId, 'studentId:', studentId)
     
-    let standaloneQuery
     if (studentId) {
       // Get standalone assignments for a specific student
-      standaloneQuery = query(
-        collection(db, 'standalone_assignments'),
-        where('teacherId', '==', teacherId),
-        where('studentId', '==', studentId),
-        where('status', '==', 'active')
+      const studentRef = doc(db, 'users', studentId)
+      const studentDoc = await getDoc(studentRef)
+      
+      if (!studentDoc.exists()) {
+        return {
+          success: false,
+          error: 'Student not found'
+        }
+      }
+      
+      const studentData = studentDoc.data()
+      const assignments = studentData.assignments || []
+      
+      // Filter assignments by teacher and status
+      const teacherAssignments = assignments.filter(assignment => 
+        assignment.teacherId === teacherId && assignment.status === 'active'
       )
+      
+      console.log('Teacher standalone assignments for student:', teacherAssignments)
+      
+      return {
+        success: true,
+        assignments: teacherAssignments
+      }
     } else {
-      // Get all standalone assignments for the teacher
-      standaloneQuery = query(
-        collection(db, 'standalone_assignments'),
-        where('teacherId', '==', teacherId),
-        where('status', '==', 'active')
+      // Get all standalone assignments for the teacher (requires querying all students)
+      // This is less efficient but maintains the same API
+      const usersQuery = query(
+        collection(db, 'users'),
+        where('role', '==', 'student')
       )
-    }
-    
-    const querySnapshot = await getDocs(standaloneQuery)
-    const assignments = querySnapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id
-    }))
-    
-    console.log('Standalone assignments:', assignments)
-    
-    return {
-      success: true,
-      assignments: assignments
+      
+      const querySnapshot = await getDocs(usersQuery)
+      const allAssignments = []
+      
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data()
+        const assignments = userData.assignments || []
+        
+        // Filter assignments by teacher and status
+        const teacherAssignments = assignments.filter(assignment => 
+          assignment.teacherId === teacherId && assignment.status === 'active'
+        )
+        
+        allAssignments.push(...teacherAssignments)
+      })
+      
+      console.log('All teacher standalone assignments:', allAssignments)
+      
+      return {
+        success: true,
+        assignments: allAssignments
+      }
     }
   } catch (error) {
     console.error('Error in getStandaloneAssignments:', error)
@@ -904,23 +947,27 @@ export const getStudentStandaloneAssignments = async (studentId) => {
   try {
     console.log('getStudentStandaloneAssignments called with studentId:', studentId)
     
-    const standaloneQuery = query(
-      collection(db, 'standalone_assignments'),
-      where('studentId', '==', studentId),
-      where('status', '==', 'active')
-    )
+    const studentRef = doc(db, 'users', studentId)
+    const studentDoc = await getDoc(studentRef)
     
-    const querySnapshot = await getDocs(standaloneQuery)
-    const assignments = querySnapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id
-    }))
+    if (!studentDoc.exists()) {
+      return {
+        success: false,
+        error: 'Student not found'
+      }
+    }
     
-    console.log('Student standalone assignments:', assignments)
+    const studentData = studentDoc.data()
+    const assignments = studentData.assignments || []
+    
+    // Filter assignments by status
+    const activeAssignments = assignments.filter(assignment => assignment.status === 'active')
+    
+    console.log('Student standalone assignments:', activeAssignments)
     
     return {
       success: true,
-      assignments: assignments
+      assignments: activeAssignments
     }
   } catch (error) {
     console.error('Error in getStudentStandaloneAssignments:', error)
@@ -935,17 +982,35 @@ export const getStudentStandaloneAssignments = async (studentId) => {
  * @param {string} classCode - Class code (optional for standalone assignments)
  * @param {string} assignmentId - Assignment ID to delete
  * @param {string} assignmentType - 'class', 'individual', or 'standalone'
+ * @param {string} studentId - Student ID (required for standalone assignments)
  */
-export const deleteAssignment = async (classCode, assignmentId, assignmentType = 'class') => {
+export const deleteAssignment = async (classCode, assignmentId, assignmentType = 'class', studentId = null) => {
   try {
-    console.log('deleteAssignment called with classCode:', classCode, 'assignmentId:', assignmentId, 'type:', assignmentType)
+    console.log('deleteAssignment called with classCode:', classCode, 'assignmentId:', assignmentId, 'type:', assignmentType, 'studentId:', studentId)
     
     if (assignmentType === 'standalone') {
-      // Delete standalone assignment
-      const standaloneRef = doc(db, 'standalone_assignments', assignmentId)
-      const standaloneDoc = await getDoc(standaloneRef)
+      // Delete standalone assignment from student's user document
+      if (!studentId) {
+        throw new Error('Student ID is required for standalone assignments')
+      }
       
-      if (!standaloneDoc.exists()) {
+      const studentRef = doc(db, 'users', studentId)
+      const studentDoc = await getDoc(studentRef)
+      
+      if (!studentDoc.exists()) {
+        return {
+          success: false,
+          error: 'Student not found'
+        }
+      }
+      
+      const studentData = studentDoc.data()
+      const assignments = studentData.assignments || []
+      
+      // Find the assignment to delete
+      const assignmentIndex = assignments.findIndex(assignment => assignment.id === assignmentId)
+      
+      if (assignmentIndex === -1) {
         console.log('Standalone assignment not found')
         return {
           success: false,
@@ -953,7 +1018,14 @@ export const deleteAssignment = async (classCode, assignmentId, assignmentType =
         }
       }
       
-      await deleteDoc(standaloneRef)
+      // Remove the assignment from the array
+      assignments.splice(assignmentIndex, 1)
+      
+      await updateDoc(studentRef, {
+        assignments: assignments,
+        updatedAt: new Date().toISOString()
+      })
+      
       console.log('Standalone assignment deleted successfully')
       return { 
         success: true,
@@ -1243,4 +1315,284 @@ const generateClassCode = () => {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
+} 
+
+/**
+ * Create a standalone practice session for a user (stored in users collection)
+ * @param {string} userId - User ID
+ * @param {Object} practiceData - Practice session data
+ * @returns {Object} Success/error response
+ */
+export const createStandalonePractice = async (userId, practiceData) => {
+  try {
+    console.log('createStandalonePractice called with userId:', userId, 'practiceData:', practiceData)
+    
+    const userRef = doc(db, 'users', userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (!userDoc.exists()) {
+      throw new Error('User not found')
+    }
+    
+    const userData = userDoc.data()
+    const practiceSessions = userData.practiceSessions || []
+    
+    const practiceSession = {
+      id: Date.now().toString(), // Simple ID generation
+      instrument: practiceData.instrument || '',
+      practiceMinutes: practiceData.practiceMinutes || 0,
+      description: practiceData.description || '',
+      createdAt: new Date().toISOString(),
+      status: 'completed'
+    }
+    
+    // Add new practice session to the array
+    practiceSessions.unshift(practiceSession) // Add to beginning of array
+    
+    // Keep only the last 50 practice sessions to prevent document size issues
+    if (practiceSessions.length > 50) {
+      practiceSessions.splice(50)
+    }
+    
+    // Update user's practice statistics
+    const currentStats = userData.practiceStats || {
+      totalPracticeMinutes: 0,
+      currentWeekPracticeMinutes: 0,
+      lastPracticeAt: null,
+      weeklyPracticeGoal: 120
+    }
+    
+    currentStats.totalPracticeMinutes += practiceData.practiceMinutes
+    currentStats.lastPracticeAt = new Date().toISOString()
+    
+    // Check if we need to reset weekly practice (new week)
+    const lastPracticeDate = currentStats.lastPracticeAt ? new Date(currentStats.lastPracticeAt) : new Date()
+    const now = new Date()
+    const daysSinceLastPractice = (now - lastPracticeDate) / (1000 * 60 * 60 * 24)
+    
+    if (daysSinceLastPractice > 7) {
+      currentStats.currentWeekPracticeMinutes = practiceData.practiceMinutes
+    } else {
+      currentStats.currentWeekPracticeMinutes += practiceData.practiceMinutes
+    }
+    
+    await updateDoc(userRef, {
+      practiceSessions: practiceSessions,
+      practiceStats: currentStats,
+      updatedAt: new Date().toISOString()
+    })
+    
+    console.log('Standalone practice session created successfully:', practiceSession.id)
+    
+    return {
+      success: true,
+      practiceId: practiceSession.id,
+      message: 'Practice session recorded successfully'
+    }
+  } catch (error) {
+    console.error('Error in createStandalonePractice:', error)
+    logError(error, 'create-standalone-practice')
+    const errorInfo = handleFirebaseError(error, 'create-standalone-practice')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'create-standalone-practice')
+  }
+}
+
+/**
+ * Get standalone practice sessions for a user (from users collection)
+ * @param {string} userId - User ID
+ * @param {number} limit - Number of sessions to retrieve (default: 50)
+ * @returns {Object} Success/error response with practice sessions
+ */
+export const getStandalonePractices = async (userId, limit = 50) => {
+  try {
+    console.log('getStandalonePractices called with userId:', userId, 'limit:', limit)
+    
+    const userRef = doc(db, 'users', userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (!userDoc.exists()) {
+      throw new Error('User not found')
+    }
+    
+    const userData = userDoc.data()
+    const practiceSessions = userData.practiceSessions || []
+    
+    // Return limited number of sessions (they're already sorted by creation date)
+    const limitedSessions = practiceSessions.slice(0, limit)
+    
+    console.log('User standalone practices:', limitedSessions)
+    
+    return {
+      success: true,
+      practices: limitedSessions
+    }
+  } catch (error) {
+    console.error('Error in getStandalonePractices:', error)
+    logError(error, 'get-standalone-practices')
+    const errorInfo = handleFirebaseError(error, 'get-standalone-practices')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-standalone-practices')
+  }
+}
+
+/**
+ * Update user's practice statistics (independent of classes)
+ * @param {string} userId - User ID
+ * @param {number} practiceMinutes - Minutes practiced
+ * @returns {Object} Success/error response
+ */
+export const updateUserPracticeStats = async (userId, practiceMinutes) => {
+  try {
+    console.log('updateUserPracticeStats called with userId:', userId, 'practiceMinutes:', practiceMinutes)
+    
+    const userRef = doc(db, 'users', userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (!userDoc.exists()) {
+      throw new Error('User not found')
+    }
+    
+    const userData = userDoc.data()
+    const currentStats = userData.practiceStats || {
+      totalPracticeMinutes: 0,
+      currentWeekPracticeMinutes: 0,
+      lastPracticeAt: null,
+      weeklyPracticeGoal: 120
+    }
+    
+    // Update practice statistics
+    currentStats.totalPracticeMinutes += practiceMinutes
+    currentStats.lastPracticeAt = new Date().toISOString()
+    
+    // Check if we need to reset weekly practice (new week)
+    const lastPracticeDate = currentStats.lastPracticeAt ? new Date(currentStats.lastPracticeAt) : new Date()
+    const now = new Date()
+    const daysSinceLastPractice = (now - lastPracticeDate) / (1000 * 60 * 60 * 24)
+    
+    if (daysSinceLastPractice > 7) {
+      currentStats.currentWeekPracticeMinutes = practiceMinutes
+    } else {
+      currentStats.currentWeekPracticeMinutes += practiceMinutes
+    }
+    
+    await updateDoc(userRef, {
+      practiceStats: currentStats,
+      updatedAt: new Date().toISOString()
+    })
+    
+    console.log('User practice stats updated successfully')
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating user practice stats:', error)
+    logError(error, 'update-user-practice-stats')
+    const errorInfo = handleFirebaseError(error, 'update-user-practice-stats')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'update-user-practice-stats')
+  }
+}
+
+/**
+ * Get user's practice statistics (independent of classes)
+ * @param {string} userId - User ID
+ * @returns {Object} Success/error response with practice statistics
+ */
+export const getUserPracticeStats = async (userId) => {
+  try {
+    console.log('getUserPracticeStats called with userId:', userId)
+    
+    const userRef = doc(db, 'users', userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (!userDoc.exists()) {
+      throw new Error('User not found')
+    }
+    
+    const userData = userDoc.data()
+    const practiceStats = userData.practiceStats || {
+      totalPracticeMinutes: 0,
+      currentWeekPracticeMinutes: 0,
+      lastPracticeAt: null,
+      weeklyPracticeGoal: 120
+    }
+    
+    console.log('User practice stats:', practiceStats)
+    
+    return {
+      success: true,
+      practiceStats: practiceStats
+    }
+  } catch (error) {
+    console.error('Error in getUserPracticeStats:', error)
+    logError(error, 'get-user-practice-stats')
+    const errorInfo = handleFirebaseError(error, 'get-user-practice-stats')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-user-practice-stats')
+  }
+}
+
+/**
+ * Delete a standalone practice session from user's document
+ * @param {string} practiceId - Practice session ID
+ * @param {string} userId - User ID (for verification)
+ * @returns {Object} Success/error response
+ */
+export const deleteStandalonePractice = async (practiceId, userId) => {
+  try {
+    console.log('deleteStandalonePractice called with practiceId:', practiceId, 'userId:', userId)
+    
+    const userRef = doc(db, 'users', userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (!userDoc.exists()) {
+      return {
+        success: false,
+        error: 'User not found'
+      }
+    }
+    
+    const userData = userDoc.data()
+    const practiceSessions = userData.practiceSessions || []
+    
+    // Find the practice session to delete
+    const practiceIndex = practiceSessions.findIndex(practice => practice.id === practiceId)
+    
+    if (practiceIndex === -1) {
+      return {
+        success: false,
+        error: 'Practice session not found'
+      }
+    }
+    
+    const practiceToDelete = practiceSessions[practiceIndex]
+    
+    // Remove the practice session from the array
+    practiceSessions.splice(practiceIndex, 1)
+    
+    // Update user's practice statistics (subtract the minutes)
+    const currentStats = userData.practiceStats || {
+      totalPracticeMinutes: 0,
+      currentWeekPracticeMinutes: 0,
+      lastPracticeAt: null,
+      weeklyPracticeGoal: 120
+    }
+    
+    currentStats.totalPracticeMinutes = Math.max(0, currentStats.totalPracticeMinutes - practiceToDelete.practiceMinutes)
+    currentStats.currentWeekPracticeMinutes = Math.max(0, currentStats.currentWeekPracticeMinutes - practiceToDelete.practiceMinutes)
+    
+    await updateDoc(userRef, {
+      practiceSessions: practiceSessions,
+      practiceStats: currentStats,
+      updatedAt: new Date().toISOString()
+    })
+    
+    console.log('Standalone practice session deleted successfully')
+    
+    return {
+      success: true,
+      message: 'Practice session deleted successfully'
+    }
+  } catch (error) {
+    console.error('Error in deleteStandalonePractice:', error)
+    logError(error, 'delete-standalone-practice')
+    const errorInfo = handleFirebaseError(error, 'delete-standalone-practice')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'delete-standalone-practice')
+  }
 } 

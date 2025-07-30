@@ -35,24 +35,46 @@
           
           <div class="space-y-2">
             <label for="class-instrument" class="block text-sm font-semibold text-gray-700">Primary Instrument</label>
-            <select 
-              id="class-instrument"
-              v-model="newClass.instrument" 
-              required
-              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md"
-            >
-              <option value="">Select an instrument</option>
-              <option value="piano">🎹 Piano</option>
-              <option value="guitar">🎸 Guitar</option>
-              <option value="violin">🎻 Violin</option>
-              <option value="trumpet">🎺 Trumpet</option>
-              <option value="drums">🥁 Drums</option>
-              <option value="saxophone">🎷 Saxophone</option>
-              <option value="voice">🎤 Voice</option>
-              <option value="theory">📚 Music Theory</option>
-              <option value="ensemble">🎼 Ensemble</option>
-              <option value="other">🎵 Other</option>
-            </select>
+            <div class="relative">
+              <button 
+                @click="showInstrumentDropdown = !showInstrumentDropdown"
+                type="button"
+                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-md flex items-center justify-between"
+              >
+                <div class="flex items-center gap-3">
+                  <img 
+                    v-if="newClass.instrument" 
+                    :src="`/instruments/${getSelectedInstrumentImage()}`" 
+                    :alt="getSelectedInstrumentName()"
+                    class="w-5 h-5 object-contain"
+                  />
+                  <span v-else class="text-gray-500">Select an instrument</span>
+                  <span v-if="newClass.instrument" class="text-gray-800">{{ getSelectedInstrumentName() }}</span>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              <div 
+                v-if="showInstrumentDropdown"
+                class="absolute z-50 w-full mt-1 bg-white border-3 border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+              >
+                <div 
+                  v-for="instrument in instruments" 
+                  :key="instrument.value"
+                  @click="selectInstrument(instrument.value)"
+                  class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <img 
+                    :src="`/instruments/${instrument.image}`" 
+                    :alt="instrument.name"
+                    class="w-5 h-5 object-contain"
+                  />
+                  <span class="text-gray-800">{{ instrument.name.replace(/^[^\s]*\s/, '') }}</span>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div class="space-y-2">
@@ -94,6 +116,9 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { instruments, getInstrumentImage, getInstrumentName } from '../../lib/instruments'
+
 const props = defineProps({
   newClass: {
     type: Object,
@@ -105,5 +130,20 @@ const props = defineProps({
   }
 })
 
-defineEmits(['createClass'])
+const emit = defineEmits(['createClass'])
+
+const showInstrumentDropdown = ref(false)
+
+const selectInstrument = (value) => {
+  newClass.instrument = value
+  showInstrumentDropdown.value = false
+}
+
+const getSelectedInstrumentImage = () => {
+  return getInstrumentImage(newClass.instrument)
+}
+
+const getSelectedInstrumentName = () => {
+  return getInstrumentName(newClass.instrument)
+}
 </script> 

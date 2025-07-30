@@ -151,6 +151,20 @@
     );
   }
 
+  .card-orange {
+    @apply border-orange-400 bg-gradient-to-br from-white to-orange-50;
+  }
+
+  .card-orange::before {
+    background: repeating-linear-gradient(
+      90deg,
+      theme('colors.orange.400') 0px,
+      theme('colors.orange.400') 20px,
+      #FF9800 20px,
+      #FF9800 24px
+    );
+  }
+
 
 
 
