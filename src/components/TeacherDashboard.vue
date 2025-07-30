@@ -41,15 +41,6 @@
             🎓 Manage Classes
           </button>
           <button 
-            @click="activeTab = 'class-roster'"
-            :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'class-roster' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
-            ]"
-          >
-            👥 Class Roster
-          </button>
-          <button 
             @click="activeTab = 'assignments'"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
@@ -68,8 +59,12 @@
         :classes="classes"
         :student-assignments="studentAssignments"
         :recent-activity="recentActivity"
+        :selected-class-for-roster="selectedClassForRoster"
+        :class-roster="classRoster"
+        :is-loading-roster="isLoadingRoster"
         @change-tab="activeTab = $event"
         @select-student="selectStudent"
+        @select-class-for-roster="selectClassForRoster"
       />
 
       <CreateClassTab 
@@ -88,15 +83,6 @@
         @select-class="selectedClass = $event"
         @copy-class-code="copyClassCode"
         @send-email="sendEmail"
-      />
-
-      <ClassRosterTab 
-        v-if="activeTab === 'class-roster'"
-        :classes="classes"
-        :selected-class-for-roster="selectedClassForRoster"
-        :class-roster="classRoster"
-        :is-loading-roster="isLoadingRoster"
-        @select-class-for-roster="selectClassForRoster"
       />
 
       <AssignmentsTab 
@@ -124,7 +110,6 @@ import { useAuth } from '../composables/useAuth'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
 import CreateClassTab from './TeacherDashboard/CreateClassTab.vue'
 import ManageClassesTab from './TeacherDashboard/ManageClassesTab.vue'
-import ClassRosterTab from './TeacherDashboard/ClassRosterTab.vue'
 import AssignmentsTab from './TeacherDashboard/AssignmentsTab.vue'
 
 const teacherEmail = computed(() => currentUser.value?.email || 'teacher@school.edu')

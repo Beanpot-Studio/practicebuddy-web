@@ -75,17 +75,75 @@
           {{ allStudents.length }} total students
         </div>
       </div>
+
+      <!-- Class Selection -->
+      <div class="mb-6">
+        <div class="flex items-center gap-3 mb-4">
+          <h4 class="text-lg font-semibold text-gray-700">Filter by Class:</h4>
+          <button 
+            @click="$emit('selectClassForRoster', null)"
+            :class="[
+              'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+              !selectedClassForRoster 
+                ? 'bg-yellow-500 text-white shadow-sm' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ]"
+          >
+            All Classes ({{ allStudents.length }})
+          </button>
+          <div 
+            v-for="classItem in classes" 
+            :key="classItem.id"
+            @click="$emit('selectClassForRoster', classItem)"
+            :class="[
+              'px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all duration-200',
+              selectedClassForRoster?.id === classItem.id
+                ? 'bg-yellow-500 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ]"
+          >
+            {{ classItem.name }} ({{ classItem.studentCount }})
+          </div>
+        </div>
+      </div>
       
-      <div v-if="allStudents.length === 0" class="text-center py-8">
+      <!-- Loading State -->
+      <div v-if="isLoadingRoster" class="text-center py-8">
+        <div class="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-gray-600">Loading roster...</p>
+      </div>
+      
+      <!-- No Students State -->
+      <div v-else-if="displayStudents.length === 0" class="text-center py-8">
         <div class="text-4xl mb-4">🎵</div>
-        <h4 class="text-lg font-semibold text-gray-800 mb-2">No Students Yet</h4>
-        <p class="text-gray-600 mb-4">Students will appear here once they join your classes using the class codes.</p>
+        <h4 class="text-lg font-semibold text-gray-800 mb-2">
+          {{ selectedClassForRoster ? `No Students in ${selectedClassForRoster.name}` : 'No Students Yet' }}
+        </h4>
+        <p class="text-gray-600 mb-4">
+          {{ selectedClassForRoster 
+            ? 'Students will appear here when they join using the class code.' 
+            : 'Students will appear here once they join your classes using the class codes.' 
+          }}
+        </p>
         <button class="btn btn-primary" @click="$emit('changeTab', 'create-class')">
           Create Your First Class
         </button>
       </div>
       
+      <!-- Students Table -->
       <div v-else class="overflow-x-auto">
+        <div v-if="selectedClassForRoster" class="mb-4 p-3 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-yellow-800">{{ selectedClassForRoster.name }}</span>
+              <span class="text-sm text-yellow-600">Class Roster</span>
+            </div>
+            <div class="text-sm text-yellow-600">
+              Class Code: <span class="font-mono bg-yellow-100 px-2 py-1 rounded">{{ selectedClassForRoster.code }}</span>
+            </div>
+          </div>
+        </div>
+        
         <table class="w-full">
           <thead>
             <tr class="border-b-2 border-gray-200">
@@ -100,7 +158,7 @@
           </thead>
           <tbody>
             <tr 
-              v-for="student in allStudents" 
+              v-for="student in displayStudents" 
               :key="student.studentId"
               class="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
               @click="$emit('selectStudent', student)"
@@ -165,16 +223,38 @@ const props = defineProps({
   recentActivity: {
     type: Array,
     default: () => []
+  },
+  selectedClassForRoster: {
+    type: Object,
+    default: null
+  },
+  classRoster: {
+    type: Array,
+    default: () => []
+  },
+  isLoadingRoster: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['changeTab', 'selectStudent'])
+const emit = defineEmits(['changeTab', 'selectStudent', 'selectClassForRoster'])
 
 const totalStudents = computed(() => props.allStudents.length)
 const totalAssignments = computed(() => {
   return Object.values(props.studentAssignments).reduce((total, count) => {
     return total + (count || 0)
   }, 0)
+})
+
+const displayStudents = computed(() => {
+  if (props.selectedClassForRoster) {
+    // Show students from the selected class roster
+    return props.classRoster
+  } else {
+    // Show all students
+    return props.allStudents
+  }
 })
 
 const getStudentAvatar = (instrument) => {
