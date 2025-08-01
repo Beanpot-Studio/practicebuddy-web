@@ -27,6 +27,7 @@ export const submitPreLaunchSignup = async (signupData) => {
       email: signupData.email.toLowerCase().trim(),
       role: signupData.role,
       instrument: signupData.instrument?.trim() || '',
+      mailingListOptIn: signupData.mailingListOptIn || false,
       createdAt: serverTimestamp(),
       source: 'pre-launch-screen',
       status: 'pending'
