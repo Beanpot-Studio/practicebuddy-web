@@ -134,6 +134,22 @@
               </div>
             </div>
 
+            <!-- Mailing List Opt-in -->
+            <div class="space-y-2">
+              <div class="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <input 
+                  id="mailing-list"
+                  v-model="mailingListOptIn"
+                  type="checkbox"
+                  class="mt-1 w-5 h-5 text-musical-primary border-gray-300 rounded focus:ring-musical-primary focus:ring-2"
+                />
+                <label for="mailing-list" class="text-sm text-gray-700 leading-relaxed">
+                  <span class="font-semibold text-blue-800">📧 Join our mailing list</span><br>
+                  <span class="text-gray-600">Receive updates about new features, practice tips, and exclusive content. You can unsubscribe at any time.</span>
+                </label>
+              </div>
+            </div>
+
             <!-- Error Message -->
             <div v-if="hasError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
               {{ errorMessage }}
@@ -197,6 +213,7 @@ defineEmits(['exit-pre-launch'])
 const email = ref('')
 const role = ref('student')
 const instrument = ref('')
+const mailingListOptIn = ref(false)
 const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 const hasError = ref(false)
@@ -240,7 +257,8 @@ const submitEmail = async () => {
     const result = await submitPreLaunchSignup({
       email: email.value.trim(),
       role: role.value,
-      instrument: instrument.value.trim()
+      instrument: instrument.value.trim(),
+      mailingListOptIn: mailingListOptIn.value
     })
     
     if (result.success) {
@@ -250,6 +268,7 @@ const submitEmail = async () => {
       email.value = ''
       role.value = 'student'
       instrument.value = ''
+      mailingListOptIn.value = false
     } else {
       throw new Error(result.message || 'Failed to submit signup')
     }
