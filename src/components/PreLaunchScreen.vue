@@ -190,12 +190,21 @@
     </div>
 
     <!-- Footer -->
-    <div class="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-md border-t border-white/20 py-4">
+    <div class="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-md border-t border-white/20 py-4 z-20">
       <div class="container text-center">
-        <p class="text-white/80 text-sm">
+        <p class="text-white/80 text-sm mb-2">
           © {{ new Date().getFullYear() }} Practice Buddy. Made with ❤️ by 
-          <a href="https://beanpotstudio.com" class="text-white hover:underline font-semibold">Beanpot Studio</a>
+          <a href="https://beanpotstudio.com" target="_blank" rel="noopener noreferrer" class="text-white hover:underline font-semibold cursor-pointer transition-colors hover:text-white">Beanpot Studio</a>
         </p>
+        <div class="flex justify-center items-center gap-4 text-xs">
+          <a href="https://beanpotstudio.com/privacy" target="_blank" rel="noopener noreferrer" class="text-white/70 hover:text-white transition-colors hover:underline">
+            Privacy Policy
+          </a>
+          <span class="text-white/50">•</span>
+          <a href="https://beanpotstudio.com/terms" target="_blank" rel="noopener noreferrer" class="text-white/70 hover:text-white transition-colors hover:underline">
+            Terms of Service
+          </a>
+        </div>
       </div>
     </div>
     
