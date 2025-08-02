@@ -141,6 +141,22 @@
               </div>
             </div>
 
+            <!-- Mailing List Opt-in -->
+            <div class="space-y-2">
+              <div class="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <input 
+                  id="mailing-list"
+                  v-model="mailingListOptIn"
+                  type="checkbox"
+                  class="mt-1 w-5 h-5 text-musical-primary border-gray-300 rounded focus:ring-musical-primary focus:ring-2"
+                />
+                <label for="mailing-list" class="text-sm text-gray-700 leading-relaxed">
+                  <span class="font-semibold text-blue-800">📧 Join our mailing list</span><br>
+                  <span class="text-gray-600">Receive updates about new features, practice tips, and exclusive content. You can unsubscribe at any time.</span>
+                </label>
+              </div>
+            </div>
+
             <!-- Error Message -->
             <div v-if="hasError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
               {{ errorMessage }}
@@ -184,12 +200,21 @@
     </div>
 
     <!-- Footer -->
-    <div class="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-md border-t border-white/20 py-4">
+    <div class="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-md border-t border-white/20 py-4 z-20">
       <div class="container text-center">
-        <p class="text-white/80 text-sm flex items-center justify-center gap-1">
-          © {{ new Date().getFullYear() }} Practice Buddy. Made with <Heart class="w-3 h-3 text-red-400" /> by 
-          <a href="https://beanpotstudio.com" class="text-white hover:underline font-semibold">Beanpot Studio</a>
+        <p class="text-white/80 text-sm mb-2">
+          © {{ new Date().getFullYear() }} Practice Buddy. Made with ❤️ by 
+          <a href="https://beanpotstudio.com" target="_blank" rel="noopener noreferrer" class="text-white hover:underline font-semibold cursor-pointer transition-colors hover:text-white">Beanpot Studio</a>
         </p>
+        <div class="flex justify-center items-center gap-4 text-xs">
+          <a href="https://beanpotstudio.com/privacy" target="_blank" rel="noopener noreferrer" class="text-white/70 hover:text-white transition-colors hover:underline">
+            Privacy Policy
+          </a>
+          <span class="text-white/50">•</span>
+          <a href="https://beanpotstudio.com/terms" target="_blank" rel="noopener noreferrer" class="text-white/70 hover:text-white transition-colors hover:underline">
+            Terms of Service
+          </a>
+        </div>
       </div>
     </div>
     
@@ -208,6 +233,7 @@ defineEmits(['exit-pre-launch'])
 const email = ref('')
 const role = ref('student')
 const instrument = ref('')
+const mailingListOptIn = ref(false)
 const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 const hasError = ref(false)
@@ -251,7 +277,8 @@ const submitEmail = async () => {
     const result = await submitPreLaunchSignup({
       email: email.value.trim(),
       role: role.value,
-      instrument: instrument.value.trim()
+      instrument: instrument.value.trim(),
+      mailingListOptIn: mailingListOptIn.value
     })
     
     if (result.success) {
@@ -261,6 +288,7 @@ const submitEmail = async () => {
       email.value = ''
       role.value = 'student'
       instrument.value = ''
+      mailingListOptIn.value = false
     } else {
       throw new Error(result.message || 'Failed to submit signup')
     }
