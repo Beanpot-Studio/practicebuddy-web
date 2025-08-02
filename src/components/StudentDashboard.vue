@@ -56,6 +56,11 @@
           :is-loading-assignments="isLoadingAssignments"
         />
         
+        <!-- Practice Goals Card -->
+        <PracticeGoalsCard
+          :student-id="currentUser?.uid"
+        />
+        
         <!-- Achievements Card -->
         <AchievementsCard :achievements="achievements" />
         
@@ -113,6 +118,7 @@ import ClassAssignmentsCard from './StudentDashboard/ClassAssignmentsCard.vue'
 import AchievementsCard from './StudentDashboard/AchievementsCard.vue'
 import StandalonePracticeCard from './StudentDashboard/StandalonePracticeCard.vue'
 import RecordingModal from './StudentDashboard/RecordingModal.vue'
+import PracticeGoalsCard from './StudentDashboard/PracticeGoalsCard.vue'
 
 const props = defineProps({
   studentName: {
@@ -131,7 +137,9 @@ const {
   createStandalonePractice,
   fetchStandalonePractices,
   getUserPracticeStats,
-  getTeacherClasses
+  getTeacherClasses,
+  getStudentPracticeGoals,
+  updatePracticeGoalProgress
 } = useAuth()
 
 const totalPracticeTime = ref(45)
@@ -163,19 +171,19 @@ const recordings = ref([
     id: 1,
     title: 'Piano Practice - Scales',
     date: new Date(2024, 0, 15),
-    stickers: ['⭐', '🎵', '👍']
+    stickers: ['star', 'music', 'thumbs-up']
   },
   {
     id: 2,
     title: 'Guitar Creation - Chords',
     date: new Date(2024, 0, 14),
-    stickers: ['🎸', '💫']
+    stickers: ['guitar', 'sparkles']
   },
   {
     id: 3,
     title: 'Violin Performance',
     date: new Date(2024, 0, 13),
-    stickers: ['🎻', '🌟', '🎯']
+    stickers: ['violin', 'star', 'target']
   }
 ])
 
@@ -184,28 +192,28 @@ const achievements = ref([
     id: 1,
     title: 'First Week Star',
     description: 'Practice 7 days in a row',
-    icon: '🗓️',
+    icon: 'calendar',
     earned: true
   },
   {
     id: 2,
     title: 'Speed Musician',
     description: 'Practice 60 minutes in one day',
-    icon: '⚡',
+    icon: 'zap',
     earned: true
   },
   {
     id: 3,
     title: 'Multi-Instrumentalist',
     description: 'Practice with 3 different instruments',
-    icon: '🎭',
+    icon: 'music',
     earned: false
   },
   {
     id: 4,
     title: 'Recording Master',
     description: 'Create 10 musical recordings',
-    icon: '🌟',
+    icon: 'star',
     earned: false
   }
 ])
@@ -253,11 +261,12 @@ const handlePracticeSession = async (practiceData) => {
   
   console.log('Selected instrument:', selectedInstrumentObj, 'Instrument name:', instrumentName)
   
-  // Update total practice time with actual duration
+  // Update total practice time with actual duration, rounded up to next minute
   const actualMinutes = practiceData.actualDuration || 0
-  console.log('Actual minutes practiced:', actualMinutes)
+  const roundedMinutes = Math.ceil(actualMinutes) // Round up to next whole minute
+  console.log('Actual minutes practiced:', actualMinutes, 'Rounded up to:', roundedMinutes)
   
-  totalPracticeTime.value += actualMinutes
+  totalPracticeTime.value += roundedMinutes
   
   // Record practice session in Firebase
   try {
@@ -267,7 +276,7 @@ const handlePracticeSession = async (practiceData) => {
       const result = await updateStudentPracticeActivity(
         practiceData.classCode,
         currentUser.value.uid,
-        actualMinutes
+        roundedMinutes
       )
       console.log('Class practice recording result:', result)
       
@@ -279,10 +288,11 @@ const handlePracticeSession = async (practiceData) => {
       console.log('Recording standalone practice for user:', currentUser.value.uid)
       const standalonePracticeData = {
         instrument: practiceData.instrument,
-        practiceMinutes: actualMinutes,
+        practiceMinutes: roundedMinutes,
         description: practiceData.description || `${instrumentName} practice session`,
         completed: practiceData.completed,
-        actualDuration: actualMinutes,
+        actualDuration: actualMinutes, // Keep original for reference
+        roundedDuration: roundedMinutes, // Add rounded value
         timestamp: new Date().toISOString()
       }
       
@@ -304,21 +314,25 @@ const handlePracticeSession = async (practiceData) => {
         console.error('Error recording standalone practice session:', result.error)
       }
     }
+
+    // Update practice goal progress
+    await updateLocalPracticeGoalProgress(practiceData)
+    
   } catch (error) {
     console.error('Error recording practice session:', error)
   }
   
-  // Show success notification
+  // Show success notification with rounded time
   const classInfo = practiceData.classCode ? ` for ${practiceData.className || practiceData.classCode}` : ''
   if (practiceData.completed) {
     showSuccessNotification(
       '🎉 Practice Complete!',
-      `Great job! You completed ${practiceData.actualDuration} minutes of ${instrumentName} practice${classInfo}.`
+      `Great job! You completed ${roundedMinutes} minutes of ${instrumentName} practice${classInfo}.`
     )
   } else {
     showSuccessNotification(
       'Practice Session Ended',
-      `You practiced ${practiceData.actualDuration} minutes of ${instrumentName}${classInfo}.`
+      `You practiced ${roundedMinutes} minutes of ${instrumentName}${classInfo}.`
     )
   }
   
@@ -327,6 +341,31 @@ const handlePracticeSession = async (practiceData) => {
   practiceTime.value = 30
   practiceDescription.value = ''
   selectedClass.value = null
+}
+
+const updateLocalPracticeGoalProgress = async (practiceData) => {
+  try {
+    // Get current practice goals
+    const goalsResult = await getStudentPracticeGoals(currentUser.value.uid)
+    
+    if (goalsResult.success && goalsResult.goals.length > 0) {
+      const activeGoals = goalsResult.goals.filter(goal => goal.status === 'active')
+      
+      // Update progress for each active goal
+      for (const goal of activeGoals) {
+        await updatePracticeGoalProgress(
+          currentUser.value.uid,
+          goal.id,
+          goal.type,
+          practiceData.classCode
+        )
+      }
+      
+      console.log('Practice goal progress updated successfully')
+    }
+  } catch (error) {
+    console.error('Error updating practice goal progress:', error)
+  }
 }
 
 const loadEnrolledClasses = async () => {

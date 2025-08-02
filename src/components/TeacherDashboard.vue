@@ -1,147 +1,164 @@
 <template>
-  <div class="min-h-screen bg-musical-primary py-5">
-    <div class="container">
-      <div class="text-center mb-10 text-white flex flex-col items-center gap-3">
-        <div class="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
-          👩‍🏫
+  <div class="min-h-screen bg-musical-primary p-6">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
+            <GraduationCap class="w-6 h-6 text-black" />
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-black">Teacher Dashboard</h1>
+            <p class="text-black/80">Welcome back, {{ currentUser?.displayName || 'Teacher' }}!</p>
+          </div>
         </div>
-        <h2 class="text-3xl font-bold text-musical-graphite">Teacher Hub</h2>
-        <p class="text-lg opacity-95 font-medium text-musical-graphite">Help your students develop amazing musical skills!</p>
-        <p class="text-sm opacity-80 italic text-musical-graphite">Teaching with: {{ teacherEmail }}</p>
+      
       </div>
 
-      <!-- Tab Navigation -->
-      <div class="flex justify-center mb-8">
-        <div class="bg-gray-100 rounded-xl p-1 flex shadow-[0_4px_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
-          <button 
-            @click="activeTab = 'overview'"
+      <!-- Navigation Tabs -->
+      <div class="bg-white rounded-3xl p-2 mb-8 shadow-lg">
+        <div class="flex space-x-2">
+          <button
+            @click="changeTab('overview')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
               activeTab === 'overview' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
             ]"
           >
-            📊 Overview
+            <BarChart3 class="w-4 h-4" />
+            Overview
           </button>
-          <button 
-            @click="activeTab = 'create-class'"
+          <button
+            @click="changeTab('create-class')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
               activeTab === 'create-class' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
             ]"
           >
-            ➕ Create Class
+            <Plus class="w-4 h-4" />
+            Create Class
           </button>
-          <button 
-            @click="activeTab = 'manage-classes'"
+          <button
+            @click="changeTab('manage-classes')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
               activeTab === 'manage-classes' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
             ]"
           >
-            🎓 Manage Classes
+            <GraduationCap class="w-4 h-4" />
+            Manage Classes
           </button>
-          <button 
-            @click="activeTab = 'assignments'"
+          <button
+            @click="changeTab('assignments')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
               activeTab === 'assignments' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
             ]"
           >
-            📚 Assignments
+            <BookOpen class="w-4 h-4" />
+            Assignments
+          </button>
+          <button
+            @click="changeTab('goals')"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'goals' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+            ]"
+          >
+            <Target class="w-4 h-4" />
+            Goals
           </button>
         </div>
       </div>
 
       <!-- Tab Content -->
-      <OverviewTab 
-        v-if="activeTab === 'overview'"
-        :all-students="allStudents"
-        :classes="classes"
-        :student-assignments="studentAssignments"
-        :recent-activity="recentActivity"
-        :selected-class-for-roster="selectedClassForRoster"
-        :class-roster="classRoster"
-        :is-loading-roster="isLoadingRoster"
-        @change-tab="activeTab = $event"
-        @select-student="selectStudent"
-        @select-class-for-roster="selectClassForRoster"
-      />
-
-      <CreateClassTab 
-        v-if="activeTab === 'create-class'"
-        :new-class="newClass"
-        :is-creating-class="isCreatingClass"
-        @create-class="createNewClass"
-      />
-
-      <ManageClassesTab 
-        v-if="activeTab === 'manage-classes'"
-        :classes="classes"
-        :selected-class="selectedClass"
-        @load-classes="loadClasses"
-        @change-tab="activeTab = $event"
-        @select-class="selectedClass = $event"
-        @copy-class-code="copyClassCode"
-        @send-email="sendEmail"
-      />
-
-      <AssignmentsTab 
-        v-if="activeTab === 'assignments'"
-        :classes="classes"
-        :selected-class-for-assignments="selectedClassForAssignments"
-        :new-assignment="newAssignment"
-        :class-roster="classRoster"
-        :class-assignments="classAssignments"
-        :is-loading-assignments="isLoadingAssignments"
-        :is-creating-assignment="isCreatingAssignment"
-        @load-classes="loadClasses"
-        @change-tab="activeTab = $event"
-        @select-class-for-assignments="selectClassForAssignments"
-        @create-new-assignment="createNewAssignment"
-        @delete-assignment="deleteAssignment"
-      />
+      <div class="space-y-6">
+        <OverviewTab
+          v-if="activeTab === 'overview'"
+          :current-user="currentUser"
+          :classes="classes"
+          :is-loading="isLoadingClasses"
+          :error="classesError"
+          :all-students="allStudents"
+          :student-assignments="studentAssignments"
+          :recent-activity="recentActivity"
+          :selected-class-for-roster="selectedClassForRoster"
+          :class-roster="classRoster"
+          :is-loading-roster="isLoadingRoster"
+          @load-classes="loadClasses"
+          @select-class-for-roster="selectClassForRoster"
+          @select-student="selectStudent"
+        />
+        <CreateClassTab
+          v-if="activeTab === 'create-class'"
+          :current-user="currentUser"
+          :new-class="newClass"
+          :is-creating-class="isCreatingClass"
+          @class-created="onClassCreated"
+          @create-class="createClass"
+        />
+        <ManageClassesTab
+          v-if="activeTab === 'manage-classes'"
+          :classes="classes"
+          :selected-class="selectedClass"
+          :is-loading="isLoadingClasses"
+          :error="classesError"
+          @load-classes="loadClasses"
+          @change-tab="changeTab"
+          @select-class="selectClass"
+          @copy-class-code="copyClassCode"
+          @send-email="sendEmail"
+        />
+        <AssignmentsTab
+          v-if="activeTab === 'assignments'"
+          :current-user="currentUser"
+          :classes="classes"
+          :is-loading="isLoadingClasses"
+          :error="classesError"
+          :selected-class-for-assignments="selectedClassForAssignments"
+          :new-assignment="newAssignment"
+          :class-roster="classRoster"
+          :class-assignments="classAssignments"
+          :is-loading-assignments="isLoadingAssignments"
+          :is-creating-assignment="isCreatingAssignment"
+          @load-classes="loadClasses"
+          @change-tab="changeTab"
+          @select-class-for-assignments="selectClassForAssignments"
+          @create-new-assignment="createNewAssignment"
+          @delete-assignment="deleteAssignment"
+        />
+        <GoalsTab
+          v-if="activeTab === 'goals'"
+          :current-user="currentUser"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
 import CreateClassTab from './TeacherDashboard/CreateClassTab.vue'
 import ManageClassesTab from './TeacherDashboard/ManageClassesTab.vue'
 import AssignmentsTab from './TeacherDashboard/AssignmentsTab.vue'
+import GoalsTab from './TeacherDashboard/GoalsTab.vue'
+import { 
+  GraduationCap, 
+  BarChart3, 
+  Plus, 
+  BookOpen, 
+  Target 
+} from 'lucide-vue-next'
 
-const teacherEmail = computed(() => currentUser.value?.email || 'teacher@school.edu')
-
-// Authentication
-const { 
-  createTeacherClass, 
-  fetchTeacherClasses, 
-  fetchClassRoster, 
-  createClassAssignment, 
-  fetchClassAssignments, 
-  deleteClassAssignment, 
-  currentUser 
-} = useAuth()
+const { currentUser, fetchTeacherClasses, createTeacherClass, fetchClassRoster, fetchClassAssignments } = useAuth()
 
 const activeTab = ref('overview')
-
-// Reactive data
 const classes = ref([])
-const allStudents = ref([])
-const studentAssignments = ref({})
-const recentActivity = ref([])
 const selectedClass = ref(null)
-const selectedClassForRoster = ref(null)
-const selectedClassForAssignments = ref(null)
-const classRoster = ref([])
-const classAssignments = ref([])
-const isLoadingRoster = ref(false)
-const isLoadingAssignments = ref(false)
-const isCreatingClass = ref(false)
-const isCreatingAssignment = ref(false)
-
+const isLoadingClasses = ref(false)
+const classesError = ref(null)
 const newClass = ref({
   name: '',
   description: '',
@@ -149,128 +166,220 @@ const newClass = ref({
   level: '',
   schedule: ''
 })
+const isCreatingClass = ref(false)
 
+// OverviewTab props
+const allStudents = ref([])
+const studentAssignments = ref({})
+const recentActivity = ref([])
+const selectedClassForRoster = ref(null)
+const classRoster = ref([])
+const isLoadingRoster = ref(false)
+
+// AssignmentsTab props
+const selectedClassForAssignments = ref(null)
 const newAssignment = ref({
   type: 'class',
-  studentId: '',
   title: '',
   description: '',
+  practiceMinutes: '',
   dueDate: '',
-  practiceMinutes: ''
+  studentId: ''
+})
+const classAssignments = ref([])
+const isLoadingAssignments = ref(false)
+const isCreatingAssignment = ref(false)
+
+// Debug: Watch for tab changes
+watch(activeTab, (newTab) => {
+  console.log('Active tab changed to:', newTab)
 })
 
-// Methods
 const loadClasses = async () => {
+  if (!currentUser.value?.uid) {
+    console.error('No current user found')
+    return
+  }
+
   try {
-    if (!currentUser.value?.uid) {
-      console.log('No current user, skipping class load')
-      return
-    }
+    isLoadingClasses.value = true
+    classesError.value = null
+    
+    console.log('Loading classes for teacher:', currentUser.value.uid)
     const result = await fetchTeacherClasses(currentUser.value.uid)
+    
     if (result.success) {
-      classes.value = result.classes
+      classes.value = result.classes || []
+      console.log('Classes loaded successfully:', classes.value)
+      
+      // Load all students from all classes
       await loadAllStudents()
+      
+      // Load assignments for all classes
+      await loadAllAssignments()
+    } else {
+      console.error('Failed to load classes:', result.error)
+      classesError.value = result.error || 'Failed to load classes'
     }
   } catch (error) {
     console.error('Error loading classes:', error)
+    classesError.value = error.message || 'Error loading classes'
+  } finally {
+    isLoadingClasses.value = false
   }
 }
 
 const loadAllStudents = async () => {
-  const allStudentsList = []
-  for (const classItem of classes.value) {
-    try {
-      const result = await fetchClassRoster(classItem.id)
-      if (result.success) {
-        const studentsWithClass = result.students.map(student => ({
-          ...student,
-          classCode: classItem.id,
-          className: classItem.name
-        }))
-        allStudentsList.push(...studentsWithClass)
-      }
-    } catch (error) {
-      console.error(`Error loading students for class ${classItem.id}:`, error)
-    }
+  if (classes.value.length === 0) {
+    allStudents.value = []
+    console.log('No classes found, setting allStudents to empty array')
+    return
   }
-  allStudents.value = allStudentsList
-  await loadStudentAssignments()
-}
 
-const loadStudentAssignments = async () => {
-  const assignments = {}
-  for (const student of allStudents.value) {
-    if (student.classCode) {
+  try {
+    isLoadingRoster.value = true
+    const allStudentsList = []
+
+    console.log('Loading students from', classes.value.length, 'classes')
+
+    // Load students from each class
+    for (const classItem of classes.value) {
       try {
-        const result = await fetchClassAssignments(student.classCode, student.studentId)
-        if (result.success) {
-          assignments[student.studentId] = result.assignments.length
+        console.log('Loading roster for class:', classItem.code, classItem.name)
+        const rosterResult = await fetchClassRoster(classItem.code)
+        if (rosterResult.success && rosterResult.students) {
+          console.log('Found', rosterResult.students.length, 'students in class', classItem.name)
+          // Add class info to each student
+          const studentsWithClass = rosterResult.students.map(student => ({
+            ...student,
+            className: classItem.name,
+            classCode: classItem.code
+          }))
+          allStudentsList.push(...studentsWithClass)
         } else {
-          assignments[student.studentId] = 0
+          console.log('No students found in class', classItem.name, 'or error:', rosterResult.error)
         }
       } catch (error) {
-        console.error(`Error loading assignments for student ${student.studentId}:`, error)
-        assignments[student.studentId] = 0
+        console.error(`Error loading roster for class ${classItem.code}:`, error)
       }
-    } else {
-      assignments[student.studentId] = 0
     }
-  }
-  studentAssignments.value = assignments
-  console.log('Loaded student assignments:', assignments)
-}
 
-const selectClassForRoster = async (classItem) => {
-  selectedClassForRoster.value = classItem
-  isLoadingRoster.value = true
-  try {
-    const result = await fetchClassRoster(classItem.id)
-    if (result.success) {
-      classRoster.value = result.students
+    // Remove duplicates (in case a student is in multiple classes)
+    const uniqueStudents = allStudentsList.filter((student, index, self) =>
+      index === self.findIndex(s => s.studentId === student.studentId)
+    )
+
+    allStudents.value = uniqueStudents
+    console.log('Total unique students loaded:', allStudents.value.length)
+    console.log('All students:', allStudents.value)
+    
+    // Update student assignments count if assignments are already loaded
+    if (classAssignments.value.length > 0) {
+      updateStudentAssignmentsCount()
     }
   } catch (error) {
-    console.error('Error loading class roster:', error)
+    console.error('Error loading all students:', error)
   } finally {
     isLoadingRoster.value = false
   }
 }
 
-const selectClassForAssignments = async (classItem) => {
-  selectedClassForAssignments.value = classItem
-  isLoadingAssignments.value = true
+const loadAllAssignments = async () => {
+  if (classes.value.length === 0) {
+    classAssignments.value = []
+    console.log('No classes found, setting classAssignments to empty array')
+    return
+  }
+
   try {
-    const result = await fetchClassAssignments(classItem.id)
-    if (result.success) {
-      classAssignments.value = result.assignments
+    isLoadingAssignments.value = true
+    const allAssignmentsList = []
+
+    console.log('Loading assignments from', classes.value.length, 'classes')
+
+    // Load assignments from each class
+    for (const classItem of classes.value) {
+      try {
+        console.log('Loading assignments for class:', classItem.code, classItem.name)
+        const assignmentsResult = await fetchClassAssignments(classItem.code)
+        if (assignmentsResult.success && assignmentsResult.assignments) {
+          console.log('Found', assignmentsResult.assignments.length, 'assignments in class', classItem.name)
+          // Add class info to each assignment
+          const assignmentsWithClass = assignmentsResult.assignments.map(assignment => ({
+            ...assignment,
+            className: classItem.name,
+            classCode: classItem.code
+          }))
+          allAssignmentsList.push(...assignmentsWithClass)
+        } else {
+          console.log('No assignments found in class', classItem.name, 'or error:', assignmentsResult.error)
+        }
+      } catch (error) {
+        console.error(`Error loading assignments for class ${classItem.code}:`, error)
+      }
     }
-    // Also load roster for individual assignment creation
-    const rosterResult = await fetchClassRoster(classItem.id)
-    if (rosterResult.success) {
-      classRoster.value = rosterResult.students
-    }
+
+    // Remove duplicates (in case an assignment is in multiple classes)
+    const uniqueAssignments = allAssignmentsList.filter((assignment, index, self) =>
+      index === self.findIndex(a => a.assignmentId === assignment.assignmentId)
+    )
+
+    classAssignments.value = uniqueAssignments
+    console.log('Total unique assignments loaded:', classAssignments.value.length)
+    console.log('All assignments:', classAssignments.value)
+    
+    // Update student assignments count
+    updateStudentAssignmentsCount()
   } catch (error) {
-    console.error('Error loading class assignments:', error)
+    console.error('Error loading all assignments:', error)
   } finally {
     isLoadingAssignments.value = false
   }
 }
 
-const createNewClass = async () => {
-  if (!newClass.value.name || !newClass.value.instrument || !newClass.value.level) {
-    alert('Please fill in all required fields.')
-    return
-  }
+const updateStudentAssignmentsCount = () => {
+  const studentAssignmentCounts = {}
+  
+  // Count assignments per student
+  classAssignments.value.forEach(assignment => {
+    if (assignment.studentId) {
+      // Individual assignment
+      if (!studentAssignmentCounts[assignment.studentId]) {
+        studentAssignmentCounts[assignment.studentId] = 0
+      }
+      studentAssignmentCounts[assignment.studentId]++
+    } else {
+      // Class assignment - count for all students in that class
+      const classStudents = allStudents.value.filter(student => 
+        student.classCode === assignment.classCode
+      )
+      classStudents.forEach(student => {
+        if (!studentAssignmentCounts[student.studentId]) {
+          studentAssignmentCounts[student.studentId] = 0
+        }
+        studentAssignmentCounts[student.studentId]++
+      })
+    }
+  })
+  
+  studentAssignments.value = studentAssignmentCounts
+  console.log('Updated student assignments count:', studentAssignments.value)
+}
 
+const createClass = async () => {
   if (!currentUser.value?.uid) {
-    alert('Please log in to create a class.')
+    console.error('No current user found')
     return
   }
 
-  isCreatingClass.value = true
   try {
+    isCreatingClass.value = true
+    console.log('Creating class:', newClass.value)
+    
     const result = await createTeacherClass(currentUser.value.uid, newClass.value)
+    
     if (result.success) {
-      alert(`✅ Class "${result.class.name}" created successfully!`)
+      console.log('Class created successfully:', result.class)
       // Reset form
       newClass.value = {
         name: '',
@@ -279,146 +388,92 @@ const createNewClass = async () => {
         level: '',
         schedule: ''
       }
-      // Reload classes
+      // Refresh classes and switch to manage tab
       await loadClasses()
-      activeTab.value = 'overview'
+      activeTab.value = 'manage-classes'
     } else {
-      alert(`Error creating class: ${result.error}`)
+      console.error('Failed to create class:', result.error)
+      // You could add error handling here
     }
   } catch (error) {
-    console.error('Class creation error:', error)
-    alert('Error creating class. Please try again.')
+    console.error('Error creating class:', error)
   } finally {
     isCreatingClass.value = false
   }
 }
 
+const onClassCreated = () => {
+  loadClasses()
+  activeTab.value = 'manage-classes'
+}
+
+const changeTab = (tab) => {
+  console.log('Changing tab to:', tab)
+  activeTab.value = tab
+}
+
+const selectClass = (classItem) => {
+  selectedClass.value = classItem
+}
+
+const copyClassCode = (code) => {
+  navigator.clipboard.writeText(code)
+  // You could add a toast notification here
+}
+
+const sendEmail = (classItem) => {
+  // Implement email functionality
+  console.log('Send email to class:', classItem)
+}
+
+const selectClassForAssignments = (classItem) => {
+  selectedClassForAssignments.value = classItem
+  // TODO: Load class roster and assignments for this class
+  console.log('Selected class for assignments:', classItem)
+}
+
 const createNewAssignment = async () => {
-  if (!selectedClassForAssignments.value?.id) {
-    alert('Please select a class first.')
-    return
-  }
-
-  if (!newAssignment.value.title || !newAssignment.value.dueDate) {
-    alert('Please fill in all required fields.')
-    return
-  }
-
-  if (newAssignment.value.type === 'individual' && !newAssignment.value.studentId) {
-    alert('Please select a student for individual assignment.')
-    return
-  }
-
-  isCreatingAssignment.value = true
-  try {
-    const assignmentData = {
-      title: newAssignment.value.title,
-      description: newAssignment.value.description,
-      dueDate: newAssignment.value.dueDate,
-      practiceMinutes: newAssignment.value.practiceMinutes ? parseInt(newAssignment.value.practiceMinutes) : null
-    }
-
-    const result = await createClassAssignment(
-      selectedClassForAssignments.value.id, 
-      assignmentData, 
-      newAssignment.value.type, 
-      newAssignment.value.studentId || null,
-      currentUser.value?.uid
-    )
-
-    if (result.success) {
-      classAssignments.value.push(result.assignment)
-      await loadStudentAssignments()
-      
-      const assignmentType = result.assignment.type === 'class' ? 'Class' : 'Individual'
-      alert(`✅ ${assignmentType} assignment "${result.assignment.title}" created successfully!`)
-      
-      // Reset form
-      newAssignment.value = {
-        type: 'class',
-        studentId: '',
-        title: '',
-        description: '',
-        dueDate: '',
-        practiceMinutes: ''
-      }
-    } else {
-      if (result.error === 'Class not found') {
-        alert('❌ Error: Class not found. Please make sure you have created a class first and try again.')
-      } else {
-        alert(`Error creating assignment: ${result.error}`)
-      }
-    }
-  } catch (error) {
-    console.error('Assignment creation error:', error)
-    alert('Error creating assignment. Please try again.')
-  } finally {
-    isCreatingAssignment.value = false
-  }
+  // TODO: Implement assignment creation
+  console.log('Creating new assignment:', newAssignment.value)
 }
 
 const deleteAssignment = async (assignmentId) => {
-  if (!selectedClassForAssignments.value?.id) {
-    alert('Please select a class first.')
-    return
-  }
+  // TODO: Implement assignment deletion
+  console.log('Deleting assignment:', assignmentId)
+}
 
-  if (!assignmentId) {
-    alert('Please select an assignment to delete.')
-    return
+const selectClassForRoster = (classItem) => {
+  selectedClassForRoster.value = classItem
+  if (classItem) {
+    // Load roster for specific class
+    loadClassRoster(classItem.code)
+  } else {
+    // Show all students
+    classRoster.value = allStudents.value
   }
+}
 
-  if (!confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) {
-    return
-  }
-
+const loadClassRoster = async (classCode) => {
   try {
-    const result = await deleteClassAssignment(selectedClassForAssignments.value.id, assignmentId)
-    
+    isLoadingRoster.value = true
+    const result = await fetchClassRoster(classCode)
     if (result.success) {
-      const assignmentIndex = classAssignments.value.findIndex(assignment => assignment.id === assignmentId)
-      if (assignmentIndex !== -1) {
-        classAssignments.value.splice(assignmentIndex, 1)
-      }
-      await loadStudentAssignments()
-      alert('✅ Assignment deleted successfully!')
-    } else {
-      alert(`Error deleting assignment: ${result.error}`)
+      classRoster.value = result.students || []
     }
   } catch (error) {
-    console.error('Assignment deletion error:', error)
-    alert('Error deleting assignment. Please try again.')
+    console.error('Error loading class roster:', error)
+  } finally {
+    isLoadingRoster.value = false
   }
 }
 
 const selectStudent = (student) => {
+  // TODO: Implement student selection
   console.log('Selected student:', student)
-  // Handle student selection if needed
 }
 
-const copyClassCode = (classCode) => {
-  navigator.clipboard.writeText(classCode).then(() => {
-    alert('✅ Class code copied to clipboard!')
-  }).catch(() => {
-    alert('❌ Failed to copy class code. Please copy manually: ' + classCode)
-  })
-}
-
-const sendEmail = (classItem) => {
-  alert('Email functionality not implemented yet.')
-}
-
-// Load classes when component mounts
-onMounted(async () => {
-  await loadClasses()
+onMounted(() => {
+  console.log('TeacherDashboard mounted, currentUser:', currentUser.value)
+  loadClasses()
 })
-
-// Watch for current user changes and reload classes
-watch(currentUser, (newUser) => {
-  console.log('Current user changed:', newUser)
-  if (newUser && newUser.role === 'teacher') {
-    console.log('Loading classes for teacher:', newUser.uid)
-    loadClasses()
-  }
-}, { immediate: true })
 </script>

@@ -1,13 +1,20 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-musical-primary via-blue-600 to-purple-700 relative overflow-hidden">
-    <!-- Background musical notes -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-20 left-10 text-4xl text-white/10 animate-bounce">🎵</div>
-      <div class="absolute top-40 right-20 text-3xl text-white/10 animate-pulse">🎼</div>
-      <div class="absolute bottom-40 left-20 text-5xl text-white/10 animate-bounce" style="animation-delay: 1s;">🎻</div>
-      <div class="absolute bottom-20 right-10 text-4xl text-white/10 animate-pulse" style="animation-delay: 2s;">🎹</div>
-      <div class="absolute top-1/2 left-1/4 text-3xl text-white/10 animate-bounce" style="animation-delay: 0.5s;">🎸</div>
-      <div class="absolute top-1/3 right-1/3 text-4xl text-white/10 animate-pulse" style="animation-delay: 1.5s;">🎺</div>
+    <!-- Animated Background Elements -->
+    <div class="absolute top-20 left-10 text-4xl text-white/10 animate-bounce">
+      <Music class="w-12 h-12" />
+    </div>
+    <div class="absolute bottom-40 left-20 text-5xl text-white/10 animate-bounce" style="animation-delay: 1s;">
+      <Music class="w-16 h-16" />
+    </div>
+    <div class="absolute bottom-20 right-10 text-4xl text-white/10 animate-pulse" style="animation-delay: 2s;">
+      <Music class="w-12 h-12" />
+    </div>
+    <div class="absolute top-1/2 left-1/4 text-3xl text-white/10 animate-bounce" style="animation-delay: 0.5s;">
+      <Music class="w-10 h-10" />
+    </div>
+    <div class="absolute top-1/3 right-1/3 text-4xl text-white/10 animate-pulse" style="animation-delay: 1.5s;">
+      <Music class="w-12 h-12" />
     </div>
 
     <div class="relative z-10 min-h-screen flex items-center justify-center p-6 pb-24">
@@ -31,25 +38,25 @@
         <!-- Features Preview -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-lg">
-            <div class="text-3xl mb-3">🎵</div>
+            <Music class="w-8 h-8 text-white mb-3" />
             <h3 class="text-xl font-bold text-white mb-2">Smart Practice Tracking</h3>
             <p class="text-white/80 text-sm">Track practice sessions with intelligent insights and progress analytics.</p>
           </div>
           
           <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-lg">
-            <div class="text-3xl mb-3">👩‍🏫</div>
+            <GraduationCap class="w-8 h-8 text-white mb-3" />
             <h3 class="text-xl font-bold text-white mb-2">Teacher Dashboard</h3>
             <p class="text-white/80 text-sm">Comprehensive tools for teachers to guide and motivate their students.</p>
           </div>
           
           <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-lg">
-            <div class="text-3xl mb-3">🌟</div>
+            <Star class="w-8 h-8 text-white mb-3" />
             <h3 class="text-xl font-bold text-white mb-2">Achievement System</h3>
             <p class="text-white/80 text-sm">Earn stickers and rewards for practice milestones and achievements.</p>
           </div>
           
           <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-lg">
-            <div class="text-3xl mb-3">📈</div>
+            <BarChart3 class="w-8 h-8 text-white mb-3" />
             <h3 class="text-xl font-bold text-white mb-2">Progress Analytics</h3>
             <p class="text-white/80 text-sm">Beautiful charts and insights to track musical growth over time.</p>
           </div>
@@ -140,8 +147,9 @@
             </div>
 
             <!-- Success Message -->
-            <div v-if="isSubmitted" class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-              🎉 Thanks for signing up! We'll notify you as soon as Practice Buddy launches.
+            <div v-if="isSubmitted" class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2">
+              <CheckCircle class="w-4 h-4" />
+              Thanks for signing up! We'll notify you as soon as Practice Buddy launches.
             </div>
 
             <button 
@@ -154,10 +162,12 @@
                 Submitting...
               </span>
               <span v-else-if="isSubmitted" class="flex items-center justify-center gap-2">
-                ✅ Thank You!
+                <CheckCircle class="w-5 h-5" />
+                Thank You!
               </span>
               <span v-else class="flex items-center justify-center gap-2">
-                🎵 Get Early Access
+                <Music class="w-5 h-5" />
+                Get Early Access
               </span>
             </button>
           </form>
@@ -176,8 +186,8 @@
     <!-- Footer -->
     <div class="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-md border-t border-white/20 py-4">
       <div class="container text-center">
-        <p class="text-white/80 text-sm">
-          © {{ new Date().getFullYear() }} Practice Buddy. Made with ❤️ by 
+        <p class="text-white/80 text-sm flex items-center justify-center gap-1">
+          © {{ new Date().getFullYear() }} Practice Buddy. Made with <Heart class="w-3 h-3 text-red-400" /> by 
           <a href="https://beanpotstudio.com" class="text-white hover:underline font-semibold">Beanpot Studio</a>
         </p>
       </div>
@@ -191,6 +201,7 @@
 import { ref } from 'vue'
 import { submitPreLaunchSignup, isEmailAlreadySignedUp } from '../lib/preLaunchSignups'
 import { instruments, getInstrumentImage, getInstrumentName } from '../lib/instruments'
+import { Music, GraduationCap, Star, BarChart3, CheckCircle, Heart } from 'lucide-vue-next'
 
 defineEmits(['exit-pre-launch'])
 

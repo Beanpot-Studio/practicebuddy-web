@@ -1,7 +1,7 @@
 <template>
-  <div class="card card-blue">
+  <div class="card card-purple">
     <div class="flex items-center gap-3 mb-5">
-      <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
         <Music class="w-6 h-6 text-white" />
       </div>
       <h3 class="text-lg text-gray-800 font-bold">Start Practicing</h3>
@@ -16,7 +16,7 @@
           <button 
             @click="showInstrumentDropdown = !showInstrumentDropdown"
             type="button"
-            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-blue-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(116,185,255,0.2)] focus:transform focus:-translate-y-0.5 flex items-center justify-between"
+            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] focus:transform focus:-translate-y-0.5 flex items-center justify-between"
           >
             <div class="flex items-center gap-3">
               <img 
@@ -63,7 +63,7 @@
           <button 
             @click="showClassDropdown = !showClassDropdown"
             type="button"
-            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-blue-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(116,185,255,0.2)] focus:transform focus:-translate-y-0.5 flex items-center justify-between"
+            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] focus:transform focus:-translate-y-0.5 flex items-center justify-between"
           >
             <div class="flex items-center gap-3">
               <span v-if="selectedClass" class="text-gray-800">{{ selectedClass.name || selectedClass.code }}</span>
@@ -107,7 +107,10 @@
 
       <!-- Practice Time -->
       <div>
-        <label class="block mb-2 font-semibold text-gray-700 text-base">Practice Time (minutes)</label>
+        <label class="block mb-2 font-semibold text-gray-700 text-base flex items-center gap-2">
+          <Clock class="w-4 h-4" />
+          Practice Time (minutes)
+        </label>
         <input 
           type="number" 
           :value="practiceTime"
@@ -115,7 +118,7 @@
           min="1" 
           max="120" 
           placeholder="30"
-          class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-blue-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(116,185,255,0.2)] focus:transform focus:-translate-y-0.5"
+          class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] focus:transform focus:-translate-y-0.5"
         />
       </div>
 
@@ -123,8 +126,9 @@
       <button 
         @click="startPractice" 
         :disabled="!selectedInstrument || !practiceTime"
-        class="btn btn-blue w-full p-4 text-base font-bold"
+        class="btn btn-purple w-full p-4 text-base font-bold"
       >
+        <Play class="w-5 h-5" />
         {{ selectedClass ? `Start Practice for ${selectedClass.name || selectedClass.code}` : 'Start Practice Session!' }}
       </button>
     </div>
@@ -133,7 +137,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Music, BookOpen } from 'lucide-vue-next'
+import { Music, BookOpen, Play, Clock } from 'lucide-vue-next'
 import { instruments, getInstrumentImage, getInstrumentName } from '../../lib/instruments'
 
 const props = defineProps({

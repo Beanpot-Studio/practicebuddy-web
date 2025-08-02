@@ -13,7 +13,7 @@
     </div>
     
     <div v-else-if="assignments.length === 0" class="text-center py-8">
-      <div class="text-4xl mb-4">📚</div>
+      <BookOpen class="w-12 h-12 text-gray-400 mx-auto mb-4" />
       <h4 class="text-lg font-semibold text-gray-800 mb-2">No Assignments Yet</h4>
       <p class="text-gray-600">Your teacher will post assignments here soon!</p>
     </div>
@@ -35,7 +35,8 @@
               <span>{{ formatDueDate(assignment.dueDate) }}</span>
             </div>
             <div v-if="assignment.practiceMinutes" class="flex items-center gap-1 text-sm text-purple-600 font-semibold">
-              <span>⏱️ {{ assignment.practiceMinutes }} min</span>
+              <Clock class="w-4 h-4" />
+              <span>{{ assignment.practiceMinutes }} min</span>
             </div>
           </div>
         </div>
@@ -60,7 +61,7 @@
 </template>
 
 <script setup>
-import { Calendar, CheckCircle } from 'lucide-vue-next'
+import { Calendar, CheckCircle, Clock } from 'lucide-vue-next'
 
 defineProps({
   assignments: {

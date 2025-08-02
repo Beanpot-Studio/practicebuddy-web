@@ -8,13 +8,16 @@
     </div>
     
     <div class="text-center py-8">
-      <div class="text-4xl mb-4">🎓</div>
+      <GraduationCap class="w-12 h-12 text-gray-400 mx-auto mb-4" />
       <h4 class="text-lg font-semibold text-gray-800 mb-2">Ready to Learn with a Teacher?</h4>
       <p class="text-gray-600 mb-6">Join a music class to get assignments, feedback, and guidance from your teacher!</p>
       
       <div class="max-w-md mx-auto">
         <div class="mb-4">
-          <label class="block mb-2 font-semibold text-gray-700 text-base">📝 Class Code</label>
+          <label class="block mb-2 font-semibold text-gray-700 text-base flex items-center gap-2">
+            <Edit class="w-4 h-4" />
+            Class Code
+          </label>
           <input 
             v-model="classCodeToJoin" 
             placeholder="Enter your class code (e.g., MUSIC101)"
@@ -26,20 +29,23 @@
           @click="joinClass" 
           :disabled="!classCodeToJoin || isJoiningClass"
           :class="[
-            'btn w-full p-4 text-base font-bold',
+            'btn w-full p-4 text-base font-bold flex items-center gap-2',
             !classCodeToJoin || isJoiningClass ? 'opacity-50 cursor-not-allowed' : 'btn-purple'
           ]"
         >
           <div v-if="isJoiningClass" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          <span v-else>🎯 Join Class</span>
+          <Target v-else class="w-5 h-5" />
+          <span v-if="!isJoiningClass">Join Class</span>
+          <span v-else>Joining...</span>
         </button>
         
         <div v-if="joinClassError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
           {{ joinClassError }}
         </div>
         
-        <div v-if="joinClassSuccess" class="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-          ✅ Successfully joined the class! Your teacher will see you soon.
+        <div v-if="joinClassSuccess" class="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2">
+          <CheckCircle class="w-4 h-4" />
+          Successfully joined the class! Your teacher will see you soon.
         </div>
       </div>
     </div>
@@ -48,7 +54,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { BookOpen } from 'lucide-vue-next'
+import { BookOpen, GraduationCap, Edit, Target, CheckCircle } from 'lucide-vue-next'
 
 const emit = defineEmits(['join-class'])
 

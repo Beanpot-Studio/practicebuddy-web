@@ -21,9 +21,12 @@
             <Play class="w-5 h-5" />
           </button>
           <div class="flex gap-1">
-            <span v-for="sticker in recording.stickers" :key="sticker" class="text-xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-              {{ sticker }}
-            </span>
+            <div v-for="sticker in recording.stickers" :key="sticker" class="w-6 h-6 flex items-center justify-center">
+              <component 
+                :is="getStickerIcon(sticker)" 
+                class="w-5 h-5 text-yellow-500 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]" 
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -36,7 +39,7 @@
 </template>
 
 <script setup>
-import { Play, Mic } from 'lucide-vue-next'
+import { Play, Mic, Star, Music, ThumbsUp, Guitar, Sparkles, Target } from 'lucide-vue-next'
 
 defineProps({
   recordings: {
@@ -52,6 +55,19 @@ const formatDate = (date) => {
     month: 'short', 
     day: 'numeric' 
   })
+}
+
+const getStickerIcon = (stickerName) => {
+  const iconMap = {
+    'star': Star,
+    'music': Music,
+    'thumbs-up': ThumbsUp,
+    'guitar': Guitar,
+    'sparkles': Sparkles,
+    'target': Target,
+    'violin': Music // Fallback for violin
+  }
+  return iconMap[stickerName] || Star
 }
 
 const playRecording = (recording) => {

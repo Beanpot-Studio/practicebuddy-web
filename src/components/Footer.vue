@@ -24,10 +24,13 @@
         <div>
           <h4 class="text-lg font-semibold text-gray-800 mb-4 relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-8 after:h-1 after:bg-gradient-to-r after:from-musical-primary after:to-purple-400 after:rounded-sm">Features</h4>
           <ul class="space-y-2">
-            <li class="text-sm text-gray-800">🎵 Practice Tracking</li>
-            <li class="text-sm text-gray-800">👩‍🏫 Teacher Feedback</li>
-            <li class="text-sm text-gray-800">📈 Progress Charts</li>
-            <li class="text-sm text-gray-800">🌟 Achievement Stickers</li>
+            <li class="text-sm text-gray-800 flex items-center gap-2">
+              <Music class="w-4 h-4" />
+              Practice Tracking
+            </li>
+            <li class="text-sm text-gray-800">Class Management</li>
+            <li class="text-sm text-gray-800">Assignment System</li>
+            <li class="text-sm text-gray-800">Progress Analytics</li>
           </ul>
         </div>
         
@@ -35,31 +38,33 @@
           <h4 class="text-lg font-semibold text-gray-800 mb-4 relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-8 after:h-1 after:bg-gradient-to-r after:from-musical-primary after:to-purple-400 after:rounded-sm">Connect</h4>
           <div class="flex gap-3">
             <a href="#" class="w-10 h-10 rounded-lg bg-gradient-to-br from-musical-primary to-blue-400 border-2 border-blue-600 flex items-center justify-center text-lg no-underline shadow-[0_3px_0_rgba(0,0,0,0.2)] transition-all duration-300 hover:transform hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(0,0,0,0.2)]">
-              📧
+              <Mail class="w-5 h-5 text-white" />
             </a>
             <a href="#" class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-purple-500 border-2 border-purple-600 flex items-center justify-center text-lg no-underline shadow-[0_3px_0_rgba(0,0,0,0.2)] transition-all duration-300 hover:transform hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(0,0,0,0.2)]">
-              📱
+              <Smartphone class="w-5 h-5 text-white" />
             </a>
             <a href="#" class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-500 border-2 border-yellow-600 flex items-center justify-center text-lg no-underline shadow-[0_3px_0_rgba(0,0,0,0.2)] transition-all duration-300 hover:transform hover:-translate-y-0.5 hover:shadow-[0_5px_0_rgba(0,0,0,0.2)]">
-              💬
+              <MessageCircle class="w-5 h-5 text-white" />
             </a>
           </div>
         </div>
       </div>
       
       <div class="border-t-2 border-gray-200 pt-5 text-center">
-        <div class="mb-4">
-          <span class="inline-block mx-2 text-xl animate-bounce">🎻</span>
-          <span class="inline-block mx-2 text-xl animate-pulse">🎵</span>
-          <span class="inline-block mx-2 text-xl">⭐</span>
-          <span class="inline-block mx-2 text-xl">🎼</span>
+        <div class="mb-4 flex items-center justify-center gap-4">
+          <Music class="w-6 h-6 text-musical-primary animate-bounce" />
+          <Music class="w-6 h-6 text-musical-secondary animate-pulse" />
+          <Star class="w-6 h-6 text-yellow-500" />
+          <Music class="w-6 h-6 text-purple-500" />
         </div>
-        <p class="text-gray-800 text-xs">© {{ new Date().getFullYear() }} Practice Buddy. Made with ❤️ in Boston by <a href="https://beanpotstudio.com" class="text-musical-primary hover:underline">Beanpot Studio</a> for music lovers everywhere!</p>
+        <p class="text-gray-800 text-xs">© {{ new Date().getFullYear() }} Practice Buddy. Made with <Heart class="w-3 h-3 text-red-500 inline" /> in Boston by <a href="https://beanpotstudio.com" class="text-musical-primary hover:underline">Beanpot Studio</a> for music lovers everywhere!</p>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
+import { Music, Mail, Smartphone, MessageCircle, Star, Heart } from 'lucide-vue-next'
+
 defineEmits(['switch-mode', 'go-home'])
 </script> 

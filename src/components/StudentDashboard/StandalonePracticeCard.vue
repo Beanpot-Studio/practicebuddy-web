@@ -13,7 +13,7 @@
     </div>
     
     <div v-else-if="standalonePractices.length === 0" class="text-center py-8">
-      <div class="text-4xl mb-4">🎵</div>
+      <Music class="w-12 h-12 text-gray-400 mx-auto mb-4" />
       <h4 class="text-lg font-semibold text-gray-800 mb-2">No Practice Sessions Yet</h4>
       <p class="text-gray-600">Start practicing to see your sessions here!</p>
     </div>
@@ -39,7 +39,8 @@
           </div>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-1 text-sm text-orange-600 font-semibold">
-              <span>⏱️ {{ practice.practiceMinutes }} min</span>
+              <Clock class="w-4 h-4" />
+              <span>{{ practice.practiceMinutes }} min</span>
             </div>
           </div>
         </div>
@@ -61,7 +62,7 @@
 </template>
 
 <script setup>
-import { Play, Music } from 'lucide-vue-next'
+import { Play, Music, Clock } from 'lucide-vue-next'
 import { getInstrumentImage, getInstrumentName } from '../../lib/instruments'
 
 defineProps({

@@ -49,13 +49,15 @@
                     </div>
                     
                     <!-- Success Message -->
-                    <div v-if="registrationSuccess" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                      ✅ Account created successfully! You can now login with your email and password.
+                    <div v-if="registrationSuccess" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2">
+                      <CheckCircle class="w-4 h-4" />
+                      Account created successfully! You can now login with your email and password.
                     </div>
                     
                     <!-- Password Reset Success Message -->
-                    <div v-if="passwordResetSuccess" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                      ✅ Password reset email sent! Please check your inbox and follow the link to reset your password.
+                    <div v-if="passwordResetSuccess" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2">
+                      <CheckCircle class="w-4 h-4" />
+                      Password reset email sent! Please check your inbox and follow the link to reset your password.
                     </div>
                     
                     <!-- Student Tab -->
@@ -74,20 +76,22 @@
                           <button 
                             @click="toggleStudentMode" 
                             :class="[
-                              'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
+                              'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
                               !showStudentCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
                             ]"
                           >
-                            🔐 Login
+                            <Lock class="w-4 h-4" />
+                            Login
                           </button>
                           <button 
                             @click="toggleStudentMode" 
                             :class="[
-                              'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
+                              'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
                               showStudentCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
                             ]"
                           >
-                            ➕ Create Account
+                            <Plus class="w-4 h-4" />
+                            Create Account
                           </button>
                         </div>
                       </div>
@@ -310,15 +314,17 @@
                       <div class="flex justify-between items-center py-6 border-b-3 border-gray-200">
                         <button 
                           @click="toggleResetPasswordForm" 
-                          class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5"
+                          class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
                         >
-                          {{ showResetPasswordForm ? 'Back to Login' : '🔄 Reset Password' }}
+                          <RefreshCw v-if="!showResetPasswordForm" class="w-4 h-4" />
+                          {{ showResetPasswordForm ? 'Back to Login' : 'Reset Password' }}
                         </button>
                         <button 
                           @click="toggleRegisterForm" 
-                          class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5"
+                          class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
                         >
-                          {{ showRegisterForm ? 'Back to Login' : '➕ Join as Teacher' }}
+                          <Plus v-if="!showRegisterForm" class="w-4 h-4" />
+                          {{ showRegisterForm ? 'Back to Login' : 'Join as Teacher' }}
                         </button>
                       </div>
                       
@@ -474,7 +480,7 @@
                           </div>
                           
                           <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isPasswordResetLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isPasswordResetLoading }">
-                            <div v-if="!isPasswordResetLoading" class="w-4 h-4">📧</div>
+                            <Mail v-if="!isPasswordResetLoading" class="w-4 h-4" />
                             <div v-if="isPasswordResetLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             {{ hasError ? 'Fix Errors First' : isPasswordResetLoading ? 'Sending...' : 'Send Reset Link' }}
                           </button>
@@ -563,7 +569,7 @@
 
                   <!-- Shuffle indicator -->
                   <div v-if="isTiltShuffling" class="absolute -top-2 -right-2 bg-musical-primary text-white rounded-full p-2 shadow-lg">
-                    <div class="w-4 h-4 text-white">🔄</div>
+                    <RefreshCw class="w-4 h-4 text-white" />
                   </div>
                 </div>
               </div>
@@ -615,7 +621,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { Play, Music, Users, BookOpen, GraduationCap, BarChart, Star, Wand, AudioLines } from 'lucide-vue-next'
+import { Play, Music, Users, BookOpen, GraduationCap, BarChart, Star, Wand, AudioLines, Plus, RefreshCw, Mail, CheckCircle, Lock } from 'lucide-vue-next'
 import Footer from './Footer.vue'
 import { useAuth } from '../composables/useAuth'
 import { useErrorHandler } from '../composables/useErrorHandler'
@@ -760,7 +766,12 @@ const loginStudent = async () => {
     
     if (result.success) {
       console.log('Student login successful')
-      // Redirect or update UI as needed
+      // Emit login event to parent component
+      emit('login', { 
+        user: result.user, 
+        userData: result.userData,
+        role: 'student'
+      })
     } else {
       handleError(result.error || 'Login failed')
     }
@@ -815,7 +826,12 @@ const loginTeacher = async () => {
     
     if (result.success) {
       console.log('Teacher login successful')
-      // Redirect or update UI as needed
+      // Emit login event to parent component
+      emit('login', { 
+        user: result.user, 
+        userData: result.userData,
+        role: 'teacher'
+      })
     } else {
       handleError(result.error || 'Login failed')
     }
@@ -834,17 +850,24 @@ const registerTeacher = async () => {
       return
     }
     
+    // Prepare teacher data
+    const teacherData = {
+      school: registerForm.value.school,
+      instrument: registerForm.value.instrument,
+      experience: registerForm.value.experience
+    }
+    
     const result = await registerTeacherAccount(
       registerForm.value.email,
       registerForm.value.password,
       registerForm.value.displayName,
-      registerForm.value.school,
-      registerForm.value.instrument,
-      registerForm.value.experience
+      teacherData
     )
     
     if (result.success) {
       registrationSuccess.value = true
+      // Pre-fill the login form with the registered email
+      teacherForm.value.email = registerForm.value.email
       registerForm.value = {
         email: '',
         password: '',
@@ -855,6 +878,8 @@ const registerTeacher = async () => {
         experience: 'beginner'
       }
       console.log('Teacher registration successful')
+      // Show success message and switch to login
+      showRegisterForm.value = false
     } else {
       handleError(result.error || 'Registration failed')
     }

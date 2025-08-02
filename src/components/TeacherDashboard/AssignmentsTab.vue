@@ -1,25 +1,48 @@
 <template>
   <div class="animate-fadeIn">
-    <div class="space-y-6">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="text-center py-12">
+      <div class="w-12 h-12 border-4 border-musical-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-gray-600 text-lg">Loading assignments...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-12">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <BookOpen class="w-8 h-8 text-red-600" />
+      </div>
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Error Loading Assignments</h3>
+      <p class="text-gray-600 mb-4">{{ error }}</p>
+      <button 
+        @click="$emit('loadClasses')"
+        class="px-6 py-3 bg-musical-primary text-white rounded-xl font-semibold hover:bg-musical-primary/90 transition-all duration-200"
+      >
+        Try Again
+      </button>
+    </div>
+
+    <!-- Assignments Content -->
+    <div v-else class="space-y-6">
       <!-- Class Selection for Assignments -->
       <div class="card card-purple">
         <div class="flex items-center justify-between mb-5">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
-              📚
+              <BookOpen class="w-6 h-6 text-white" />
             </div>
-            <h3 class="text-lg text-gray-800 font-bold">Select Class to Manage Assignments</h3>
+            <h3 class="text-lg text-gray-800 font-bold">Manage Assignments</h3>
           </div>
           <button 
             @click="$emit('loadClasses')"
-            class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+            class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors flex items-center gap-2"
           >
-            🔄 Refresh Classes
+            <RefreshCw class="w-4 h-4" />
+            Refresh Classes
           </button>
         </div>
         
         <div v-if="classes.length === 0" class="text-center py-8">
-          <div class="text-4xl mb-4">🎵</div>
+          <Music class="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h4 class="text-lg font-semibold text-gray-800 mb-2">No Classes Found</h4>
           <p class="text-gray-600 mb-4">
             No classes were found for your account. This could mean:
@@ -32,15 +55,17 @@
           <div class="flex gap-3 justify-center">
             <button 
               @click="$emit('loadClasses')"
-              class="btn btn-secondary"
+              class="btn btn-secondary flex items-center gap-2"
             >
-              🔄 Refresh Classes
+              <RefreshCw class="w-4 h-4" />
+              Refresh Classes
             </button>
             <button 
               @click="$emit('changeTab', 'create-class')"
-              class="btn btn-purple"
+              class="btn btn-purple flex items-center gap-2"
             >
-              ➕ Create New Class
+              <Plus class="w-4 h-4" />
+              Create New Class
             </button>
           </div>
         </div>
@@ -74,7 +99,7 @@
       <div v-if="selectedClassForAssignments" class="card card-purple">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
-            ➕
+            <Plus class="w-6 h-6 text-white" />
           </div>
           <h3 class="text-lg text-gray-800 font-bold">Create New Assignment for {{ selectedClassForAssignments.name }}</h3>
         </div>
@@ -91,7 +116,10 @@
                   value="class"
                   class="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
                 />
-                <span class="text-sm font-medium text-gray-700">📚 Class Assignment (All Students)</span>
+                <span class="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <BookOpen class="w-4 h-4" />
+                  Class Assignment (All Students)
+                </span>
               </label>
               <label class="flex items-center gap-2">
                 <input 
@@ -100,7 +128,10 @@
                   value="individual"
                   class="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
                 />
-                <span class="text-sm font-medium text-gray-700">👤 Individual Assignment</span>
+                <span class="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <User class="w-4 h-4" />
+                  Individual Assignment
+                </span>
               </label>
             </div>
           </div>
@@ -110,109 +141,104 @@
             <label class="block mb-2 font-semibold text-gray-700">Select Student</label>
             <select 
               v-model="newAssignment.studentId"
-              required
-              class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(168,85,247,0.2)] focus:transform focus:-translate-y-0.5"
+              class="w-full p-3 border-2 border-gray-300 rounded-xl text-base font-medium shadow-[0_2px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_2px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
             >
               <option value="">Choose a student</option>
-              <option v-for="student in classRoster" :key="student.studentId" :value="student.studentId">
-                {{ student.name }} ({{ student.instrument || 'No instrument' }})
+              <option 
+                v-for="student in classRoster" 
+                :key="student.studentId" 
+                :value="student.studentId"
+              >
+                {{ student.studentName }} ({{ student.instrument }})
               </option>
             </select>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block mb-2 font-semibold text-gray-700">Assignment Title</label>
-              <input 
-                v-model="newAssignment.title" 
-                type="text" 
-                placeholder="e.g., Practice Scales, Learn New Song"
-                required
-                class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(168,85,247,0.2)] focus:transform focus:-translate-y-0.5"
-              />
-            </div>
-            <div>
-              <label class="block mb-2 font-semibold text-gray-700">Due Date</label>
-              <input 
-                v-model="newAssignment.dueDate" 
-                type="date" 
-                required
-                class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(168,85,247,0.2)] focus:transform focus:-translate-y-0.5"
-              />
-            </div>
-          </div>
-
+          <!-- Assignment Title -->
           <div>
-            <label class="block mb-2 font-semibold text-gray-700">Description</label>
-            <textarea 
-              v-model="newAssignment.description" 
-              placeholder="Describe what students need to practice or learn..."
-              rows="3"
-              class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(168,85,247,0.2)] focus:transform focus:-translate-y-0.5 resize-vertical"
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="block mb-2 font-semibold text-gray-700">Practice Minutes (Optional)</label>
+            <label class="block mb-2 font-semibold text-gray-700">Assignment Title</label>
             <input 
-              v-model="newAssignment.practiceMinutes" 
-              type="number" 
-              min="1" 
-              max="120"
-              placeholder="30"
-              class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(168,85,247,0.2)] focus:transform focus:-translate-y-0.5"
+              v-model="newAssignment.title"
+              type="text"
+              placeholder="Enter assignment title"
+              class="w-full p-3 border-2 border-gray-300 rounded-xl text-base font-medium shadow-[0_2px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_2px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
             />
           </div>
 
+          <!-- Assignment Description -->
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700">Description</label>
+            <textarea 
+              v-model="newAssignment.description"
+              placeholder="Describe the assignment..."
+              rows="3"
+              class="w-full p-3 border-2 border-gray-300 rounded-xl text-base font-medium shadow-[0_2px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_2px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
+            ></textarea>
+          </div>
+
+          <!-- Practice Minutes -->
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700">Practice Minutes (Optional)</label>
+            <input 
+              v-model="newAssignment.practiceMinutes"
+              type="number"
+              min="0"
+              placeholder="Enter practice minutes"
+              class="w-full p-3 border-2 border-gray-300 rounded-xl text-base font-medium shadow-[0_2px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_2px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
+            />
+          </div>
+
+          <!-- Due Date -->
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700">Due Date</label>
+            <input 
+              v-model="newAssignment.dueDate"
+              type="date"
+              class="w-full p-3 border-2 border-gray-300 rounded-xl text-base font-medium shadow-[0_2px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_2px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
+            />
+          </div>
+
+          <!-- Submit Button -->
           <button 
-            type="submit" 
+            type="submit"
             :disabled="isCreatingAssignment"
-            class="btn btn-purple w-full"
+            class="w-full btn btn-purple flex items-center justify-center gap-2"
           >
-            <div v-if="isCreatingAssignment" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span v-else>📚 Create Assignment</span>
-            {{ isCreatingAssignment ? 'Creating...' : '' }}
+            <Plus v-if="!isCreatingAssignment" class="w-5 h-5" />
+            <div v-else class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            {{ isCreatingAssignment ? 'Creating Assignment...' : 'Create Assignment' }}
           </button>
         </form>
       </div>
 
       <!-- Existing Assignments -->
-      <div v-if="selectedClassForAssignments" class="card card-purple">
+      <div v-if="selectedClassForAssignments && classAssignments.length > 0" class="card card-purple">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
-            📋
+            <List class="w-6 h-6 text-white" />
           </div>
           <h3 class="text-lg text-gray-800 font-bold">Existing Assignments</h3>
         </div>
         
-        <div v-if="isLoadingAssignments" class="text-center py-8">
-          <div class="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-gray-600">Loading assignments...</p>
-        </div>
-        
-        <div v-else-if="classAssignments.length === 0" class="text-center py-8">
-          <div class="text-4xl mb-4">📚</div>
-          <h4 class="text-lg font-semibold text-gray-800 mb-2">No Assignments Yet</h4>
-          <p class="text-gray-600">Create your first assignment above!</p>
-        </div>
-        
-        <div v-else class="space-y-4">
+        <div class="space-y-4">
           <div 
             v-for="assignment in classAssignments" 
             :key="assignment.id"
-            class="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
+            class="p-4 bg-gray-50 rounded-xl border-2 border-gray-200"
           >
             <div class="flex items-start justify-between mb-3">
               <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <h4 class="font-semibold text-gray-800 text-lg">{{ assignment.title }}</h4>
+                <h4 class="font-semibold text-gray-800 mb-1">{{ assignment.title }}</h4>
+                <div class="flex items-center gap-2 mb-2">
                   <span :class="[
-                    'px-2 py-1 rounded-lg text-xs font-bold',
+                    'px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1',
                     assignment.type === 'class' 
                       ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                       : 'bg-green-100 text-green-700 border border-green-300'
                   ]">
-                    {{ assignment.type === 'class' ? '📚 Class' : '👤 Individual' }}
+                    <BookOpen v-if="assignment.type === 'class'" class="w-3 h-3" />
+                    <User v-else class="w-3 h-3" />
+                    {{ assignment.type === 'class' ? 'Class' : 'Individual' }}
                   </span>
                 </div>
                 <p class="text-gray-600 text-sm mb-2">{{ assignment.description }}</p>
@@ -221,8 +247,9 @@
                 <div class="text-sm text-gray-500">
                   Due: {{ formatDate(new Date(assignment.dueDate)) }}
                 </div>
-                <div v-if="assignment.practiceMinutes" class="text-sm text-purple-600 font-semibold">
-                  ⏱️ {{ assignment.practiceMinutes }} min
+                <div v-if="assignment.practiceMinutes" class="text-sm text-purple-600 font-semibold flex items-center gap-1">
+                  <Clock class="w-3 h-3" />
+                  {{ assignment.practiceMinutes }} min
                 </div>
               </div>
             </div>
@@ -246,10 +273,32 @@
 </template>
 
 <script setup>
+import { 
+  BookOpen, 
+  RefreshCw, 
+  Music, 
+  Plus, 
+  List, 
+  User, 
+  Clock 
+} from 'lucide-vue-next'
+
 const props = defineProps({
+  currentUser: {
+    type: Object,
+    required: true
+  },
   classes: {
     type: Array,
     default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
+  },
+  error: {
+    type: String,
+    default: null
   },
   selectedClassForAssignments: {
     type: Object,
