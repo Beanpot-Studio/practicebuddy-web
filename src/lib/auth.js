@@ -1337,10 +1337,13 @@ export const createStandalonePractice = async (userId, practiceData) => {
     const userData = userDoc.data()
     const practiceSessions = userData.practiceSessions || []
     
+    // Round up practice minutes to nearest integer
+    const roundedPracticeMinutes = Math.ceil(practiceData.practiceMinutes || 0)
+    
     const practiceSession = {
       id: Date.now().toString(), // Simple ID generation
       instrument: practiceData.instrument || '',
-      practiceMinutes: practiceData.practiceMinutes || 0,
+      practiceMinutes: roundedPracticeMinutes,
       description: practiceData.description || '',
       createdAt: new Date().toISOString(),
       status: 'completed'
@@ -1362,7 +1365,10 @@ export const createStandalonePractice = async (userId, practiceData) => {
       weeklyPracticeGoal: 120
     }
     
-    currentStats.totalPracticeMinutes += practiceData.practiceMinutes
+    // Round up practice minutes for statistics
+    const roundedMinutesForStats = Math.ceil(practiceData.practiceMinutes || 0)
+    
+    currentStats.totalPracticeMinutes += roundedMinutesForStats
     currentStats.lastPracticeAt = new Date().toISOString()
     
     // Check if we need to reset weekly practice (new week)
@@ -1371,9 +1377,9 @@ export const createStandalonePractice = async (userId, practiceData) => {
     const daysSinceLastPractice = (now - lastPracticeDate) / (1000 * 60 * 60 * 24)
     
     if (daysSinceLastPractice > 7) {
-      currentStats.currentWeekPracticeMinutes = practiceData.practiceMinutes
+      currentStats.currentWeekPracticeMinutes = roundedMinutesForStats
     } else {
-      currentStats.currentWeekPracticeMinutes += practiceData.practiceMinutes
+      currentStats.currentWeekPracticeMinutes += roundedMinutesForStats
     }
     
     await updateDoc(userRef, {
@@ -1459,8 +1465,11 @@ export const updateUserPracticeStats = async (userId, practiceMinutes) => {
       weeklyPracticeGoal: 120
     }
     
+    // Round up practice minutes for statistics
+    const roundedMinutes = Math.ceil(practiceMinutes)
+    
     // Update practice statistics
-    currentStats.totalPracticeMinutes += practiceMinutes
+    currentStats.totalPracticeMinutes += roundedMinutes
     currentStats.lastPracticeAt = new Date().toISOString()
     
     // Check if we need to reset weekly practice (new week)
@@ -1469,9 +1478,9 @@ export const updateUserPracticeStats = async (userId, practiceMinutes) => {
     const daysSinceLastPractice = (now - lastPracticeDate) / (1000 * 60 * 60 * 24)
     
     if (daysSinceLastPractice > 7) {
-      currentStats.currentWeekPracticeMinutes = practiceMinutes
+      currentStats.currentWeekPracticeMinutes = roundedMinutes
     } else {
-      currentStats.currentWeekPracticeMinutes += practiceMinutes
+      currentStats.currentWeekPracticeMinutes += roundedMinutes
     }
     
     await updateDoc(userRef, {
@@ -1890,5 +1899,121 @@ export const getClassData = async (classCode) => {
     logError(error, 'get-class-data')
     const errorInfo = handleFirebaseError(error, 'get-class-data')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'get-class-data')
+  }
+}
+
+/**
+ * Save audio recording to Cloudinary
+ * @param {Blob} audioBlob - Audio recording blob
+ * @param {string} userId - User ID
+ * @returns {Object} Success/error response with recording data
+ */
+export const saveAudioRecording = async (audioBlob, userId) => {
+  try {
+    console.log('saveAudioRecording called with userId:', userId)
+    
+    // Import Cloudinary functions
+    const { uploadAudioToCloudinary } = await import('./cloudinary.js')
+    
+    // Upload to Cloudinary
+    const uploadResult = await uploadAudioToCloudinary(audioBlob, userId)
+    
+    console.log('Audio uploaded to Cloudinary:', uploadResult)
+    
+    return {
+      success: true,
+      recording: {
+        publicId: uploadResult.publicId,
+        url: uploadResult.url,
+        duration: uploadResult.duration,
+        format: uploadResult.format,
+        provider: 'cloudinary'
+      }
+    }
+  } catch (error) {
+    console.error('Error saving audio recording to Cloudinary:', error)
+    logError(error, 'save-audio-recording')
+    const errorInfo = handleFirebaseError(error, 'save-audio-recording')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'save-audio-recording')
+  }
+}
+
+/**
+ * Delete audio recording from Cloudinary
+ * @param {string} publicId - Cloudinary public ID
+ * @returns {Object} Success/error response
+ */
+export const deleteAudioRecording = async (publicId) => {
+  try {
+    console.log('deleteAudioRecording called with publicId:', publicId)
+    
+    // Import Cloudinary functions
+    const { deleteAudioFromCloudinary } = await import('./cloudinary.js')
+    
+    // Delete from Cloudinary
+    await deleteAudioFromCloudinary(publicId)
+    
+    console.log('Audio deleted from Cloudinary successfully')
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting audio recording from Cloudinary:', error)
+    logError(error, 'delete-audio-recording')
+    const errorInfo = handleFirebaseError(error, 'delete-audio-recording')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'delete-audio-recording')
+  }
+}
+
+/**
+ * Update practice session with recording data
+ * @param {string} practiceId - Practice session ID
+ * @param {string} userId - User ID
+ * @param {Object} recordingData - Recording data from Cloudinary
+ * @returns {Object} Success/error response
+ */
+export const updatePracticeWithRecording = async (practiceId, userId, recordingData) => {
+  try {
+    console.log('updatePracticeWithRecording called with practiceId:', practiceId, 'userId:', userId, 'recordingData:', recordingData)
+    
+    const userRef = doc(db, 'users', userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (!userDoc.exists()) {
+      throw new Error('User not found')
+    }
+    
+    const userData = userDoc.data()
+    const practiceSessions = userData.practiceSessions || []
+    
+    // Find the practice session to update
+    const practiceIndex = practiceSessions.findIndex(practice => practice.id === practiceId)
+    
+    if (practiceIndex === -1) {
+      throw new Error('Practice session not found')
+    }
+    
+    // Update practice session with recording data
+    practiceSessions[practiceIndex].recording = {
+      publicId: recordingData.publicId,
+      url: recordingData.url,
+      duration: recordingData.duration,
+      format: recordingData.format,
+      provider: 'cloudinary',
+      createdAt: new Date().toISOString()
+    }
+    
+    await updateDoc(userRef, {
+      practiceSessions: practiceSessions,
+      updatedAt: new Date().toISOString()
+    })
+    
+    console.log('Practice session updated with recording successfully')
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating practice with recording:', error)
+    logError(error, 'update-practice-with-recording')
+    const errorInfo = handleFirebaseError(error, 'update-practice-with-recording')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'update-practice-with-recording')
   }
 } 

@@ -29,17 +29,20 @@
           v-if="showTimer"
           :practice-data="currentPracticeData"
           :total-time="practiceTime"
+          :user-id="currentUser?.uid"
           @session-complete="onSessionComplete"
           @session-cancelled="onSessionCancelled"
         />
 
-        <!-- Your Musical Creations Card -->
+        <!-- Your Practice Sessions Card -->
         <MusicalCreationsCard
-          :recordings="recordings"
-          @show-recording-modal="showRecordingModal = true"
+          ref="musicalCreationsCard"
+          :user-id="currentUser?.uid"
           @play-recording="playRecording"
         />
       </div>
+
+
 
       <!-- Class Enrollment/Assignments Section - Full Width -->
       <div class="mb-8">
@@ -67,23 +70,11 @@
         <!-- Achievements Card -->
         <AchievementsCard :achievements="achievements" />
         
-        <!-- Standalone Practice Sessions Section (for users not in a class) -->
-        <StandalonePracticeCard
-          v-if="!currentUser?.classCode"
-          :standalone-practices="standalonePractices"
-          :is-loading-practices="isLoadingPractices"
-        />
+        <!-- Practice sessions are now shown in the Musical Creations card -->
       </div>
     </div>
 
-    <!-- Recording Modal -->
-    <RecordingModal
-      :show-recording-modal="showRecordingModal"
-      :is-recording="isRecording"
-      :recording-time="recordingTime"
-      @close-modal="showRecordingModal = false"
-      @toggle-recording="toggleRecording"
-    />
+    <!-- Recording functionality is now integrated into PracticeTimer component -->
 
     <!-- Success Toast Notification -->
     <div 
@@ -121,8 +112,8 @@ import MusicalCreationsCard from './StudentDashboard/MusicalCreationsCard.vue'
 import ClassEnrollmentCard from './StudentDashboard/ClassEnrollmentCard.vue'
 import ClassesAndAssignmentsCard from './StudentDashboard/ClassesAndAssignmentsCard.vue'
 import AchievementsCard from './StudentDashboard/AchievementsCard.vue'
-import StandalonePracticeCard from './StudentDashboard/StandalonePracticeCard.vue'
-import RecordingModal from './StudentDashboard/RecordingModal.vue'
+// StandalonePracticeCard import removed - practice sessions shown in Musical Creations card
+// RecordingModal import removed - functionality moved to PracticeTimer
 import PracticeGoalsCard from './StudentDashboard/PracticeGoalsCard.vue'
 
 const props = defineProps({
@@ -140,7 +131,7 @@ const {
   updateStudentLoginActivity, 
   updateStudentPracticeActivity,
   createStandalonePractice,
-  fetchStandalonePractices,
+  // getStandalonePractices removed - practice sessions handled differently
   getUserPracticeStats,
   getTeacherClasses,
   getStudentPracticeGoals,
@@ -160,11 +151,10 @@ const enrolledClasses = ref([])
 
 // Timer state
 const showTimer = ref(false)
-const currentPracticeData = ref(null)
+const currentPracticeData = ref({})
+const musicalCreationsCard = ref(null)
 
-// Standalone practice sessions
-const standalonePractices = ref([])
-const isLoadingPractices = ref(false)
+// Practice sessions are now shown in the Musical Creations card
 const userPracticeStats = ref(null)
 
 // Success toast notification
@@ -172,26 +162,7 @@ const showSuccessToast = ref(false)
 const successToastTitle = ref('')
 const successToastMessage = ref('')
 
-const recordings = ref([
-  {
-    id: 1,
-    title: 'Piano Practice - Scales',
-    date: new Date(2024, 0, 15),
-    stickers: ['star', 'music', 'thumbs-up']
-  },
-  {
-    id: 2,
-    title: 'Guitar Creation - Chords',
-    date: new Date(2024, 0, 14),
-    stickers: ['guitar', 'sparkles']
-  },
-  {
-    id: 3,
-    title: 'Violin Performance',
-    date: new Date(2024, 0, 13),
-    stickers: ['violin', 'star', 'target']
-  }
-])
+// Practice sessions are loaded from Firebase via loadStandalonePractices()
 
 const achievements = ref([
   {
@@ -224,10 +195,7 @@ const achievements = ref([
   }
 ])
 
-const showRecordingModal = ref(false)
-const newRecordingTitle = ref('')
-const isRecording = ref(false)
-const recordingTime = ref(0)
+// Recording functionality is now handled in PracticeTimer component
 
 // Class assignments
 const assignments = ref([])
@@ -257,6 +225,12 @@ const onSessionComplete = async (sessionData) => {
 const onSessionCancelled = async (sessionData) => {
   showTimer.value = false
   await handlePracticeSession(sessionData)
+}
+
+const refreshPracticeSessions = async () => {
+  if (musicalCreationsCard.value) {
+    await musicalCreationsCard.value.loadPracticeSessions()
+  }
 }
 
 const handlePracticeSession = async (practiceData) => {
@@ -300,9 +274,38 @@ const handlePracticeSession = async (practiceData) => {
       )
       
       if (result.success) {
-        // Refresh practice sessions
-        await loadStandalonePractices()
+        console.log('Practice session created successfully:', result.practiceId)
+        
+        // If there's a recording, update the practice session with recording data
+        if (practiceData.recording) {
+          try {
+            const { updatePracticeWithRecording } = await import('../lib/auth.js')
+            const recordingData = {
+              publicId: practiceData.recording.publicId || `practice_${Date.now()}`,
+              url: practiceData.recording,
+              duration: practiceData.recordingDuration || 0,
+              format: 'mp3',
+              provider: 'cloudinary'
+            }
+            
+            await updatePracticeWithRecording(
+              result.practiceId,
+              currentUser.value.uid,
+              recordingData
+            )
+            console.log('Recording data saved to practice session')
+          } catch (recordingError) {
+            console.error('Failed to save recording data:', recordingError)
+          }
+        }
+        
+        // Refresh practice stats
         await loadUserPracticeStats()
+        
+        // Refresh practice sessions to show the new recording
+        await refreshPracticeSessions()
+      } else {
+        console.error('Failed to create practice session:', result)
       }
     }
 
@@ -310,20 +313,22 @@ const handlePracticeSession = async (practiceData) => {
     await updateLocalPracticeGoalProgress(practiceData)
     
   } catch (error) {
-    // Error recording practice session
+    console.error('Error recording practice session:', error)
   }
   
   // Show success notification with rounded time
   const classInfo = practiceData.classCode ? ` for ${practiceData.className || practiceData.classCode}` : ''
+  const recordingInfo = practiceData.recording ? ' with recording' : ''
+  
   if (practiceData.completed) {
     showSuccessNotification(
       '🎉 Practice Complete!',
-      `Great job! You completed ${roundedMinutes} minutes of ${instrumentName} practice${classInfo}.`
+      `Great job! You completed ${roundedMinutes} minutes of ${instrumentName} practice${classInfo}${recordingInfo}.`
     )
   } else {
     showSuccessNotification(
       'Practice Session Ended',
-      `You practiced ${roundedMinutes} minutes of ${instrumentName}${classInfo}.`
+      `You practiced ${roundedMinutes} minutes of ${instrumentName}${classInfo}${recordingInfo}.`
     )
   }
   
@@ -421,20 +426,9 @@ const loadEnrolledClasses = async () => {
   }
 }
 
-const loadStandalonePractices = async () => {
-  if (!currentUser.value?.uid) return
-  
-  isLoadingPractices.value = true
-  try {
-    const result = await fetchStandalonePractices(currentUser.value.uid)
-    if (result.success) {
-      standalonePractices.value = result.practices
-    }
-  } catch (error) {
-  } finally {
-    isLoadingPractices.value = false
-  }
-}
+// Practice sessions are loaded via getStandalonePractices function
+
+// Load more sessions functionality can be implemented later if needed
 
 const loadUserPracticeStats = async () => {
   if (!currentUser.value?.uid) return
@@ -462,32 +456,11 @@ const trackLoginActivity = async () => {
 }
 
 const playRecording = (recording) => {
-  alert(`Playing: ${recording.title}`)
+  console.log('Playing recording:', recording)
+  // The AudioWaveform component handles the actual playback
 }
 
-const toggleRecording = () => {
-  isRecording.value = !isRecording.value
-  if (isRecording.value) {
-    const timer = setInterval(() => {
-      recordingTime.value++
-      if (!isRecording.value) {
-        clearInterval(timer)
-      }
-    }, 1000)
-  } else {
-    if (newRecordingTitle.value) {
-      recordings.value.unshift({
-        id: Date.now(),
-        title: newRecordingTitle.value,
-        date: new Date(),
-        stickers: []
-      })
-      newRecordingTitle.value = ''
-      recordingTime.value = 0
-      showRecordingModal.value = false
-    }
-  }
-}
+// Recording functionality is now handled in PracticeTimer component
 
 const joinClass = async (classCode) => {
   try {
@@ -581,6 +554,5 @@ onMounted(async () => {
   await loadAssignments() // Then load assignments for all enrolled classes
   await trackLoginActivity()
   await loadUserPracticeStats() // Load practice stats on mount
-  await loadStandalonePractices() // Load standalone practices on mount
 })
 </script>

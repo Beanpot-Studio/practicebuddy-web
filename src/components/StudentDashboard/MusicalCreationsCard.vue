@@ -2,75 +2,296 @@
   <div class="card card-green">
     <div class="flex items-center gap-3 mb-5">
       <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
-        <Mic class="w-6 h-6 text-white" />
+        <Music class="w-6 h-6 text-white" />
       </div>
-      <h3 class="text-lg text-gray-800 font-bold">Your Recordings</h3>
+      <div class="flex-1">
+        <h3 class="text-lg text-gray-800 font-bold">Your Practice Sessions</h3>
+        <p class="text-sm text-gray-600">
+          {{ isLoading ? 'Loading...' : `${practiceSessions.length} session${practiceSessions.length !== 1 ? 's' : ''}` }}
+        </p>
+      </div>
     </div>
-    <div class="flex flex-col gap-3">
+    
+    <div class="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="text-center py-8 text-gray-500">
+        <div class="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+        <p class="text-sm">Loading practice sessions...</p>
+      </div>
+      
+      <!-- Empty State -->
+      <div v-else-if="practiceSessions.length === 0" class="text-center py-8 text-gray-500">
+        <Music class="w-12 h-12 mx-auto mb-3 text-gray-300" />
+        <p class="text-sm">No practice sessions yet</p>
+        <p class="text-xs mt-1">Start practicing to see your sessions here!</p>
+      </div>
+      
       <div 
-        v-for="recording in recordings" 
-        :key="recording.id"
-        class="flex justify-between items-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-3 border-gray-300 shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.1)]"
+        v-for="session in practiceSessions" 
+        :key="session.id"
+        class="flex flex-col gap-3 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-3 border-gray-300 shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.1)] mb-4"
       >
-        <div class="flex-1">
-          <div class="font-semibold text-gray-800 text-base">{{ recording.title }}</div>
-          <div class="text-sm text-gray-500 font-medium">{{ formatDate(recording.date) }}</div>
-        </div>
-        <div class="flex items-center gap-3">
-          <button class="w-10 h-10 border-2 border-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_4px_0_rgba(0,0,0,0.2)] bg-gradient-to-br from-blue-400 to-blue-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)]" @click="playRecording(recording)">
-            <Play class="w-5 h-5" />
-          </button>
-          <div class="flex gap-1">
-            <div v-for="sticker in recording.stickers" :key="sticker" class="w-6 h-6 flex items-center justify-center">
-              <component 
-                :is="getStickerIcon(sticker)" 
-                class="w-5 h-5 text-yellow-500 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]" 
+        <!-- Session Header -->
+        <div class="flex justify-between items-start">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <img 
+                v-if="session.instrument" 
+                :src="`/instruments/${getInstrumentImage(session.instrument)}`" 
+                :alt="getInstrumentName(session.instrument)"
+                class="w-6 h-6 object-contain"
               />
+              <div class="font-semibold text-gray-800 text-base">
+                {{ session.description }}
+              </div>
+            </div>
+            <div class="text-sm text-gray-500 font-medium">
+              {{ formatDate(session.createdAt) }} • {{ session.practiceMinutes }} minutes
+            </div>
+         
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+              {{ session.practiceMinutes }}m
             </div>
           </div>
         </div>
+        
+        <!-- Recording Section -->
+        <div v-if="getRecordingUrl(session)" class="mt-3">
+          <div class="flex items-center gap-3">
+            <!-- Traditional Play Button -->
+            <button 
+              class="w-10 h-10 border-2 border-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_4px_0_rgba(0,0,0,0.2)] bg-gradient-to-br from-blue-400 to-blue-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)]" 
+              @click="playRecording(getRecordingUrl(session), session.id)"
+            >
+              <Play class="w-5 h-5" />
+            </button>
+            
+            <!-- Waveform -->
+            <div class="flex-1">
+              <AudioWaveform 
+                :cloudinary-url="getRecordingUrl(session)"
+                @play="onWaveformPlay"
+                @pause="onWaveformPause"
+                @error="onWaveformError"
+              />
+            </div>
+          </div>
+          
+         
+        </div>
+        
+        <!-- No Recording Message -->
+        <div v-else class="mt-3 text-center py-3 text-gray-400 text-sm">
+          <Mic class="w-4 h-4 mx-auto mb-1" />
+          <p>No recording for this session</p>
+        </div>
       </div>
     </div>
-    <button @click="$emit('show-recording-modal')" class="btn btn-secondary w-full p-4 text-base font-bold mt-4">
-      <Mic class="w-5 h-5" />
-      Record New Clip
-    </button>
+    
+   
   </div>
 </template>
 
 <script setup>
-import { Play, Mic, Star, Music, ThumbsUp, Guitar, Sparkles, Target } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { Play, Music, Mic, Clock } from 'lucide-vue-next'
+import AudioWaveform from './AudioWaveform.vue'
+import { getStandalonePractices } from '../../lib/auth.js'
+import { getInstrumentImage, getInstrumentName } from '../../lib/instruments.js'
 
-defineProps({
-  recordings: {
-    type: Array,
-    default: () => []
+const props = defineProps({
+  userId: {
+    type: String,
+    required: true
   }
 })
 
-defineEmits(['show-recording-modal', 'play-recording'])
+const practiceSessions = ref([])
+const isLoading = ref(false)
+const currentPlayingAudio = ref(null)
+const currentPlayingSessionId = ref(null)
 
-const formatDate = (date) => {
+// Remove the computed property - use direct playbackProgress for better sync
+
+// Load practice sessions
+const loadPracticeSessions = async () => {
+  if (!props.userId) return
+  
+  isLoading.value = true
+  try {
+    console.log('Loading practice sessions for user:', props.userId)
+    const result = await getStandalonePractices(props.userId)
+    console.log('Practice sessions result:', result)
+    if (result.success) {
+      practiceSessions.value = result.practices
+      console.log('Loaded practice sessions:', practiceSessions.value)
+      
+
+    }
+  } catch (error) {
+    console.error('Error loading practice sessions:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Load sessions on mount
+onMounted(() => {
+  loadPracticeSessions()
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (currentPlayingAudio.value) {
+    currentPlayingAudio.value.pause()
+    currentPlayingAudio.value = null
+  }
+  // The playbackTimer.value = null is no longer needed as we rely on timeupdate event
+})
+
+const emit = defineEmits(['play-recording'])
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { 
     month: 'short', 
-    day: 'numeric' 
+    day: 'numeric',
+    year: 'numeric'
   })
 }
 
-const getStickerIcon = (stickerName) => {
-  const iconMap = {
-    'star': Star,
-    'music': Music,
-    'thumbs-up': ThumbsUp,
-    'guitar': Guitar,
-    'sparkles': Sparkles,
-    'target': Target,
-    'violin': Music // Fallback for violin
-  }
-  return iconMap[stickerName] || Star
+const formatDuration = (seconds) => {
+  if (!seconds) return '0:00'
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-const playRecording = (recording) => {
-  emit('play-recording', recording)
+const playRecording = (recording, sessionId) => {
+  console.log('playRecording called with:', recording, 'sessionId:', sessionId)
+  
+  if (!recording) {
+    console.log('No recording URL provided')
+    return
+  }
+  
+  try {
+    // If we're already playing this session, pause it
+    if (currentPlayingSessionId.value === sessionId && currentPlayingAudio.value) {
+      console.log('Pausing current recording')
+      currentPlayingAudio.value.pause()
+      currentPlayingAudio.value = null
+      currentPlayingSessionId.value = null
+      return
+    }
+    
+    // Stop any currently playing audio from other sessions
+    if (currentPlayingAudio.value && currentPlayingSessionId.value !== sessionId) {
+      console.log('Stopping other recording before playing new one')
+      currentPlayingAudio.value.pause()
+      currentPlayingAudio.value = null
+      currentPlayingSessionId.value = null
+    }
+    
+    // Create new audio element and play
+    const audio = new Audio(recording)
+    audio.crossOrigin = 'anonymous' // Enable CORS for Cloudinary URLs
+    
+    audio.addEventListener('error', (error) => {
+      console.error('Error playing recording:', error)
+      currentPlayingAudio.value = null
+      currentPlayingSessionId.value = null
+    })
+    
+    audio.addEventListener('loadstart', () => {
+      console.log('Audio loading started')
+    })
+    
+    audio.addEventListener('canplay', () => {
+      console.log('Audio can play')
+    })
+    
+    audio.addEventListener('ended', () => {
+      console.log('Audio playback ended')
+      currentPlayingAudio.value = null
+      currentPlayingSessionId.value = null
+    })
+    
+    audio.play().then(() => {
+      console.log('Audio playback started successfully')
+      currentPlayingAudio.value = audio
+      currentPlayingSessionId.value = sessionId
+      
+      // Remove the separate timer - rely on timeupdate event for accurate progress
+      // The timeupdate event will handle progress updates automatically
+      
+    }).catch((error) => {
+      console.error('Failed to play audio:', error)
+    })
+    
+  } catch (error) {
+    console.error('Error in playRecording:', error)
+  }
 }
+
+const onWaveformPlay = () => {
+  console.log('Waveform playback started')
+}
+
+const onWaveformPause = () => {
+  console.log('Waveform playback paused')
+}
+
+const onWaveformError = (error) => {
+  console.error('Waveform error:', error)
+}
+
+const loadMoreSessions = () => {
+  // TODO: Implement pagination for practice sessions
+  console.log('Load more sessions clicked')
+  // For now, just reload all sessions
+  loadPracticeSessions()
+}
+
+const getRecordingUrl = (session) => {
+  // Handle different recording data structures
+  if (session.recording) {
+    // If recording is a string (direct URL)
+    if (typeof session.recording === 'string' && session.recording.startsWith('http')) {
+      return session.recording
+    }
+    // If recording is an object with url property
+    if (typeof session.recording === 'object' && session.recording.url) {
+      return session.recording.url
+    }
+  }
+  return null
+}
+
+const getRecordingDuration = (session) => {
+  if (session.recording) {
+    // If recording is an object with duration property
+    if (typeof session.recording === 'object' && session.recording.duration) {
+      return session.recording.duration
+    }
+  }
+  return 0
+}
+
+const getRecordingFormat = (session) => {
+  if (session.recording) {
+    // If recording is an object with format property
+    if (typeof session.recording === 'object' && session.recording.format) {
+      return session.recording.format
+    }
+  }
+  return 'mp3'
+}
+
+// Expose methods for parent component
+defineExpose({
+  loadPracticeSessions
+})
 </script> 

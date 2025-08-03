@@ -54,56 +54,6 @@
         </div>
       </div>
 
-      <!-- Class Selection (if enrolled in classes) -->
-      <div v-if="enrolledClasses && enrolledClasses.length > 0" class="relative">
-        <label class="block mb-2 font-semibold text-gray-700 text-base">
-          Practice for Class (Optional)
-        </label>
-        <div class="relative">
-          <button 
-            @click="showClassDropdown = !showClassDropdown"
-            type="button"
-            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] focus:transform focus:-translate-y-0.5 flex items-center justify-between"
-          >
-            <div class="flex items-center gap-3">
-              <span v-if="selectedClass" class="text-gray-800">{{ selectedClass.name || selectedClass.code }}</span>
-              <span v-else class="text-gray-500">Standalone practice (not for a class)</span>
-            </div>
-            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </button>
-          
-          <div 
-            v-if="showClassDropdown"
-            class="absolute z-50 w-full mt-1 bg-white border-4 border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
-          >
-            <div 
-              @click="selectClass(null)"
-              class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100"
-            >
-              <div class="w-6 h-6 flex items-center justify-center">
-                <Music class="w-4 h-4 text-gray-500" />
-              </div>
-              <span class="text-gray-800">Standalone practice</span>
-            </div>
-            <div 
-              v-for="classItem in enrolledClasses" 
-              :key="classItem.code"
-              @click="selectClass(classItem)"
-              class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-            >
-              <div class="w-6 h-6 flex items-center justify-center bg-purple-100 rounded-full">
-                <BookOpen class="w-4 h-4 text-purple-600" />
-              </div>
-              <div class="flex-1">
-                <div class="text-gray-800 font-medium">{{ classItem.name || classItem.code }}</div>
-                <div class="text-xs text-gray-500">{{ classItem.teacherName || 'Music Class' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Practice Time -->
       <div>
