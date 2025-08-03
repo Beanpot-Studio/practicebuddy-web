@@ -41,21 +41,24 @@
         />
       </div>
 
-      <!-- Class Enrollment/Assignments Section - Half Width -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Class Enrollment/Assignments Section - Full Width -->
+      <div class="mb-8">
         <!-- Class Enrollment Section -->
         <ClassEnrollmentCard
-          v-if="!currentUser?.classCode"
+          v-if="!currentUser?.classCode && enrolledClasses.length === 0"
           @join-class="joinClass"
         />
 
-        <!-- Class Assignments Section -->
-        <ClassAssignmentsCard
-          v-if="currentUser?.classCode"
+        <!-- Combined Classes and Assignments Section -->
+        <ClassesAndAssignmentsCard
+          v-if="enrolledClasses.length > 0"
+          :enrolled-classes="enrolledClasses"
           :assignments="assignments"
-          :is-loading-assignments="isLoadingAssignments"
         />
-        
+      </div>
+
+      <!-- Other Cards Section - Half Width Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Practice Goals Card -->
         <PracticeGoalsCard
           :student-id="currentUser?.uid"
@@ -104,6 +107,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '../lib/firebase'
 import { CheckCircle } from 'lucide-vue-next'
 import { instruments } from '../lib/instruments'
 
@@ -114,7 +119,7 @@ import PracticeSessionCard from './StudentDashboard/PracticeSessionCard.vue'
 import PracticeTimer from './StudentDashboard/PracticeTimer.vue'
 import MusicalCreationsCard from './StudentDashboard/MusicalCreationsCard.vue'
 import ClassEnrollmentCard from './StudentDashboard/ClassEnrollmentCard.vue'
-import ClassAssignmentsCard from './StudentDashboard/ClassAssignmentsCard.vue'
+import ClassesAndAssignmentsCard from './StudentDashboard/ClassesAndAssignmentsCard.vue'
 import AchievementsCard from './StudentDashboard/AchievementsCard.vue'
 import StandalonePracticeCard from './StudentDashboard/StandalonePracticeCard.vue'
 import RecordingModal from './StudentDashboard/RecordingModal.vue'
@@ -139,7 +144,8 @@ const {
   getUserPracticeStats,
   getTeacherClasses,
   getStudentPracticeGoals,
-  updatePracticeGoalProgress
+  updatePracticeGoalProgress,
+  fetchClassData // Added fetchClassData to the composable
 } = useAuth()
 
 const totalPracticeTime = ref(45)
@@ -254,17 +260,12 @@ const onSessionCancelled = async (sessionData) => {
 }
 
 const handlePracticeSession = async (practiceData) => {
-  console.log('handlePracticeSession called with:', practiceData)
-  
   const selectedInstrumentObj = instruments.find(instr => instr.value === practiceData.instrument)
   const instrumentName = selectedInstrumentObj ? selectedInstrumentObj.name : practiceData.instrument
-  
-  console.log('Selected instrument:', selectedInstrumentObj, 'Instrument name:', instrumentName)
   
   // Update total practice time with actual duration, rounded up to next minute
   const actualMinutes = practiceData.actualDuration || 0
   const roundedMinutes = Math.ceil(actualMinutes) // Round up to next whole minute
-  console.log('Actual minutes practiced:', actualMinutes, 'Rounded up to:', roundedMinutes)
   
   totalPracticeTime.value += roundedMinutes
   
@@ -272,20 +273,17 @@ const handlePracticeSession = async (practiceData) => {
   try {
     if (practiceData.classCode) {
       // Record in class if enrolled
-      console.log('Recording class practice for class:', practiceData.classCode)
       const result = await updateStudentPracticeActivity(
         practiceData.classCode,
         currentUser.value.uid,
         roundedMinutes
       )
-      console.log('Class practice recording result:', result)
       
       if (!result.success) {
-        console.error('Failed to record class practice:', result.error)
+        // Failed to record class practice
       }
     } else {
       // Record standalone practice if not enrolled in a class
-      console.log('Recording standalone practice for user:', currentUser.value.uid)
       const standalonePracticeData = {
         instrument: practiceData.instrument,
         practiceMinutes: roundedMinutes,
@@ -296,22 +294,15 @@ const handlePracticeSession = async (practiceData) => {
         timestamp: new Date().toISOString()
       }
       
-      console.log('Standalone practice data:', standalonePracticeData)
-      
       const result = await createStandalonePractice(
         currentUser.value.uid,
         standalonePracticeData
       )
       
-      console.log('Standalone practice recording result:', result)
-      
       if (result.success) {
-        console.log('Standalone practice session recorded successfully')
         // Refresh practice sessions
         await loadStandalonePractices()
         await loadUserPracticeStats()
-      } else {
-        console.error('Error recording standalone practice session:', result.error)
       }
     }
 
@@ -319,7 +310,7 @@ const handlePracticeSession = async (practiceData) => {
     await updateLocalPracticeGoalProgress(practiceData)
     
   } catch (error) {
-    console.error('Error recording practice session:', error)
+    // Error recording practice session
   }
   
   // Show success notification with rounded time
@@ -360,11 +351,9 @@ const updateLocalPracticeGoalProgress = async (practiceData) => {
           practiceData.classCode
         )
       }
-      
-      console.log('Practice goal progress updated successfully')
     }
   } catch (error) {
-    console.error('Error updating practice goal progress:', error)
+    // Error updating practice goal progress
   }
 }
 
@@ -372,21 +361,63 @@ const loadEnrolledClasses = async () => {
   if (!currentUser.value?.uid) return
   
   try {
-    // For now, we'll create a simple structure
-    // In a real app, this would come from the user's enrolled classes
+
+    
+    // Query all classes and filter for those containing this student
+    const classesQuery = query(collection(db, 'classes'))
+    const querySnapshot = await getDocs(classesQuery)
+    const enrolledClassesList = []
+    
+    querySnapshot.forEach((doc) => {
+      const classData = doc.data()
+      // Check if this student is in the students array
+      const studentData = classData.students?.find(s => 
+        s.studentId === currentUser.value.uid || 
+        s.id === currentUser.value.uid ||
+        s.uid === currentUser.value.uid
+      )
+      
+      if (studentData) {
+        enrolledClassesList.push({
+          id: doc.id,
+          code: classData.code,
+          name: classData.name,
+          teacherName: classData.teacherName || 'Music Teacher',
+          instrument: studentData?.instrument || classData.instrument,
+          level: classData.level,
+          schedule: classData.schedule,
+          studentData: studentData
+        })
+      }
+    })
+    
+    enrolledClasses.value = enrolledClassesList
+    
+    // If student has a classCode but no enrolled classes found, create a fallback
+    if (currentUser.value?.classCode && enrolledClassesList.length === 0) {
+      enrolledClasses.value = [
+        {
+          code: currentUser.value.classCode,
+          name: 'Music Class',
+          teacherName: 'Music Teacher',
+          instrument: currentUser.value.instrument || 'Music'
+        }
+      ]
+    }
+  } catch (error) {
+    // Fallback to hardcoded data if there's an error
     if (currentUser.value?.classCode) {
       enrolledClasses.value = [
         {
           code: currentUser.value.classCode,
           name: 'Music Class',
-          teacherName: 'Music Teacher'
+          teacherName: 'Music Teacher',
+          instrument: currentUser.value.instrument || 'Music'
         }
       ]
     } else {
       enrolledClasses.value = []
     }
-  } catch (error) {
-    console.error('Error loading enrolled classes:', error)
   }
 }
 
@@ -398,11 +429,8 @@ const loadStandalonePractices = async () => {
     const result = await fetchStandalonePractices(currentUser.value.uid)
     if (result.success) {
       standalonePractices.value = result.practices
-    } else {
-      console.error('Failed to load standalone practices:', result.error)
     }
   } catch (error) {
-    console.error('Error loading standalone practices:', error)
   } finally {
     isLoadingPractices.value = false
   }
@@ -418,11 +446,8 @@ const loadUserPracticeStats = async () => {
       // Update the display values
       totalPracticeTime.value = result.practiceStats.totalPracticeMinutes || 0
       currentStreak.value = Math.floor(result.practiceStats.totalPracticeMinutes / 30) || 0 // Simple streak calculation
-    } else {
-      console.error('Failed to load user practice stats:', result.error)
     }
   } catch (error) {
-    console.error('Error loading user practice stats:', error)
   }
 }
 
@@ -430,9 +455,8 @@ const trackLoginActivity = async () => {
   if (currentUser.value?.classCode && currentUser.value?.uid) {
     try {
       await updateStudentLoginActivity(currentUser.value.classCode, currentUser.value.uid)
-      console.log('Login activity tracked successfully')
     } catch (error) {
-      console.error('Error tracking login activity:', error)
+      // Error tracking login activity
     }
   }
 }
@@ -483,7 +507,6 @@ const joinClass = async (classCode) => {
       throw new Error(result.error || 'Failed to join class. Please check your class code.')
     }
   } catch (error) {
-    console.error('Error joining class:', error)
     throw error
   }
 }
@@ -495,33 +518,69 @@ const loadAssignments = async () => {
   try {
     let allAssignments = []
     
-    // Load class assignments if student is enrolled in a class
-    if (currentUser.value?.classCode) {
-      const classResult = await fetchClassAssignments(currentUser.value.classCode, currentUser.value.uid)
-      if (classResult.success) {
-        allAssignments.push(...classResult.assignments)
+    // First load enrolled classes to get all class codes
+    await loadEnrolledClasses()
+    
+    // Load assignments for each enrolled class
+    for (const classItem of enrolledClasses.value) {
+      // Get the class data which contains assignments arrays
+      const classResult = await fetchClassData(classItem.code)
+      if (classResult.success && classResult.class) {
+        const classData = classResult.class
+        
+        // Extract class-wide assignments
+        if (classData.assignments && classData.assignments.length > 0) {
+          const classAssignments = classData.assignments.map(assignment => ({
+            ...assignment,
+            type: 'class',
+            classCode: classItem.code,
+            classId: classItem.id,
+            className: classItem.name
+          }))
+          allAssignments.push(...classAssignments)
+        }
+        
+        // Extract individual assignments for this student
+        if (classData.individualAssignments && typeof classData.individualAssignments === 'object') {
+          // Get assignments for this specific student
+          const studentIndividualAssignments = classData.individualAssignments[currentUser.value.uid] || []
+          
+          const individualAssignments = studentIndividualAssignments.map(assignment => ({
+            ...assignment,
+            type: 'individual',
+            classCode: classItem.code,
+            classId: classItem.id,
+            className: classItem.name
+          }))
+          
+          allAssignments.push(...individualAssignments)
+        }
       }
     }
     
-    // Load standalone assignments for this student
+    // Load standalone assignments for this student (these are stored separately)
     const standaloneResult = await fetchStudentStandaloneAssignments(currentUser.value.uid)
     if (standaloneResult.success) {
-      allAssignments.push(...standaloneResult.assignments)
+      const standaloneAssignments = standaloneResult.assignments.map(assignment => ({
+        ...assignment,
+        type: 'standalone'
+      }))
+      allAssignments.push(...standaloneAssignments)
     }
     
     assignments.value = allAssignments
   } catch (error) {
-    console.error('Failed to load assignments:', error)
+    // Failed to load assignments
   } finally {
     isLoadingAssignments.value = false
   }
 }
 
 onMounted(async () => {
-  await loadAssignments()
+  await loadEnrolledClasses() // Load enrolled classes first
+  await loadAssignments() // Then load assignments for all enrolled classes
   await trackLoginActivity()
   await loadUserPracticeStats() // Load practice stats on mount
   await loadStandalonePractices() // Load standalone practices on mount
-  await loadEnrolledClasses() // Load enrolled classes
 })
 </script>

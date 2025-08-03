@@ -26,7 +26,19 @@
       >
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1">
-            <h4 class="font-semibold text-gray-800 text-lg mb-1">{{ assignment.title }}</h4>
+            <div class="flex items-center gap-2 mb-1">
+              <h4 class="font-semibold text-gray-800 text-lg">{{ assignment.title }}</h4>
+              <span :class="[
+                'px-2 py-1 rounded text-xs font-bold',
+                assignment.type === 'class' 
+                  ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                  : assignment.type === 'individual'
+                  ? 'bg-green-100 text-green-700 border border-green-300'
+                  : 'bg-purple-100 text-purple-700 border border-purple-300'
+              ]">
+                {{ assignment.type === 'class' ? 'Class' : assignment.type === 'individual' ? 'Individual' : 'Standalone' }}
+              </span>
+            </div>
             <p class="text-gray-600 text-sm mb-2">{{ assignment.description }}</p>
           </div>
           <div class="flex items-center gap-2">
@@ -61,7 +73,7 @@
 </template>
 
 <script setup>
-import { Calendar, CheckCircle, Clock } from 'lucide-vue-next'
+import { Calendar, CheckCircle, Clock, BookOpen } from 'lucide-vue-next'
 
 defineProps({
   assignments: {

@@ -39,24 +39,14 @@
             Create Class
           </button>
           <button
-            @click="changeTab('manage-classes')"
+            @click="changeTab('classes-assignments')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'manage-classes' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+              activeTab === 'classes-assignments' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
             ]"
           >
             <GraduationCap class="w-4 h-4" />
-            Manage Classes
-          </button>
-          <button
-            @click="changeTab('assignments')"
-            :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'assignments' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
-            ]"
-          >
-            <BookOpen class="w-4 h-4" />
-            Assignments
+            Classes & Assignments
           </button>
           <button
             @click="changeTab('goals')"
@@ -85,6 +75,8 @@
           :selected-class-for-roster="selectedClassForRoster"
           :class-roster="classRoster"
           :is-loading-roster="isLoadingRoster"
+          :student-goals="studentGoals"
+          :class-goals="classGoals"
           @load-classes="loadClasses"
           @select-class-for-roster="selectClassForRoster"
           @select-student="selectStudent"
@@ -97,35 +89,26 @@
           @class-created="onClassCreated"
           @create-class="createClass"
         />
-        <ManageClassesTab
-          v-if="activeTab === 'manage-classes'"
+        <ClassesAndAssignmentsTab
+          v-if="activeTab === 'classes-assignments'"
           :classes="classes"
           :selected-class="selectedClass"
           :is-loading="isLoadingClasses"
           :error="classesError"
+          :class-roster="classRoster"
+          :is-loading-roster="isLoadingRoster"
+          :class-assignments="classAssignments"
+          :new-assignment="newAssignment"
+          :is-creating-assignment="isCreatingAssignment"
           @load-classes="loadClasses"
           @change-tab="changeTab"
           @select-class="selectClass"
           @copy-class-code="copyClassCode"
           @send-email="sendEmail"
-        />
-        <AssignmentsTab
-          v-if="activeTab === 'assignments'"
-          :current-user="currentUser"
-          :classes="classes"
-          :is-loading="isLoadingClasses"
-          :error="classesError"
-          :selected-class-for-assignments="selectedClassForAssignments"
-          :new-assignment="newAssignment"
-          :class-roster="classRoster"
-          :class-assignments="classAssignments"
-          :is-loading-assignments="isLoadingAssignments"
-          :is-creating-assignment="isCreatingAssignment"
-          @load-classes="loadClasses"
-          @change-tab="changeTab"
-          @select-class-for-assignments="selectClassForAssignments"
           @create-new-assignment="createNewAssignment"
           @delete-assignment="deleteAssignment"
+          @view-student-details="viewStudentDetails"
+          @create-individual-assignment="createIndividualAssignment"
         />
         <GoalsTab
           v-if="activeTab === 'goals'"
@@ -141,8 +124,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
 import CreateClassTab from './TeacherDashboard/CreateClassTab.vue'
-import ManageClassesTab from './TeacherDashboard/ManageClassesTab.vue'
-import AssignmentsTab from './TeacherDashboard/AssignmentsTab.vue'
+import ClassesAndAssignmentsTab from './TeacherDashboard/ClassesAndAssignmentsTab.vue'
 import GoalsTab from './TeacherDashboard/GoalsTab.vue'
 import { 
   GraduationCap, 
@@ -152,7 +134,7 @@ import {
   Target 
 } from 'lucide-vue-next'
 
-const { currentUser, fetchTeacherClasses, createTeacherClass, fetchClassRoster, fetchClassAssignments } = useAuth()
+const { currentUser, fetchTeacherClasses, createTeacherClass, fetchClassRoster, fetchUserData } = useAuth()
 
 const activeTab = ref('overview')
 const classes = ref([])
@@ -175,6 +157,8 @@ const recentActivity = ref([])
 const selectedClassForRoster = ref(null)
 const classRoster = ref([])
 const isLoadingRoster = ref(false)
+const studentGoals = ref({})
+const classGoals = ref({})
 
 // AssignmentsTab props
 const selectedClassForAssignments = ref(null)
@@ -192,12 +176,12 @@ const isCreatingAssignment = ref(false)
 
 // Debug: Watch for tab changes
 watch(activeTab, (newTab) => {
-  console.log('Active tab changed to:', newTab)
+  // console.log('Active tab changed to:', newTab)
 })
 
 const loadClasses = async () => {
   if (!currentUser.value?.uid) {
-    console.error('No current user found')
+    // console.error('No current user found')
     return
   }
 
@@ -205,24 +189,24 @@ const loadClasses = async () => {
     isLoadingClasses.value = true
     classesError.value = null
     
-    console.log('Loading classes for teacher:', currentUser.value.uid)
+    // console.log('Loading classes for teacher:', currentUser.value.uid)
     const result = await fetchTeacherClasses(currentUser.value.uid)
     
     if (result.success) {
       classes.value = result.classes || []
-      console.log('Classes loaded successfully:', classes.value)
+      // console.log('Classes loaded successfully:', classes.value)
       
       // Load all students from all classes
       await loadAllStudents()
       
-      // Load assignments for all classes
+      // Extract assignments from class data
       await loadAllAssignments()
     } else {
-      console.error('Failed to load classes:', result.error)
+      // console.error('Failed to load classes:', result.error)
       classesError.value = result.error || 'Failed to load classes'
     }
   } catch (error) {
-    console.error('Error loading classes:', error)
+    // console.error('Error loading classes:', error)
     classesError.value = error.message || 'Error loading classes'
   } finally {
     isLoadingClasses.value = false
@@ -232,55 +216,98 @@ const loadClasses = async () => {
 const loadAllStudents = async () => {
   if (classes.value.length === 0) {
     allStudents.value = []
-    console.log('No classes found, setting allStudents to empty array')
     return
   }
 
   try {
-    isLoadingRoster.value = true
     const allStudentsList = []
-
-    console.log('Loading students from', classes.value.length, 'classes')
-
-    // Load students from each class
+    
+    // Collect students from all classes
     for (const classItem of classes.value) {
-      try {
-        console.log('Loading roster for class:', classItem.code, classItem.name)
-        const rosterResult = await fetchClassRoster(classItem.code)
-        if (rosterResult.success && rosterResult.students) {
-          console.log('Found', rosterResult.students.length, 'students in class', classItem.name)
-          // Add class info to each student
-          const studentsWithClass = rosterResult.students.map(student => ({
+      if (classItem.students && classItem.students.length > 0) {
+        classItem.students.forEach(student => {
+          // Add class information to student data
+          const studentWithClass = {
             ...student,
             className: classItem.name,
-            classCode: classItem.code
-          }))
-          allStudentsList.push(...studentsWithClass)
-        } else {
-          console.log('No students found in class', classItem.name, 'or error:', rosterResult.error)
-        }
-      } catch (error) {
-        console.error(`Error loading roster for class ${classItem.code}:`, error)
+            classCode: classItem.code,
+            classId: classItem.id
+          }
+          allStudentsList.push(studentWithClass)
+        })
       }
     }
-
-    // Remove duplicates (in case a student is in multiple classes)
-    const uniqueStudents = allStudentsList.filter((student, index, self) =>
-      index === self.findIndex(s => s.studentId === student.studentId)
-    )
-
-    allStudents.value = uniqueStudents
-    console.log('Total unique students loaded:', allStudents.value.length)
-    console.log('All students:', allStudents.value)
     
-    // Update student assignments count if assignments are already loaded
-    if (classAssignments.value.length > 0) {
-      updateStudentAssignmentsCount()
-    }
+    allStudents.value = allStudentsList
+    
+    // Load goals for all students
+    await loadStudentGoals()
+    await loadClassGoals()
   } catch (error) {
-    console.error('Error loading all students:', error)
-  } finally {
-    isLoadingRoster.value = false
+    // console.error('Error loading all students:', error)
+  }
+}
+
+const loadStudentGoals = async () => {
+  try {
+    // This would fetch goals from Firebase
+    // For now, create mock data
+    const mockStudentGoals = {}
+    allStudents.value.forEach(student => {
+      const studentId = student.studentId || student.id
+      mockStudentGoals[studentId] = [
+        {
+          id: `goal_${studentId}_1`,
+          title: 'Practice 30 minutes daily',
+          type: 'individual',
+          target: 30,
+          progress: Math.floor(Math.random() * 30),
+          status: 'active'
+        },
+        {
+          id: `goal_${studentId}_2`,
+          title: 'Complete 5 assignments this week',
+          type: 'individual',
+          target: 5,
+          progress: Math.floor(Math.random() * 5),
+          status: 'active'
+        }
+      ]
+    })
+    studentGoals.value = mockStudentGoals
+  } catch (error) {
+    console.error('Error loading student goals:', error)
+  }
+}
+
+const loadClassGoals = async () => {
+  try {
+    // This would fetch goals from Firebase
+    // For now, create mock data
+    const mockClassGoals = {}
+    classes.value.forEach(classItem => {
+      mockClassGoals[classItem.id] = [
+        {
+          id: `class_goal_${classItem.id}_1`,
+          title: 'Class performance goal',
+          type: 'class',
+          target: 100,
+          progress: Math.floor(Math.random() * 100),
+          status: 'active'
+        },
+        {
+          id: `class_goal_${classItem.id}_2`,
+          title: 'Group practice sessions',
+          type: 'class',
+          target: 10,
+          progress: Math.floor(Math.random() * 10),
+          status: 'active'
+        }
+      ]
+    })
+    classGoals.value = mockClassGoals
+  } catch (error) {
+    console.error('Error loading class goals:', error)
   }
 }
 
@@ -295,33 +322,52 @@ const loadAllAssignments = async () => {
     isLoadingAssignments.value = true
     const allAssignmentsList = []
 
-    console.log('Loading assignments from', classes.value.length, 'classes')
+    console.log('Extracting assignments from', classes.value.length, 'classes')
 
-    // Load assignments from each class
+    // Extract assignments from each class
     for (const classItem of classes.value) {
       try {
-        console.log('Loading assignments for class:', classItem.code, classItem.name)
-        const assignmentsResult = await fetchClassAssignments(classItem.code)
-        if (assignmentsResult.success && assignmentsResult.assignments) {
-          console.log('Found', assignmentsResult.assignments.length, 'assignments in class', classItem.name)
-          // Add class info to each assignment
-          const assignmentsWithClass = assignmentsResult.assignments.map(assignment => ({
+        console.log('Processing assignments for class:', classItem.code, classItem.name)
+        console.log('Class assignments:', classItem.assignments)
+        console.log('Individual assignments:', classItem.individualAssignments)
+        
+        // Process class-wide assignments
+        if (classItem.assignments && classItem.assignments.length > 0) {
+          console.log('Found', classItem.assignments.length, 'class assignments in class', classItem.name)
+          const classAssignmentsWithContext = classItem.assignments.map(assignment => ({
             ...assignment,
+            type: 'class',
             className: classItem.name,
-            classCode: classItem.code
+            classCode: classItem.code,
+            classId: classItem.id
           }))
-          allAssignmentsList.push(...assignmentsWithClass)
-        } else {
-          console.log('No assignments found in class', classItem.name, 'or error:', assignmentsResult.error)
+          allAssignmentsList.push(...classAssignmentsWithContext)
+        }
+        
+        // Process individual assignments
+        if (classItem.individualAssignments && classItem.individualAssignments.length > 0) {
+          console.log('Found', classItem.individualAssignments.length, 'individual assignments in class', classItem.name)
+          const individualAssignmentsWithContext = classItem.individualAssignments.map(assignment => ({
+            ...assignment,
+            type: 'individual',
+            className: classItem.name,
+            classCode: classItem.code,
+            classId: classItem.id
+          }))
+          allAssignmentsList.push(...individualAssignmentsWithContext)
+        }
+        
+        if (!classItem.assignments?.length && !classItem.individualAssignments?.length) {
+          console.log('No assignments found in class', classItem.name)
         }
       } catch (error) {
-        console.error(`Error loading assignments for class ${classItem.code}:`, error)
+        console.error(`Error processing assignments for class ${classItem.code}:`, error)
       }
     }
 
     // Remove duplicates (in case an assignment is in multiple classes)
     const uniqueAssignments = allAssignmentsList.filter((assignment, index, self) =>
-      index === self.findIndex(a => a.assignmentId === assignment.assignmentId)
+      index === self.findIndex(a => a.id === assignment.id)
     )
 
     classAssignments.value = uniqueAssignments
@@ -342,44 +388,45 @@ const updateStudentAssignmentsCount = () => {
   
   // Count assignments per student
   classAssignments.value.forEach(assignment => {
-    if (assignment.studentId) {
+    if (assignment.type === 'individual' && assignment.studentId) {
       // Individual assignment
       if (!studentAssignmentCounts[assignment.studentId]) {
         studentAssignmentCounts[assignment.studentId] = 0
       }
       studentAssignmentCounts[assignment.studentId]++
-    } else {
+    } else if (assignment.type === 'class') {
       // Class assignment - count for all students in that class
       const classStudents = allStudents.value.filter(student => 
         student.classCode === assignment.classCode
       )
       classStudents.forEach(student => {
-        if (!studentAssignmentCounts[student.studentId]) {
-          studentAssignmentCounts[student.studentId] = 0
+        const studentId = student.studentId || student.id
+        if (!studentAssignmentCounts[studentId]) {
+          studentAssignmentCounts[studentId] = 0
         }
-        studentAssignmentCounts[student.studentId]++
+        studentAssignmentCounts[studentId]++
       })
     }
   })
   
   studentAssignments.value = studentAssignmentCounts
-  console.log('Updated student assignments count:', studentAssignments.value)
+  // console.log('Updated student assignments count:', studentAssignments.value)
 }
 
 const createClass = async () => {
   if (!currentUser.value?.uid) {
-    console.error('No current user found')
+    // console.error('No current user found')
     return
   }
 
   try {
     isCreatingClass.value = true
-    console.log('Creating class:', newClass.value)
+    // console.log('Creating class:', newClass.value)
     
     const result = await createTeacherClass(currentUser.value.uid, newClass.value)
     
     if (result.success) {
-      console.log('Class created successfully:', result.class)
+      // console.log('Class created successfully:', result.class)
       // Reset form
       newClass.value = {
         name: '',
@@ -392,11 +439,11 @@ const createClass = async () => {
       await loadClasses()
       activeTab.value = 'manage-classes'
     } else {
-      console.error('Failed to create class:', result.error)
+      // console.error('Failed to create class:', result.error)
       // You could add error handling here
     }
   } catch (error) {
-    console.error('Error creating class:', error)
+    // console.error('Error creating class:', error)
   } finally {
     isCreatingClass.value = false
   }
@@ -408,12 +455,28 @@ const onClassCreated = () => {
 }
 
 const changeTab = (tab) => {
-  console.log('Changing tab to:', tab)
+  // console.log('Changing tab to:', tab)
   activeTab.value = tab
 }
 
-const selectClass = (classItem) => {
+const selectClass = async (classItem) => {
   selectedClass.value = classItem
+  // Load class roster for the selected class
+  if (classItem) {
+    try {
+      await loadClassRoster(classItem.code)
+      // Assignments are already loaded from class data in loadAllAssignments
+      // No need to load them separately
+    } catch (error) {
+      console.error('Error loading class data:', error)
+      // Fallback: try to get roster from allStudents
+      if (allStudents.value.length > 0) {
+        classRoster.value = allStudents.value.filter(student => 
+          student.classCode === classItem.code
+        )
+      }
+    }
+  }
 }
 
 const copyClassCode = (code) => {
@@ -423,23 +486,23 @@ const copyClassCode = (code) => {
 
 const sendEmail = (classItem) => {
   // Implement email functionality
-  console.log('Send email to class:', classItem)
+  // console.log('Send email to class:', classItem)
 }
 
 const selectClassForAssignments = (classItem) => {
   selectedClassForAssignments.value = classItem
   // TODO: Load class roster and assignments for this class
-  console.log('Selected class for assignments:', classItem)
+  // console.log('Selected class for assignments:', classItem)
 }
 
 const createNewAssignment = async () => {
   // TODO: Implement assignment creation
-  console.log('Creating new assignment:', newAssignment.value)
+  // console.log('Creating new assignment:', newAssignment.value)
 }
 
 const deleteAssignment = async (assignmentId) => {
   // TODO: Implement assignment deletion
-  console.log('Deleting assignment:', assignmentId)
+  // console.log('Deleting assignment:', assignmentId)
 }
 
 const selectClassForRoster = (classItem) => {
@@ -459,6 +522,8 @@ const loadClassRoster = async (classCode) => {
     const result = await fetchClassRoster(classCode)
     if (result.success) {
       classRoster.value = result.students || []
+    } else {
+      console.error('Failed to load roster:', result.error)
     }
   } catch (error) {
     console.error('Error loading class roster:', error)
@@ -467,13 +532,30 @@ const loadClassRoster = async (classCode) => {
   }
 }
 
+// loadClassAssignments function removed - assignments are now extracted from class data
+
 const selectStudent = (student) => {
   // TODO: Implement student selection
-  console.log('Selected student:', student)
+  // console.log('Selected student:', student)
+}
+
+const viewStudentDetails = (student) => {
+  // TODO: Implement navigation to student details page
+}
+
+const createIndividualAssignment = (student) => {
+  // Pre-fill the assignment form for this student
+  newAssignment.value = {
+    type: 'individual',
+    title: '',
+    description: '',
+    practiceMinutes: '',
+    dueDate: '',
+    studentId: student.studentId
+  }
 }
 
 onMounted(() => {
-  console.log('TeacherDashboard mounted, currentUser:', currentUser.value)
   loadClasses()
 })
 </script>

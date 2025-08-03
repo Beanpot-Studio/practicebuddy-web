@@ -27,7 +27,9 @@ import {
   getStandalonePractices,
   updateUserPracticeStats,
   getUserPracticeStats,
-  deleteStandalonePractice
+  deleteStandalonePractice,
+  getUserData,
+  getClassData
 } from '../lib/auth'
 
 // Global auth state
@@ -287,6 +289,26 @@ const joinClassAsStudent = async (classCode, studentId, studentName, instrument 
   return result
 }
 
+const fetchUserData = async (uid) => {
+  try {
+    const result = await getUserData(uid)
+    return { success: true, userData: result }
+  } catch (error) {
+    console.error('Error fetching user data:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+const fetchClassData = async (classCode) => {
+  try {
+    const result = await getClassData(classCode)
+    return result
+  } catch (error) {
+    console.error('Error fetching class data:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 // Export the composable
 export function useAuth() {
   onMounted(() => {
@@ -334,6 +356,8 @@ export function useAuth() {
     getUserPracticeStats: getUserPracticeStatsWrapper,
     deleteStandalonePractice: deleteStandalonePracticeWrapper,
     joinClassAsStudent,
+    fetchUserData,
+    fetchClassData,
     
     // Constants
     USER_ROLES

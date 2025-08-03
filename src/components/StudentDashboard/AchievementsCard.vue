@@ -4,7 +4,7 @@
       <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 relative">
         <Trophy class="w-6 h-6 text-white" />
       </div>
-      <h3 class="text-lg text-gray-800 font-bold">Your Achievement Badges</h3>
+      <h3 class="text-lg text-gray-800 font-bold">Stickers and Feedback</h3>
     </div>
     <div class="flex flex-col gap-3">
       <div 

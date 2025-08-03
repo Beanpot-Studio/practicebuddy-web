@@ -114,7 +114,7 @@
         </div>
         
         <!-- No Students State -->
-        <div v-else-if="displayStudents.length === 0" class="text-center py-8">
+        <div v-else-if="displayStudentEnrollments.length === 0" class="text-center py-8">
           <Music class="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h4 class="text-lg font-semibold text-gray-800 mb-2">
             {{ selectedClassForRoster ? `No Students in ${selectedClassForRoster.name}` : 'No Students Yet' }}
@@ -133,53 +133,86 @@
             <thead>
               <tr class="border-b-2 border-gray-200">
                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Student</th>
-                <th class="text-left py-3 px-4 font-semibold text-gray-700">Instrument</th>
+                <th v-if="selectedClassForRoster" class="text-left py-3 px-4 font-semibold text-gray-700">Instrument</th>
                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Class</th>
                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Joined</th>
                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Assignments</th>
+                <th v-if="selectedClassForRoster" class="text-left py-3 px-4 font-semibold text-gray-700">Class Goals</th>
+                <th v-else class="text-left py-3 px-4 font-semibold text-gray-700">Goals</th>
                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
               </tr>
             </thead>
             <tbody>
               <tr 
-                v-for="student in displayStudents" 
-                :key="student.studentId"
+                v-for="enrollment in displayStudentEnrollments" 
+                :key="`${enrollment.studentId}-${enrollment.classId}`"
                 class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200"
               >
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                      <img 
-                        v-if="getStudentAvatar(student.instrument)" 
-                        :src="`/instruments/${getStudentAvatar(student.instrument)}`" 
-                        :alt="student.instrument"
-                        class="w-6 h-6 object-contain"
-                      />
-                      <Music v-else class="w-5 h-5 text-gray-500" />
-                    </div>
+                   
                     <div>
-                      <div class="font-semibold text-gray-800">{{ student.studentName }}</div>
-                      <div class="text-sm text-gray-500">{{ student.email }}</div>
+                      <div class="font-semibold text-gray-800">{{ enrollment.studentName || enrollment.name || 'Unknown Student' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td v-if="selectedClassForRoster" class="py-3 px-4">
+                  <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 border border-blue-300">
+                    {{ enrollment.instrument || 'Not specified' }}
+                  </span>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-2">
+                    
+                    <span class="text-gray-700 font-medium">{{ enrollment.className || 'Unknown Class' }}</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4">
+                  <span class="text-gray-600">{{ formatJoinDate(enrollment.studentCreatedAt || enrollment.joinDate || enrollment.createdAt) }}</span>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-2">
+                    <div class="text-sm font-semibold text-green-600">{{ getStudentAssignmentCount(enrollment.studentId, enrollment.classId) }}</div>
+                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                      <div 
+                        class="bg-green-500 h-2 rounded-full transition-all duration-300"
+                        :style="{ width: getAssignmentProgress(enrollment.studentId, enrollment.classId) + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <!-- Class Goals Column (only when filtering by class) -->
+                <td v-if="selectedClassForRoster" class="py-3 px-4">
+                  <div class="flex items-center gap-2">
+                    <div class="text-sm font-semibold text-orange-600">{{ getClassGoalsCount(selectedClassForRoster.id) }}</div>
+                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                      <div 
+                        class="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                        :style="{ width: getClassGoalsProgress(selectedClassForRoster.id) + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <!-- Combined Goals Column (when not filtering by class) -->
+                <td v-else class="py-3 px-4">
+                  <div class="flex items-center gap-2">
+                    <div class="text-sm font-semibold text-blue-600">{{ getTotalGoalsCount(enrollment.studentId, enrollment.classId) }}</div>
+                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                      <div 
+                        class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        :style="{ width: getTotalGoalsProgress(enrollment.studentId, enrollment.classId) + '%' }"
+                      ></div>
                     </div>
                   </div>
                 </td>
                 <td class="py-3 px-4">
-                  <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 border border-blue-300">
-                    {{ student.instrument || 'Not specified' }}
-                  </span>
-                </td>
-                <td class="py-3 px-4">
-                  <span class="text-gray-700">{{ student.className || 'Standalone' }}</span>
-                </td>
-                <td class="py-3 px-4">
-                  <span class="text-gray-600">{{ formatJoinDate(student.joinDate) }}</span>
-                </td>
-                <td class="py-3 px-4">
-                  <div class="text-sm font-semibold text-green-600">{{ studentAssignments[student.studentId] || 0 }}</div>
-                </td>
-                <td class="py-3 px-4">
-                  <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-300">
-                    Active
+                  <span :class="[
+                    'px-2 py-1 rounded-full text-xs font-medium border',
+                    getStudentStatus(enrollment) === 'active' 
+                      ? 'bg-green-100 text-green-700 border-green-300'
+                      : 'bg-yellow-100 text-yellow-700 border-yellow-300'
+                  ]">
+                    {{ getStudentStatus(enrollment) }}
                   </span>
                 </td>
               </tr>
@@ -235,6 +268,14 @@ const props = defineProps({
   isLoadingRoster: {
     type: Boolean,
     default: false
+  },
+  studentGoals: {
+    type: Object,
+    default: () => ({})
+  },
+  classGoals: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -245,48 +286,197 @@ const totalAssignments = computed(() => {
   const total = Object.values(props.studentAssignments).reduce((total, count) => {
     return total + (count || 0)
   }, 0)
-  console.log('Total assignments calculated:', total, 'from studentAssignments:', props.studentAssignments)
   return total
 })
 
-const displayStudents = computed(() => {
+// Create enrollment records - one per student per class
+const displayStudentEnrollments = computed(() => {
+  const enrollments = []
+  
   if (props.selectedClassForRoster) {
-    // Show students from the selected class roster
-    return props.classRoster
+    // Show enrollments for the selected class
+    const classStudents = props.classRoster || []
+    classStudents.forEach(student => {
+      if (student) {
+        const enrollment = {
+          studentId: student.studentId || student.id,
+          studentName: student.studentName || student.name,
+          email: student.email,
+          instrument: student.instrument,
+          classId: props.selectedClassForRoster?.id,
+          className: props.selectedClassForRoster?.name,
+          joinDate: student.joinedAt || student.createdAt,
+          classCode: props.selectedClassForRoster?.code,
+          studentCreatedAt: student.joinedAt || student.createdAt,
+          lastPracticeDate: student.lastPracticeAt || student.lastPracticeDate || student.lastActivity
+        }
+        enrollments.push(enrollment)
+      }
+    })
   } else {
-    // Show all students
-    return props.allStudents
+    // Show all student enrollments across all classes
+    const classes = props.classes || []
+    classes.forEach(classItem => {
+      if (classItem && classItem.students) {
+        const classStudents = classItem.students || []
+        classStudents.forEach(student => {
+          if (student) {
+            const enrollment = {
+              studentId: student.studentId || student.id,
+              studentName: student.studentName || student.name,
+              email: student.email,
+              instrument: student.instrument,
+              classId: classItem.id,
+              className: classItem.name,
+              joinDate: student.joinedAt || student.createdAt,
+              classCode: classItem.code,
+              studentCreatedAt: student.joinedAt || student.createdAt,
+              lastPracticeDate: student.lastPracticeAt || student.lastPracticeDate || student.lastActivity
+            }
+            enrollments.push(enrollment)
+          }
+        })
+      }
+    })
+    
+    // Add standalone students (not in any class)
+    const enrolledStudentIds = new Set(enrollments.map(e => e.studentId))
+    const allStudents = props.allStudents || []
+    allStudents.forEach(student => {
+      if (student && !enrolledStudentIds.has(student.studentId || student.id)) {
+        const enrollment = {
+          studentId: student.studentId || student.id,
+          studentName: student.studentName || student.name,
+          email: student.email,
+          instrument: student.instrument,
+          classId: null,
+          className: 'Standalone',
+          joinDate: student.joinedAt || student.createdAt,
+          classCode: null,
+          studentCreatedAt: student.joinedAt || student.createdAt,
+          lastPracticeDate: student.lastPracticeAt || student.lastPracticeDate || student.lastActivity
+        }
+        enrollments.push(enrollment)
+      }
+    })
   }
+  
+  return enrollments
 })
 
-const getStudentAvatar = (instrument) => {
-  const avatars = {
-    piano: 'piano.png',
-    guitar: 'guitar.png',
-    violin: 'violin.png',
-    trumpet: 'trumpet.png',
-    drums: 'drums.png',
-    saxophone: 'saxophone.png',
-    voice: 'voice.png',
-    theory: 'theory.png'
-  }
-  return avatars[instrument?.toLowerCase()] || null
-}
 
 const formatJoinDate = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
-  })
+  if (!dateString) {
+    return 'Recent' // Better fallback than 'Unknown'
+  }
+  
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return 'Recent'
+    }
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    })
+  } catch (error) {
+    console.error('Error formatting join date:', error)
+    return 'Recent'
+  }
 }
 
-const formatFullDate = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+
+
+const getStudentAssignmentCount = (studentId, classId) => {
+  if (!studentId) return 0
+  
+  // Count assignments for this student in this class
+  const key = `${studentId}-${classId || 'standalone'}`
+  return props.studentAssignments[key] || 0
+}
+
+const getAssignmentProgress = (studentId, classId) => {
+  if (!studentId) return 0
+  // This would be calculated based on actual progress data
+  // For now, return a random progress for demonstration
+  return Math.floor(Math.random() * 100)
+}
+
+const getIndividualGoalsCount = (studentId) => {
+  if (!studentId) return 0
+  const studentGoals = props.studentGoals?.[studentId] || []
+  return studentGoals.filter(goal => goal && goal.type === 'individual' && goal.status === 'active').length
+}
+
+const getIndividualGoalsProgress = (studentId) => {
+  if (!studentId) return 0
+  const studentGoals = props.studentGoals?.[studentId] || []
+  const activeGoals = studentGoals.filter(goal => goal && goal.type === 'individual' && goal.status === 'active')
+  if (activeGoals.length === 0) return 0
+  
+  const completedGoals = activeGoals.filter(goal => goal.progress >= goal.target)
+  return Math.round((completedGoals.length / activeGoals.length) * 100)
+}
+
+const getClassGoalsCount = (classId) => {
+  if (!classId) return 0
+  const classGoals = props.classGoals?.[classId] || []
+  return classGoals.filter(goal => goal && goal.status === 'active').length
+}
+
+const getClassGoalsProgress = (classId) => {
+  if (!classId) return 0
+  const classGoals = props.classGoals?.[classId] || []
+  const activeGoals = classGoals.filter(goal => goal && goal.status === 'active')
+  if (activeGoals.length === 0) return 0
+  
+  const completedGoals = activeGoals.filter(goal => goal.progress >= goal.target)
+  return Math.round((completedGoals.length / activeGoals.length) * 100)
+}
+
+const getTotalGoalsCount = (studentId, classId) => {
+  if (!studentId) return 0
+  
+  const individualCount = getIndividualGoalsCount(studentId)
+  const classCount = getClassGoalsCount(classId)
+  
+  return individualCount + classCount
+}
+
+const getTotalGoalsProgress = (studentId, classId) => {
+  if (!studentId) return 0
+  
+  const individualProgress = getIndividualGoalsProgress(studentId)
+  const classProgress = getClassGoalsProgress(classId)
+  
+  // Calculate weighted average based on number of goals
+  const individualCount = getIndividualGoalsCount(studentId)
+  const classCount = getClassGoalsCount(classId)
+  const totalCount = individualCount + classCount
+  
+  if (totalCount === 0) return 0
+  
+  const weightedProgress = (individualProgress * individualCount + classProgress * classCount) / totalCount
+  return Math.round(weightedProgress)
+}
+
+const getStudentStatus = (enrollment) => {
+  try {
+    // Check if student has recent activity
+    const lastActivity = enrollment.lastPracticeAt
+    if (!lastActivity) return 'inactive'
+    
+    const lastActivityDate = new Date(lastActivity)
+    const twoWeeksAgo = new Date()
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+    
+    // Student is active if they practiced within the last 2 weeks
+    return lastActivityDate > twoWeeksAgo ? 'active' : 'inactive'
+  } catch (error) {
+    console.error('Error determining student status:', error)
+    return 'inactive'
+  }
 }
 </script> 

@@ -1848,3 +1848,47 @@ export const updatePracticeGoalProgress = async (studentId, goalId, goalType, cl
     return createErrorResponse(errorInfo.message, errorInfo.code, 'update-practice-goal-progress')
   }
 } 
+
+/**
+ * Get class data including assignments
+ * @param {string} classCode - Class code
+ */
+export const getClassData = async (classCode) => {
+  try {
+    // First, try to find the class by document ID
+    let classRef = doc(db, 'classes', classCode)
+    let classDoc = await getDoc(classRef)
+    
+    // If not found by ID, search by code field
+    if (!classDoc.exists()) {
+      const classesQuery = query(
+        collection(db, 'classes'),
+        where('code', '==', classCode)
+      )
+      const querySnapshot = await getDocs(classesQuery)
+      
+      if (!querySnapshot.empty) {
+        // Found by code field, use the first match
+        const foundDoc = querySnapshot.docs[0]
+        classRef = foundDoc.ref
+        classDoc = foundDoc
+      } else {
+        throw new Error('Class not found')
+      }
+    }
+
+    const classData = classDoc.data()
+    
+    return { 
+      success: true, 
+      class: {
+        id: classDoc.id,
+        ...classData
+      }
+    }
+  } catch (error) {
+    logError(error, 'get-class-data')
+    const errorInfo = handleFirebaseError(error, 'get-class-data')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-class-data')
+  }
+} 
