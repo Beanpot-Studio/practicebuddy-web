@@ -296,7 +296,7 @@
               <h4 class="text-lg font-semibold text-gray-800 mb-4">Existing Assignments</h4>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div 
-                  v-for="assignment in classAssignments" 
+                  v-for="assignment in filteredClassAssignments" 
                   :key="assignment.id"
                   class="p-4 bg-gray-50 rounded-xl border-2 border-gray-200"
                 >
@@ -454,6 +454,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { instruments, getInstrumentImage, getInstrumentName } from '../../lib/instruments'
 import { 
   GraduationCap, 
@@ -575,6 +576,21 @@ const getClassAssignmentsCount = (classId) => {
     assignment.classId === classId
   ).length
 }
+
+// Filter assignments to only show class assignments when viewing a class
+const filteredClassAssignments = computed(() => {
+  if (!props.selectedClass) {
+    // If no class is selected, show all assignments
+    return props.classAssignments
+  }
+  
+  // When a class is selected, only show class assignments for that class
+  return props.classAssignments.filter(assignment => 
+    assignment.type === 'class' && 
+    (assignment.classCode === props.selectedClass.code || 
+     assignment.classId === props.selectedClass.id)
+  )
+})
 
 const getStudentAssignments = (studentId) => {
   if (!studentId) return []

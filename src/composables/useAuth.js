@@ -4,10 +4,8 @@ import {
   cleanupAuth, 
   registerTeacher, 
   registerStudent, 
-  registerIndependentStudent,
   loginTeacher, 
   loginStudent, 
-  loginIndependentStudent,
   logout, 
   resetPassword,
   createClass,
@@ -16,20 +14,14 @@ import {
   getClassRoster,
   createAssignment,
   getClassAssignments,
-  deleteAssignment,
   joinClass,
   USER_ROLES,
-  getStandaloneAssignments,
   getStudentStandaloneAssignments,
   updateStudentLoginActivity,
   updateStudentPracticeActivity,
   createStandalonePractice,
-  getStandalonePractices,
   updateUserPracticeStats,
-  getUserPracticeStats,
-  deleteStandalonePractice,
-  getUserData,
-  getClassData
+  getUserPracticeStats
 } from '../lib/auth'
 
 // Global auth state
@@ -182,15 +174,6 @@ const fetchClassAssignments = async (classCode, studentId = null) => {
   return result
 }
 
-const fetchStandaloneAssignments = async (teacherId, studentId = null) => {
-  const result = await getStandaloneAssignments(teacherId, studentId)
-  
-  // Don't call handleAuthError here - let the component handle the error
-  // This allows for better error display control
-  
-  return result
-}
-
 const fetchStudentStandaloneAssignments = async (studentId) => {
   const result = await getStudentStandaloneAssignments(studentId)
   
@@ -198,16 +181,6 @@ const fetchStudentStandaloneAssignments = async (studentId) => {
   // This allows for better error display control
   
   return result
-}
-
-const deleteClassAssignment = async (classCode, assignmentId, assignmentType = 'class') => {
-  try {
-    const result = await deleteAssignment(classCode, assignmentId, assignmentType)
-    return result
-  } catch (error) {
-    console.error('Error deleting assignment:', error)
-    return { success: false, error: error.message }
-  }
 }
 
 const updateStudentLoginActivityWrapper = async (classCode, studentId) => {
@@ -240,16 +213,6 @@ const createStandalonePracticeWrapper = async (teacherId, practiceData) => {
   }
 }
 
-const fetchStandalonePractices = async (teacherId, studentId = null) => {
-  try {
-    const result = await getStandalonePractices(teacherId, studentId)
-    return result
-  } catch (error) {
-    console.error('Error fetching standalone practices:', error)
-    return { success: false, error: error.message }
-  }
-}
-
 const updateUserPracticeStatsWrapper = async (userId, practiceStats) => {
   try {
     const result = await updateUserPracticeStats(userId, practiceStats)
@@ -270,16 +233,6 @@ const getUserPracticeStatsWrapper = async (userId) => {
   }
 }
 
-const deleteStandalonePracticeWrapper = async (practiceId) => {
-  try {
-    const result = await deleteStandalonePractice(practiceId)
-    return result
-  } catch (error) {
-    console.error('Error deleting standalone practice:', error)
-    return { success: false, error: error.message }
-  }
-}
-
 const joinClassAsStudent = async (classCode, studentId, studentName, instrument = '') => {
   const result = await joinClass(classCode, studentId, studentName, instrument)
   
@@ -289,25 +242,7 @@ const joinClassAsStudent = async (classCode, studentId, studentName, instrument 
   return result
 }
 
-const fetchUserData = async (uid) => {
-  try {
-    const result = await getUserData(uid)
-    return { success: true, userData: result }
-  } catch (error) {
-    console.error('Error fetching user data:', error)
-    return { success: false, error: error.message }
-  }
-}
 
-const fetchClassData = async (classCode) => {
-  try {
-    const result = await getClassData(classCode)
-    return result
-  } catch (error) {
-    console.error('Error fetching class data:', error)
-    return { success: false, error: error.message }
-  }
-}
 
 // Export the composable
 export function useAuth() {
@@ -345,19 +280,13 @@ export function useAuth() {
     fetchClassRoster,
     createClassAssignment,
     fetchClassAssignments,
-    fetchStandaloneAssignments,
     fetchStudentStandaloneAssignments,
-    deleteClassAssignment,
     updateStudentLoginActivity: updateStudentLoginActivityWrapper,
     updateStudentPracticeActivity: updateStudentPracticeActivityWrapper,
     createStandalonePractice: createStandalonePracticeWrapper,
-    fetchStandalonePractices: fetchStandalonePractices,
     updateUserPracticeStats: updateUserPracticeStatsWrapper,
     getUserPracticeStats: getUserPracticeStatsWrapper,
-    deleteStandalonePractice: deleteStandalonePracticeWrapper,
     joinClassAsStudent,
-    fetchUserData,
-    fetchClassData,
     
     // Constants
     USER_ROLES

@@ -163,46 +163,7 @@ export const registerStudent = async (email, password, displayName, studentData 
   }
 }
 
-/**
- * Register an independent student (not enrolled in a class)
- * @param {string} email - Student's email
- * @param {string} password - Student's password
- * @param {string} displayName - Student's display name
- * @param {Object} studentData - Additional student data
- */
-export const registerIndependentStudent = async (email, password, displayName, studentData = {}) => {
-  try {
-    // Create user account
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-    const user = userCredential.user
 
-    // Update profile with display name
-    await updateProfile(user, { displayName })
-
-    // Store student data in Firestore
-    const studentDoc = {
-      uid: user.uid,
-      email: email,
-      displayName: displayName,
-      role: USER_ROLES.STUDENT,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...studentData
-    }
-
-    await setDoc(doc(db, 'users', user.uid), studentDoc)
-
-    return { 
-      success: true, 
-      user: user,
-      userData: studentDoc
-    }
-  } catch (error) {
-    logError(error, 'independent-student-registration')
-    const errorInfo = handleFirebaseError(error, 'independent-student-registration')
-    return createErrorResponse(errorInfo.message, errorInfo.code, 'independent-student-registration')
-  }
-}
 
 /**
  * Login a teacher
@@ -237,38 +198,7 @@ export const loginTeacher = async (email, password) => {
   }
 }
 
-/**
- * Login an independent student (not enrolled in a class)
- * @param {string} email - Student's email
- * @param {string} password - Student's password
- */
-export const loginIndependentStudent = async (email, password) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
-    const user = userCredential.user
 
-    // Get user data from Firestore
-    const userData = await getUserData(user.uid)
-    
-    if (!userData) {
-      throw new Error('User data not found')
-    }
-
-    if (userData.role !== USER_ROLES.STUDENT) {
-      throw new Error('This account is not registered as a student')
-    }
-
-    return { 
-      success: true, 
-      user: user,
-      userData: userData
-    }
-  } catch (error) {
-    logError(error, 'independent-student-login')
-    const errorInfo = handleFirebaseError(error, 'independent-student-login')
-    return createErrorResponse(errorInfo.message, errorInfo.code, 'independent-student-login')
-  }
-}
 
 /**
  * Login a student (with optional class code)
@@ -872,78 +802,7 @@ export const getClassAssignments = async (classCode, studentId = null) => {
   }
 }
 
-/**
- * Get standalone assignments for a teacher
- * @param {string} teacherId - Teacher ID
- * @param {string} studentId - Student ID (optional, for getting assignments for a specific student)
- */
-export const getStandaloneAssignments = async (teacherId, studentId = null) => {
-  try {
-    console.log('getStandaloneAssignments called with teacherId:', teacherId, 'studentId:', studentId)
-    
-    if (studentId) {
-      // Get standalone assignments for a specific student
-      const studentRef = doc(db, 'users', studentId)
-      const studentDoc = await getDoc(studentRef)
-      
-      if (!studentDoc.exists()) {
-        return {
-          success: false,
-          error: 'Student not found'
-        }
-      }
-      
-      const studentData = studentDoc.data()
-      const assignments = studentData.assignments || []
-      
-      // Filter assignments by teacher and status
-      const teacherAssignments = assignments.filter(assignment => 
-        assignment.teacherId === teacherId && assignment.status === 'active'
-      )
-      
-      console.log('Teacher standalone assignments for student:', teacherAssignments)
-      
-      return {
-        success: true,
-        assignments: teacherAssignments
-      }
-    } else {
-      // Get all standalone assignments for the teacher (requires querying all students)
-      // This is less efficient but maintains the same API
-      const usersQuery = query(
-        collection(db, 'users'),
-        where('role', '==', 'student')
-      )
-      
-      const querySnapshot = await getDocs(usersQuery)
-      const allAssignments = []
-      
-      querySnapshot.forEach((doc) => {
-        const userData = doc.data()
-        const assignments = userData.assignments || []
-        
-        // Filter assignments by teacher and status
-        const teacherAssignments = assignments.filter(assignment => 
-          assignment.teacherId === teacherId && assignment.status === 'active'
-        )
-        
-        allAssignments.push(...teacherAssignments)
-      })
-      
-      console.log('All teacher standalone assignments:', allAssignments)
-      
-      return {
-        success: true,
-        assignments: allAssignments
-      }
-    }
-  } catch (error) {
-    console.error('Error in getStandaloneAssignments:', error)
-    logError(error, 'get-standalone-assignments')
-    const errorInfo = handleFirebaseError(error, 'get-standalone-assignments')
-    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-standalone-assignments')
-  }
-}
+
 
 /**
  * Get standalone assignments for a student
@@ -983,160 +842,7 @@ export const getStudentStandaloneAssignments = async (studentId) => {
   }
 }
 
-/**
- * Delete an assignment
- * @param {string} classCode - Class code (optional for standalone assignments)
- * @param {string} assignmentId - Assignment ID to delete
- * @param {string} assignmentType - 'class', 'individual', or 'standalone'
- * @param {string} studentId - Student ID (required for standalone assignments)
- */
-export const deleteAssignment = async (classCode, assignmentId, assignmentType = 'class', studentId = null) => {
-  try {
-    console.log('deleteAssignment called with classCode:', classCode, 'assignmentId:', assignmentId, 'type:', assignmentType, 'studentId:', studentId)
-    
-    if (assignmentType === 'standalone') {
-      // Delete standalone assignment from student's user document
-      if (!studentId) {
-        throw new Error('Student ID is required for standalone assignments')
-      }
-      
-      const studentRef = doc(db, 'users', studentId)
-      const studentDoc = await getDoc(studentRef)
-      
-      if (!studentDoc.exists()) {
-        return {
-          success: false,
-          error: 'Student not found'
-        }
-      }
-      
-      const studentData = studentDoc.data()
-      const assignments = studentData.assignments || []
-      
-      // Find the assignment to delete
-      const assignmentIndex = assignments.findIndex(assignment => assignment.id === assignmentId)
-      
-      if (assignmentIndex === -1) {
-        console.log('Standalone assignment not found')
-        return {
-          success: false,
-          error: 'Assignment not found'
-        }
-      }
-      
-      // Remove the assignment from the array
-      assignments.splice(assignmentIndex, 1)
-      
-      await updateDoc(studentRef, {
-        assignments: assignments,
-        updatedAt: new Date().toISOString()
-      })
-      
-      console.log('Standalone assignment deleted successfully')
-      return { 
-        success: true,
-        message: 'Standalone assignment deleted successfully'
-      }
-    } else {
-      // Handle class-based assignments (existing logic)
-      if (!classCode) {
-        throw new Error('Class code is required for class-based assignments')
-      }
-      
-      // First, try to find the class by document ID
-      let classRef = doc(db, 'classes', classCode)
-      let classDoc = await getDoc(classRef)
-      
-      // If not found by ID, search by code field
-      if (!classDoc.exists()) {
-        console.log('Class not found by document ID, searching by code field...')
-        
-        const classesQuery = query(
-          collection(db, 'classes'),
-          where('code', '==', classCode)
-        )
-        const querySnapshot = await getDocs(classesQuery)
-        
-        if (!querySnapshot.empty) {
-          // Found by code field, use the first match
-          const foundDoc = querySnapshot.docs[0]
-          classRef = foundDoc.ref
-          classDoc = foundDoc
-          console.log('Class found by code field with document ID:', foundDoc.id)
-        } else {
-          console.log('Class not found by code field either')
-          return {
-            success: false,
-            error: 'Class not found'
-          }
-        }
-      }
 
-      const classData = classDoc.data()
-      
-      // Try to find and delete from class assignments
-      const assignments = classData.assignments || []
-      const assignmentIndex = assignments.findIndex(assignment => assignment.id === assignmentId)
-      
-      if (assignmentIndex !== -1) {
-        // Found in class assignments
-        assignments.splice(assignmentIndex, 1)
-        
-        await updateDoc(classRef, {
-          assignments: assignments,
-          updatedAt: new Date().toISOString()
-        })
-        
-        console.log('Class assignment deleted successfully')
-        return { 
-          success: true,
-          message: 'Class assignment deleted successfully'
-        }
-      }
-      
-      // Try to find and delete from individual assignments
-      const individualAssignments = classData.individualAssignments || {}
-      let deletedFromIndividual = false
-      
-      for (const studentId in individualAssignments) {
-        const studentAssignments = individualAssignments[studentId]
-        const individualIndex = studentAssignments.findIndex(assignment => assignment.id === assignmentId)
-        
-        if (individualIndex !== -1) {
-          // Found in individual assignments
-          studentAssignments.splice(individualIndex, 1)
-          
-          await updateDoc(classRef, {
-            individualAssignments: individualAssignments,
-            updatedAt: new Date().toISOString()
-          })
-          
-          console.log('Individual assignment deleted successfully')
-          deletedFromIndividual = true
-          break
-        }
-      }
-      
-      if (!deletedFromIndividual) {
-        console.log('Assignment not found')
-        return {
-          success: false,
-          error: 'Assignment not found'
-        }
-      }
-      
-      return { 
-        success: true,
-        message: 'Individual assignment deleted successfully'
-      }
-    }
-  } catch (error) {
-    console.error('Error in deleteAssignment:', error)
-    logError(error, 'delete-assignment')
-    const errorInfo = handleFirebaseError(error, 'delete-assignment')
-    return createErrorResponse(errorInfo.message, errorInfo.code, 'delete-assignment')
-  }
-}
 
 /**
  * Update student activity when they log in
@@ -1250,67 +956,7 @@ export const updateStudentPracticeActivity = async (classCode, studentId, practi
   }
 }
 
-/**
- * Determine if a student is active based on various metrics
- * @param {Object} student - Student object
- * @returns {Object} Activity status and details
- */
-export const getStudentActivityStatus = (student) => {
-  const now = new Date()
-  const lastLoginDate = new Date(student.lastLoginAt || student.joinedAt)
-  const lastPracticeDate = student.lastPracticeAt ? new Date(student.lastPracticeAt) : null
-  const lastAssignmentDate = student.lastAssignmentAt ? new Date(student.lastAssignmentAt) : null
-  const lastRecordingDate = student.lastRecordingAt ? new Date(student.lastRecordingAt) : null
-  
-  const daysSinceLogin = (now - lastLoginDate) / (1000 * 60 * 60 * 24)
-  const daysSincePractice = lastPracticeDate ? (now - lastPracticeDate) / (1000 * 60 * 60 * 24) : null
-  const daysSinceAssignment = lastAssignmentDate ? (now - lastAssignmentDate) / (1000 * 60 * 60 * 24) : null
-  const daysSinceRecording = lastRecordingDate ? (now - lastRecordingDate) / (1000 * 60 * 60 * 24) : null
-  
-  // Activity thresholds
-  const LOGIN_THRESHOLD = 30 // days
-  const PRACTICE_THRESHOLD = 14 // days
-  const ASSIGNMENT_THRESHOLD = 21 // days
-  const RECORDING_THRESHOLD = 30 // days
-  
-  // Determine activity level
-  let activityLevel = 'active'
-  let activityReason = 'Engaged student'
-  
-  if (daysSinceLogin > LOGIN_THRESHOLD) {
-    activityLevel = 'inactive'
-    activityReason = `No login for ${Math.floor(daysSinceLogin)} days`
-  } else if (daysSincePractice > PRACTICE_THRESHOLD && student.practiceMinutes > 0) {
-    activityLevel = 'needs_attention'
-    activityReason = `No practice for ${Math.floor(daysSincePractice)} days`
-  } else if (daysSinceAssignment > ASSIGNMENT_THRESHOLD && student.totalAssignmentsCompleted > 0) {
-    activityLevel = 'needs_attention'
-    activityReason = `No assignment completion for ${Math.floor(daysSinceAssignment)} days`
-  } else if (daysSinceRecording > RECORDING_THRESHOLD && student.totalRecordingsCreated > 0) {
-    activityLevel = 'needs_attention'
-    activityReason = `No recordings for ${Math.floor(daysSinceRecording)} days`
-  }
-  
-  // Check weekly practice goals
-  const weeklyProgress = student.currentWeekPracticeMinutes || 0
-  const weeklyGoal = student.weeklyPracticeGoal || 120
-  const weeklyPercentage = (weeklyProgress / weeklyGoal) * 100
-  
-  return {
-    activityLevel, // 'active', 'needs_attention', 'inactive'
-    activityReason,
-    daysSinceLogin: Math.floor(daysSinceLogin),
-    daysSincePractice: daysSincePractice ? Math.floor(daysSincePractice) : null,
-    daysSinceAssignment: daysSinceAssignment ? Math.floor(daysSinceAssignment) : null,
-    daysSinceRecording: daysSinceRecording ? Math.floor(daysSinceRecording) : null,
-    weeklyProgress,
-    weeklyGoal,
-    weeklyPercentage,
-    totalPracticeMinutes: student.practiceMinutes || 0,
-    totalAssignmentsCompleted: student.totalAssignmentsCompleted || 0,
-    totalRecordingsCreated: student.totalRecordingsCreated || 0
-  }
-}
+
 
 
 
@@ -2073,67 +1719,7 @@ export const getClassData = async (classCode) => {
   }
 }
 
-/**
- * Save audio recording to Cloudinary
- * @param {Blob} audioBlob - Audio recording blob
- * @param {string} userId - User ID
- * @returns {Object} Success/error response with recording data
- */
-export const saveAudioRecording = async (audioBlob, userId) => {
-  try {
-    console.log('saveAudioRecording called with userId:', userId)
-    
-    // Import Cloudinary functions
-    const { uploadAudioToCloudinary } = await import('./cloudinary.js')
-    
-    // Upload to Cloudinary
-    const uploadResult = await uploadAudioToCloudinary(audioBlob, userId)
-    
-    console.log('Audio uploaded to Cloudinary:', uploadResult)
-    
-    return {
-      success: true,
-      recording: {
-        publicId: uploadResult.publicId,
-        url: uploadResult.url,
-        duration: uploadResult.duration,
-        format: uploadResult.format,
-        provider: 'cloudinary'
-      }
-    }
-  } catch (error) {
-    console.error('Error saving audio recording to Cloudinary:', error)
-    logError(error, 'save-audio-recording')
-    const errorInfo = handleFirebaseError(error, 'save-audio-recording')
-    return createErrorResponse(errorInfo.message, errorInfo.code, 'save-audio-recording')
-  }
-}
 
-/**
- * Delete audio recording from Cloudinary
- * @param {string} publicId - Cloudinary public ID
- * @returns {Object} Success/error response
- */
-export const deleteAudioRecording = async (publicId) => {
-  try {
-    console.log('deleteAudioRecording called with publicId:', publicId)
-    
-    // Import Cloudinary functions
-    const { deleteAudioFromCloudinary } = await import('./cloudinary.js')
-    
-    // Delete from Cloudinary
-    await deleteAudioFromCloudinary(publicId)
-    
-    console.log('Audio deleted from Cloudinary successfully')
-    
-    return { success: true }
-  } catch (error) {
-    console.error('Error deleting audio recording from Cloudinary:', error)
-    logError(error, 'delete-audio-recording')
-    const errorInfo = handleFirebaseError(error, 'delete-audio-recording')
-    return createErrorResponse(errorInfo.message, errorInfo.code, 'delete-audio-recording')
-  }
-}
 
 /**
  * Update practice session with recording data

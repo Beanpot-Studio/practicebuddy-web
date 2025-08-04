@@ -604,8 +604,46 @@ const selectClassForAssignments = (classItem) => {
 }
 
 const createNewAssignment = async () => {
-  // TODO: Implement assignment creation
-  // console.log('Creating new assignment:', newAssignment.value)
+  if (!selectedClass.value) {
+    console.error('No class selected for assignment creation')
+    return
+  }
+
+  try {
+    isCreatingAssignment.value = true
+    console.log('Creating new assignment:', newAssignment.value)
+    
+    const { createAssignment } = await import('../lib/auth.js')
+    const result = await createAssignment(
+      selectedClass.value.code, 
+      newAssignment.value,
+      newAssignment.value.type || 'class',
+      newAssignment.value.studentId || null,
+      currentUser.value.uid
+    )
+    
+    if (result.success) {
+      console.log('Assignment created successfully:', result.assignment)
+      // Reset form
+      newAssignment.value = {
+        type: 'class',
+        title: '',
+        description: '',
+        practiceMinutes: '',
+        dueDate: '',
+        studentId: ''
+      }
+      // Refresh classes and assignments data
+      await loadClasses()
+      console.log('✅ Classes and assignments refreshed after assignment creation')
+    } else {
+      console.error('Failed to create assignment:', result.error)
+    }
+  } catch (error) {
+    console.error('Error creating assignment:', error)
+  } finally {
+    isCreatingAssignment.value = false
+  }
 }
 
 const deleteAssignment = async (assignmentId) => {
