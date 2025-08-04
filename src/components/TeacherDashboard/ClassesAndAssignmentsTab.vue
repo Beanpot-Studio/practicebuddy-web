@@ -144,7 +144,7 @@
             
             <!-- Class Information -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <div class="lg:col-span-1 bg-green-50 rounded-xl m-3 p-3 border-2 border-green-300">
+              <div class="lg:col-span-1 bg-green-50 rounded-xl m-3 p-3 border-2 border-green-500">
                 <h4 class="text-lg font-semibold text-gray-800 mb-4">Class Information</h4>
                 <div class="space-y-3">
                   <div class="flex justify-between items-center p-3 rounded-xl">
