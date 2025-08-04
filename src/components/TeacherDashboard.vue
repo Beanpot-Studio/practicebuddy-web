@@ -15,6 +15,14 @@
       
       </div>
 
+      <!-- Success/Error Messages -->
+      <div v-if="showSuccessMessage" class="mb-6 p-4 bg-green-100 border-2 border-green-400 rounded-xl text-green-800 font-medium animate-fadeIn">
+        ✅ {{ successMessage }}
+      </div>
+      <div v-if="showErrorMessage" class="mb-6 p-4 bg-red-100 border-2 border-red-400 rounded-xl text-red-800 font-medium animate-fadeIn">
+        ❌ {{ errorMessage }}
+      </div>
+
       <!-- Navigation Tabs -->
       <div class="bg-white rounded-3xl p-2 mb-8 shadow-lg">
         <div class="flex space-x-2">
@@ -165,6 +173,12 @@ const isLoadingRoster = ref(false)
 const studentGoals = ref({})
 const classGoals = ref({})
 const isLoadingRecentActivity = ref(false)
+
+// Success/Error messages
+const showSuccessMessage = ref(false)
+const successMessage = ref('')
+const showErrorMessage = ref(false)
+const errorMessage = ref('')
 
 // Feedback functions
 const giveSticker = async (practiceId, studentId, stickerType, message = '') => {
@@ -523,18 +537,18 @@ const updateStudentAssignmentsCount = () => {
 
 const createClass = async () => {
   if (!currentUser.value?.uid) {
-    // console.error('No current user found')
+    console.error('No current user found')
     return
   }
 
   try {
     isCreatingClass.value = true
-    // console.log('Creating class:', newClass.value)
+    console.log('Creating class:', newClass.value)
     
     const result = await createTeacherClass(currentUser.value.uid, newClass.value)
     
     if (result.success) {
-      // console.log('Class created successfully:', result.class)
+      console.log('Class created successfully:', result.class)
       // Reset form
       newClass.value = {
         name: '',
@@ -543,15 +557,32 @@ const createClass = async () => {
         level: '',
         schedule: ''
       }
-      // Refresh classes and switch to manage tab
+      // Refresh classes and switch to classes & assignments tab
       await loadClasses()
-      activeTab.value = 'manage-classes'
+      activeTab.value = 'classes-assignments'
+      console.log('✅ Class created successfully! Switched to Classes & Assignments tab.')
+      
+      // Show success message
+      successMessage.value = `Class "${result.class.name}" created successfully!`
+      showSuccessMessage.value = true
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
     } else {
-      // console.error('Failed to create class:', result.error)
-      // You could add error handling here
+      console.error('Failed to create class:', result.error)
+      errorMessage.value = result.error || 'Failed to create class'
+      showErrorMessage.value = true
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 5000)
     }
   } catch (error) {
-    // console.error('Error creating class:', error)
+    console.error('Error creating class:', error)
+    errorMessage.value = error.message || 'An error occurred while creating the class'
+    showErrorMessage.value = true
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 5000)
   } finally {
     isCreatingClass.value = false
   }
@@ -559,7 +590,7 @@ const createClass = async () => {
 
 const onClassCreated = () => {
   loadClasses()
-  activeTab.value = 'manage-classes'
+  activeTab.value = 'classes-assignments'
 }
 
 const changeTab = (tab) => {

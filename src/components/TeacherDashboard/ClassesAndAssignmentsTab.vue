@@ -345,6 +345,67 @@
             </div>
           </div>
 
+          <!-- Individual Assignments Card -->
+          <div v-if="selectedClass && filteredIndividualAssignments.length > 0" class="card card-purple mt-8">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+                  <User class="w-6 h-6 text-white" />
+                </div>
+                <h3 class="text-xl text-gray-800 font-bold">Individual Assignments</h3>
+              </div>
+              <div class="text-sm text-gray-600">
+                {{ filteredIndividualAssignments.length }} assignments
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                v-for="assignment in filteredIndividualAssignments" 
+                :key="assignment.id"
+                class="p-4 bg-purple-50 rounded-xl border-2 border-purple-200"
+              >
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex-1">
+                    <h5 class="font-semibold text-gray-800 mb-1">{{ assignment.title || 'Untitled Assignment' }}</h5>
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 bg-purple-100 text-purple-700 border border-purple-300">
+                        <User class="w-3 h-3" />
+                        Individual
+                      </span>
+                      <span class="text-xs text-gray-500">
+                        for {{ getStudentName(assignment.studentId) }}
+                      </span>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">{{ assignment.description || 'No description provided' }}</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <div class="text-sm text-gray-500">
+                    Due: {{ assignment.dueDate ? formatDate(new Date(assignment.dueDate)) : 'No due date' }}
+                  </div>
+                  <div v-if="assignment.practiceMinutes" class="text-sm text-purple-600 font-semibold flex items-center gap-1">
+                    <Clock class="w-3 h-3" />
+                    {{ assignment.practiceMinutes }} min
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between mt-3">
+                  <div class="text-xs text-gray-500">
+                    Created: {{ assignment.createdAt ? formatDate(new Date(assignment.createdAt)) : 'Unknown' }}
+                  </div>
+                  <button 
+                    @click="$emit('deleteAssignment', assignment.id)"
+                    class="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Student Roster Table -->
           <div v-if="selectedClass" class="card card-yellow mt-8">
             <div class="flex items-center justify-between mb-6">
@@ -383,6 +444,7 @@
                     <th class="text-left py-3 px-4 font-semibold text-gray-700">Assignments</th>
                     <th class="text-left py-3 px-4 font-semibold text-gray-700">Goals</th>
                     <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -441,6 +503,25 @@
                       ]">
                         {{ getStudentStatus(student) }}
                       </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2">
+                        <button 
+                          @click="createIndividualAssignment(student)"
+                          class="px-3 py-1 bg-purple-500 text-white rounded-lg text-xs hover:bg-purple-600 transition-colors flex items-center gap-1"
+                          title="Create individual assignment for this student"
+                        >
+                          <Plus class="w-3 h-3" />
+                          Assignment
+                        </button>
+                        <button 
+                          @click="viewStudentDetails(student)"
+                          class="px-3 py-1 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600 transition-colors"
+                          title="View student details"
+                        >
+                          View
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -591,6 +672,31 @@ const filteredClassAssignments = computed(() => {
      assignment.classId === props.selectedClass.id)
   )
 })
+
+// Filter assignments to show individual assignments for the selected class
+const filteredIndividualAssignments = computed(() => {
+  if (!props.selectedClass) {
+    return []
+  }
+  
+  // Show individual assignments for the selected class
+  return props.classAssignments.filter(assignment => 
+    assignment.type === 'individual' && 
+    (assignment.classCode === props.selectedClass.code || 
+     assignment.classId === props.selectedClass.id)
+  )
+})
+
+// Helper function to get student name by ID
+const getStudentName = (studentId) => {
+  if (!studentId) return 'Unknown Student'
+  
+  const student = props.classRoster.find(s => 
+    s.studentId === studentId || s.id === studentId
+  )
+  
+  return student ? (student.studentName || student.name || 'Unknown Student') : 'Unknown Student'
+}
 
 const getStudentAssignments = (studentId) => {
   if (!studentId) return []
