@@ -87,6 +87,55 @@
           <Mic class="w-4 h-4 mx-auto mb-1" />
           <p>No recording for this session</p>
         </div>
+        
+        <!-- Teacher Feedback Section (only shown when complete) -->
+        <div v-if="session.isComplete && session.feedback && session.feedback.length > 0" class="mt-3">
+          <div class="border-t border-gray-200 pt-3">
+            <div class="text-xs font-medium text-gray-600 mb-2">Teacher Feedback:</div>
+            <div class="space-y-2">
+              <!-- Stickers -->
+              <div v-if="getStickers(session).length > 0" class="flex flex-wrap gap-2">
+                <div 
+                  v-for="sticker in getStickers(session)" 
+                  :key="sticker.id"
+                  class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2"
+                >
+                  <img 
+                    :src="`/src/assets/stickers/${sticker.stickerType}.png`" 
+                    :alt="sticker.stickerType"
+                    class="w-6 h-6 object-contain"
+                  />
+                  <div class="text-xs">
+                    <div v-if="sticker.message" class="text-yellow-600">{{ sticker.message }}</div>
+                    <div class="text-yellow-500">{{ formatDate(sticker.createdAt) }}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Comments -->
+              <div v-if="getComments(session).length > 0" class="space-y-2">
+                <div 
+                  v-for="comment in getComments(session)" 
+                  :key="comment.id"
+                  class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2"
+                >
+                  <div class="text-xs">
+                    <div class="text-blue-700">{{ comment.comment }}</div>
+                    <div class="text-blue-500">{{ formatDate(comment.createdAt) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Completion Status -->
+        <div v-if="session.isComplete" class="mt-3 flex items-center gap-2 text-xs text-green-600">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+          </svg>
+          <span>Practice reviewed by teacher</span>
+        </div>
       </div>
     </div>
     
@@ -122,13 +171,12 @@ const loadPracticeSessions = async () => {
   isLoading.value = true
   try {
     console.log('Loading practice sessions for user:', props.userId)
-    const result = await getStandalonePractices(props.userId)
+    const { getStudentPractices } = await import('../../lib/auth.js')
+    const result = await getStudentPractices(props.userId)
     console.log('Practice sessions result:', result)
     if (result.success) {
       practiceSessions.value = result.practices
       console.log('Loaded practice sessions:', practiceSessions.value)
-      
-
     }
   } catch (error) {
     console.error('Error loading practice sessions:', error)
@@ -288,6 +336,17 @@ const getRecordingFormat = (session) => {
     }
   }
   return 'mp3'
+}
+
+// Helper functions for feedback display
+const getStickers = (session) => {
+  if (!session.feedback) return []
+  return session.feedback.filter(f => f.type === 'sticker' || f.stickerType)
+}
+
+const getComments = (session) => {
+  if (!session.feedback) return []
+  return session.feedback.filter(f => f.type === 'comment' || f.comment)
 }
 
 // Expose methods for parent component

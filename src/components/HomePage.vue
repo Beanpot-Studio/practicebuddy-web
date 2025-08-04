@@ -790,12 +790,17 @@ const registerStudent = async () => {
       return
     }
     
+    // Prepare student data object
+    const studentData = {
+      instrument: studentRegisterForm.value.instrument,
+      classCode: studentRegisterForm.value.classCode
+    }
+    
     const result = await registerStudentAccount(
       studentRegisterForm.value.email,
       studentRegisterForm.value.password,
       studentRegisterForm.value.displayName,
-      studentRegisterForm.value.instrument,
-      studentRegisterForm.value.classCode
+      studentData
     )
     
     if (result.success) {

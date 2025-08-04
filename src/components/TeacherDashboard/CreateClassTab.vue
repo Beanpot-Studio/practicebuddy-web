@@ -13,7 +13,8 @@
           <div>
             <label class="block mb-2 font-semibold text-gray-700 text-base">Class Name</label>
             <input 
-              v-model="newClass.name" 
+              :value="props.newClass.name"
+              @input="$emit('update:newClass', { ...props.newClass, name: $event.target.value })"
               type="text" 
               placeholder="e.g., Beginner Piano, Advanced Guitar, Music Theory"
               required
@@ -24,7 +25,8 @@
           <div>
             <label class="block mb-2 font-semibold text-gray-700 text-base">Description</label>
             <textarea 
-              v-model="newClass.description" 
+              :value="props.newClass.description"
+              @input="$emit('update:newClass', { ...props.newClass, description: $event.target.value })"
               placeholder="Describe what students will learn in this class..."
               rows="3"
               class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] resize-none"
@@ -41,13 +43,13 @@
               >
                 <div class="flex items-center gap-3">
                   <img 
-                    v-if="newClass.instrument" 
+                    v-if="props.newClass.instrument" 
                     :src="`/instruments/${getSelectedInstrumentImage()}`" 
                     :alt="getSelectedInstrumentName()"
                     class="w-5 h-5 object-contain"
                   />
                   <span v-else class="text-gray-500">Select an instrument</span>
-                  <span v-if="newClass.instrument" class="text-gray-800">{{ getSelectedInstrumentName() }}</span>
+                  <span v-if="props.newClass.instrument" class="text-gray-800">{{ getSelectedInstrumentName() }}</span>
                 </div>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -78,7 +80,8 @@
           <div>
             <label class="block mb-2 font-semibold text-gray-700 text-base">Skill Level</label>
             <select 
-              v-model="newClass.level" 
+              :value="props.newClass.level"
+              @change="$emit('update:newClass', { ...props.newClass, level: $event.target.value })"
               required
               class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
             >
@@ -93,7 +96,8 @@
           <div>
             <label class="block mb-2 font-semibold text-gray-700 text-base">Class Schedule</label>
             <input 
-              v-model="newClass.schedule" 
+              :value="props.newClass.schedule"
+              @input="$emit('update:newClass', { ...props.newClass, schedule: $event.target.value })"
               type="text" 
               placeholder="e.g., Mondays 4-5pm, Wednesdays 3-4pm"
               class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
@@ -128,20 +132,20 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['createClass'])
+const emit = defineEmits(['createClass', 'update:newClass'])
 
 const showInstrumentDropdown = ref(false)
 
 const selectInstrument = (value) => {
-  newClass.instrument = value
+  emit('update:newClass', { ...props.newClass, instrument: value })
   showInstrumentDropdown.value = false
 }
 
 const getSelectedInstrumentImage = () => {
-  return getInstrumentImage(newClass.instrument)
+  return getInstrumentImage(props.newClass.instrument)
 }
 
 const getSelectedInstrumentName = () => {
-  return getInstrumentName(newClass.instrument)
+  return getInstrumentName(props.newClass.instrument)
 }
 </script> 

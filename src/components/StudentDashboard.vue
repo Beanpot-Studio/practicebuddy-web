@@ -68,7 +68,7 @@
         />
         
         <!-- Achievements Card -->
-        <AchievementsCard :achievements="achievements" />
+        <AchievementsCard :user-id="currentUser?.uid" />
         
         <!-- Practice sessions are now shown in the Musical Creations card -->
       </div>
@@ -164,36 +164,7 @@ const successToastMessage = ref('')
 
 // Practice sessions are loaded from Firebase via loadStandalonePractices()
 
-const achievements = ref([
-  {
-    id: 1,
-    title: 'First Week Star',
-    description: 'Practice 7 days in a row',
-    icon: 'calendar',
-    earned: true
-  },
-  {
-    id: 2,
-    title: 'Speed Musician',
-    description: 'Practice 60 minutes in one day',
-    icon: 'zap',
-    earned: true
-  },
-  {
-    id: 3,
-    title: 'Multi-Instrumentalist',
-    description: 'Practice with 3 different instruments',
-    icon: 'music',
-    earned: false
-  },
-  {
-    id: 4,
-    title: 'Recording Master',
-    description: 'Create 10 musical recordings',
-    icon: 'star',
-    earned: false
-  }
-])
+const achievements = ref([]) // Empty array for teacher-provided stickers
 
 // Recording functionality is now handled in PracticeTimer component
 
@@ -256,62 +227,69 @@ const handlePracticeSession = async (practiceData) => {
       if (!result.success) {
         // Failed to record class practice
       }
-    } else {
-      // Record standalone practice if not enrolled in a class
-      const standalonePracticeData = {
-        instrument: practiceData.instrument,
-        practiceMinutes: roundedMinutes,
-        description: practiceData.description || `${instrumentName} practice session`,
-        completed: practiceData.completed,
-        actualDuration: actualMinutes, // Keep original for reference
-        roundedDuration: roundedMinutes, // Add rounded value
-        timestamp: new Date().toISOString()
-      }
-      
-      const result = await createStandalonePractice(
-        currentUser.value.uid,
-        standalonePracticeData
-      )
-      
-      if (result.success) {
-        console.log('Practice session created successfully:', result.practiceId)
-        
-        // If there's a recording, update the practice session with recording data
-        if (practiceData.recording) {
-          try {
-            const { updatePracticeWithRecording } = await import('../lib/auth.js')
-            const recordingData = {
-              publicId: practiceData.recording.publicId || `practice_${Date.now()}`,
-              url: practiceData.recording,
-              duration: practiceData.recordingDuration || 0,
-              format: 'mp3',
-              provider: 'cloudinary'
-            }
-            
-            await updatePracticeWithRecording(
-              result.practiceId,
-              currentUser.value.uid,
-              recordingData
-            )
-            console.log('Recording data saved to practice session')
-          } catch (recordingError) {
-            console.error('Failed to save recording data:', recordingError)
-          }
-        }
-        
-        // Refresh practice stats
-        await loadUserPracticeStats()
-        
-        // Refresh practice sessions to show the new recording
-        await refreshPracticeSessions()
-      } else {
-        console.error('Failed to create practice session:', result)
-      }
     }
-
+    
+    // Create practice session in unified practices collection
+    const practiceDataForStorage = {
+      instrument: practiceData.instrument,
+      instrumentName: instrumentName,
+      practiceMinutes: roundedMinutes,
+      description: practiceData.description || `${instrumentName} practice session`,
+      completed: practiceData.completed,
+      actualDuration: actualMinutes,
+      roundedDuration: roundedMinutes,
+      timestamp: new Date().toISOString(),
+      studentName: currentUser.value.displayName || 'Student',
+      studentEmail: currentUser.value.email,
+      className: practiceData.className,
+      classId: practiceData.classCode,
+      recording: practiceData.recording,
+      recordingDuration: practiceData.recordingDuration
+    }
+    
+    const { createPractice } = await import('../lib/auth.js')
+    const result = await createPractice(
+      currentUser.value.uid,
+      practiceDataForStorage
+    )
+    
+    if (result.success) {
+      console.log('Practice session created successfully:', result.practiceId)
+      
+      // If there's a recording, update the practice session with recording data
+      if (practiceData.recording) {
+        try {
+          const { updatePracticeWithRecording } = await import('../lib/auth.js')
+          const recordingData = {
+            publicId: practiceData.recording.publicId || `practice_${Date.now()}`,
+            url: practiceData.recording,
+            duration: practiceData.recordingDuration || 0,
+            format: 'mp3',
+            provider: 'cloudinary'
+          }
+          
+          await updatePracticeWithRecording(
+            result.practiceId,
+            currentUser.value.uid,
+            recordingData
+          )
+          console.log('Recording data saved to practice session')
+        } catch (recordingError) {
+          console.error('Failed to save recording data:', recordingError)
+        }
+      }
+    } else {
+      console.error('Failed to create practice session:', result)
+    }
+    
+    // Refresh practice stats
+    await loadUserPracticeStats()
+    
+    // Refresh practice sessions to show the new recording
+    await refreshPracticeSessions()
+    
     // Update practice goal progress
     await updateLocalPracticeGoalProgress(practiceData)
-    
   } catch (error) {
     console.error('Error recording practice session:', error)
   }

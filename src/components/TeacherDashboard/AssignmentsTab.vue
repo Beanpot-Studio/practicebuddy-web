@@ -149,7 +149,7 @@
                 :key="student.studentId" 
                 :value="student.studentId"
               >
-                {{ student.studentName }} ({{ student.instrument }})
+                {{ student.name }} ({{ student.instrument }})
               </option>
             </select>
           </div>

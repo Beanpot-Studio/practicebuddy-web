@@ -77,6 +77,10 @@
           :is-loading-roster="isLoadingRoster"
           :student-goals="studentGoals"
           :class-goals="classGoals"
+          :is-loading-recent-activity="isLoadingRecentActivity"
+          :give-sticker="giveSticker"
+          :add-comment="addComment"
+          :mark-as-complete="markAsComplete"
           @load-classes="loadClasses"
           @select-class-for-roster="selectClassForRoster"
           @select-student="selectStudent"
@@ -88,6 +92,7 @@
           :is-creating-class="isCreatingClass"
           @class-created="onClassCreated"
           @create-class="createClass"
+          @update:new-class="newClass = $event"
         />
         <ClassesAndAssignmentsTab
           v-if="activeTab === 'classes-assignments'"
@@ -159,6 +164,66 @@ const classRoster = ref([])
 const isLoadingRoster = ref(false)
 const studentGoals = ref({})
 const classGoals = ref({})
+const isLoadingRecentActivity = ref(false)
+
+// Feedback functions
+const giveSticker = async (practiceId, studentId, stickerType, message = '') => {
+  try {
+    const { giveStickerToPractice } = await import('../lib/auth.js')
+    const result = await giveStickerToPractice(practiceId, studentId, currentUser.value.uid, {
+      stickerType,
+      message,
+      teacherName: currentUser.value.displayName || 'Teacher'
+    })
+    
+    if (result.success) {
+      console.log('Sticker given successfully')
+      // Refresh the recent activity to show the new feedback
+      await loadRecentActivity()
+    } else {
+      console.error('Failed to give sticker:', result.error)
+    }
+  } catch (error) {
+    console.error('Error giving sticker:', error)
+  }
+}
+
+const addComment = async (practiceId, studentId, comment) => {
+  try {
+    const { addCommentToPractice } = await import('../lib/auth.js')
+    const result = await addCommentToPractice(practiceId, studentId, currentUser.value.uid, {
+      comment,
+      teacherName: currentUser.value.displayName || 'Teacher'
+    })
+    
+    if (result.success) {
+      console.log('Comment added successfully')
+      // Refresh the recent activity to show the new feedback
+      await loadRecentActivity()
+    } else {
+      console.error('Failed to add comment:', result.error)
+    }
+  } catch (error) {
+    console.error('Error adding comment:', error)
+  }
+}
+
+const markAsComplete = async (practiceId, studentId) => {
+  try {
+    const { markPracticeAsComplete } = await import('../lib/auth.js')
+    const result = await markPracticeAsComplete(practiceId, studentId, currentUser.value.uid)
+    
+    if (result.success) {
+      console.log('Practice marked as complete successfully')
+      // Refresh the recent activity to show the updated status
+      await loadRecentActivity()
+    } else {
+      console.error('Failed to mark practice as complete:', result.error)
+    }
+  } catch (error) {
+    console.error('Error marking practice as complete:', error)
+  }
+}
 
 // AssignmentsTab props
 const selectedClassForAssignments = ref(null)
@@ -243,8 +308,51 @@ const loadAllStudents = async () => {
     // Load goals for all students
     await loadStudentGoals()
     await loadClassGoals()
+    
+    // Load recent activity
+    await loadRecentActivity()
   } catch (error) {
     // console.error('Error loading all students:', error)
+  }
+}
+
+const loadRecentActivity = async () => {
+  if (!currentUser.value?.uid) return
+  
+  try {
+    isLoadingRecentActivity.value = true
+    
+    console.log('🎯 Loading practices for teacher:', currentUser.value.uid)
+    
+    // Use the new unified practices collection
+    const { getTeacherPractices } = await import('../lib/auth.js')
+    const result = await getTeacherPractices(currentUser.value.uid)
+    
+    console.log('📊 Teacher practices result:', result)
+    
+    if (result.success) {
+      // Filter out completed practices or show them separately
+      const activePractices = result.practices.filter(practice => !practice.isComplete)
+      const completedPractices = result.practices.filter(practice => practice.isComplete)
+      
+      // Show active practices first, then completed ones
+      recentActivity.value = [...activePractices, ...completedPractices].slice(0, 20) // Limit to 20 items
+      console.log('✅ Recent activity loaded:', recentActivity.value.length, 'items')
+      console.log('📝 Active practices:', activePractices.length)
+      console.log('✅ Completed practices:', completedPractices.length)
+      if (recentActivity.value.length > 0) {
+        console.log('📝 Sample practice data:', recentActivity.value[0])
+      }
+    } else {
+      console.error('❌ Failed to load recent activity:', result.error)
+      recentActivity.value = []
+    }
+    
+  } catch (error) {
+    console.error('💥 Error loading recent activity:', error)
+    recentActivity.value = []
+  } finally {
+    isLoadingRecentActivity.value = false
   }
 }
 

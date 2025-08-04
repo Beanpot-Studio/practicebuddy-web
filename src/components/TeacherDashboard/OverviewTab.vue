@@ -47,6 +47,7 @@
           </div>
         </div>
 
+        <!-- Recent Activity Card -->
         <div class="card card-blue">
           <div class="flex items-center gap-3 mb-5">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
@@ -54,9 +55,157 @@
             </div>
             <h3 class="text-lg text-gray-800 font-bold">Recent Activity</h3>
           </div>
-          <div class="flex flex-col gap-3">
-            <div v-if="recentActivity.length === 0" class="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.1)]">
-              <div class="text-sm text-gray-600 font-medium text-center">No recent activity</div>
+          
+          <!-- Loading State -->
+          <div v-if="isLoadingRecentActivity" class="text-center py-8">
+            <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading recent activity...</p>
+          </div>
+          
+          <!-- Empty State -->
+          <div v-else-if="recentActivity.length === 0" class="text-center py-8 text-gray-500">
+            <Music class="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p class="text-sm">No recent practice activity</p>
+            <p class="text-xs mt-1">Student practice sessions will appear here</p>
+          </div>
+          
+          <!-- Activity List -->
+          <div v-else class="space-y-4 max-h-96 overflow-y-auto">
+            <div 
+              v-for="activity in recentActivity" 
+              :key="activity.id"
+              :class="[
+                'p-4 rounded-2xl border-2 shadow-[0_2px_0_rgba(0,0,0,0.1)] hover:shadow-[0_4px_0_rgba(0,0,0,0.15)] transition-all duration-200',
+                activity.isComplete 
+                  ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300' 
+                  : 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300'
+              ]"
+            >
+              <!-- Student Info -->
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                    {{ activity.studentName?.charAt(0) || 'S' }}
+                  </div>
+                  <div>
+                    <div class="font-semibold text-gray-800">{{ activity.studentName }}</div>
+                    <div class="text-xs text-gray-500">{{ activity.className }}</div>
+                  </div>
+                </div>
+                <div class="text-xs text-gray-500">{{ formatDate(activity.timestamp) }}</div>
+              </div>
+              
+              <!-- Practice Details -->
+              <div class="mb-3">
+                <div class="flex items-center gap-2 mb-2">
+                  <img 
+                    v-if="activity.instrument" 
+                    :src="`/instruments/${getInstrumentImage(activity.instrument)}`" 
+                    :alt="getInstrumentName(activity.instrument)"
+                    class="w-5 h-5 object-contain"
+                  />
+                  <span class="text-sm font-medium text-gray-700">{{ activity.instrumentName || getInstrumentName(activity.instrument) }}</span>
+                  <span class="text-xs text-gray-500">•</span>
+                  <span class="text-sm text-gray-600">{{ activity.practiceMinutes }} minutes</span>
+                </div>
+                <div v-if="activity.description" class="text-sm text-gray-600">
+                  {{ activity.description }}
+                </div>
+              </div>
+              
+              <!-- Recording Section -->
+              <div v-if="activity.recording" class="mb-3">
+                <div class="flex items-center gap-3">
+                  <button 
+                    @click="playRecording(getRecordingUrl(activity), activity.id)"
+                    class="w-8 h-8 border-2 border-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.2)] bg-gradient-to-br from-blue-400 to-blue-500 text-white hover:transform hover:-translate-y-0.5 hover:shadow-[0_4px_0_rgba(0,0,0,0.2)]"
+                  >
+                    <Play v-if="!isPlayingRecording(activity.id)" class="w-4 h-4" />
+                    <Pause v-else class="w-4 h-4" />
+                  </button>
+                  
+                  <!-- Waveform -->
+                  <div class="flex-1">
+                    <AudioWaveform 
+                      :cloudinary-url="getRecordingUrl(activity)"
+                      @play="onWaveformPlay"
+                      @pause="onWaveformPause"
+                      @error="onWaveformError"
+                    />
+                  </div>
+                  
+                  <span class="text-xs text-gray-500">{{ formatDuration(activity.recordingDuration) }}</span>
+                </div>
+              </div>
+              
+              <!-- Feedback Display Section -->
+              <div v-if="activity.feedback && activity.feedback.length > 0" class="mb-3">
+                <div class="space-y-2">
+                  <!-- Stickers -->
+                  <div v-if="getStickers(activity).length > 0" class="flex flex-wrap gap-2">
+                    <div 
+                      v-for="sticker in getStickers(activity)" 
+                      :key="sticker.id"
+                      class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2"
+                    >
+                      <img 
+                        :src="`/src/assets/stickers/${sticker.stickerType}.png`" 
+                        :alt="sticker.stickerType"
+                        class="w-6 h-6 object-contain"
+                      />
+                      <div class="text-xs">
+                        <div v-if="sticker.message" class="text-yellow-600">{{ sticker.message }}</div>
+                        <div class="text-yellow-500">{{ formatDate(sticker.createdAt) }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Comments -->
+                  <div v-if="getComments(activity).length > 0" class="space-y-2">
+                    <div 
+                      v-for="comment in getComments(activity)" 
+                      :key="comment.id"
+                      class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2"
+                    >
+                      <div class="text-xs">
+                        <div class="text-blue-700">{{ comment.comment }}</div>
+                        <div class="text-blue-500">{{ formatDate(comment.createdAt) }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Feedback Section -->
+              <div class="mt-3 flex gap-2">
+                <button 
+                  @click="openStickerModal(activity)"
+                  class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-medium hover:bg-yellow-200 transition-colors flex items-center gap-1"
+                >
+                  <Trophy class="w-4 h-4" />
+                  Give Sticker
+                </button>
+                <button 
+                  @click="openCommentModal(activity)"
+                  class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors flex items-center gap-1"
+                >
+                  <MessageCircle class="w-4 h-4" />
+                  Add Comment
+                </button>
+                <button 
+                  @click="markAsComplete(activity)"
+                  :class="[
+                    'px-3 py-1 rounded-lg text-sm font-medium transition-colors flex items-center gap-1',
+                    activity.isComplete 
+                      ? 'bg-green-100 text-green-700 cursor-default' 
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  ]"
+                  :disabled="activity.isComplete"
+                >
+                  <CheckCircle class="w-4 h-4" />
+                  {{ activity.isComplete ? 'Completed' : 'Mark Complete' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -222,11 +371,122 @@
       </div>
     </div>
   </div>
+  
+  <!-- Sticker Modal -->
+  <div v-if="showStickerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-800">Give Sticker to {{ selectedActivity?.studentName }}</h3>
+        <button @click="closeStickerModal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+          <Trophy class="w-4 h-4" />
+          Choose a sticker:
+        </label>
+        <div class="grid grid-cols-5 gap-2 max-h-60 overflow-y-auto">
+          <button 
+            v-for="i in 40" 
+            :key="i"
+            @click="selectSticker(i)"
+            :class="[
+              'p-2 rounded-lg border-2 transition-all duration-200 hover:scale-105',
+              selectedSticker === i 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:border-gray-300'
+            ]"
+          >
+            <img 
+              :src="`/src/assets/stickers/sticker${i}.png`" 
+              :alt="`Sticker ${i}`"
+              class="w-8 h-8 object-contain"
+            />
+          </button>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Message (optional):</label>
+        <textarea 
+          v-model="stickerMessage"
+          placeholder="Great job! Keep up the excellent work!"
+          class="w-full p-3 border-2 border-gray-200 rounded-lg resize-none"
+          rows="3"
+        ></textarea>
+      </div>
+      
+      <div class="flex gap-3">
+        <button 
+          @click="closeStickerModal"
+          class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          @click="giveStickerToActivity"
+          :disabled="!selectedSticker"
+          class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Give Sticker
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Comment Modal -->
+  <div v-if="showCommentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-800">Add Comment to {{ selectedActivity?.studentName }}</h3>
+        <button @click="closeCommentModal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+          <MessageCircle class="w-4 h-4" />
+          Your comment:
+        </label>
+        <textarea 
+          v-model="commentText"
+          placeholder="Great practice session! I noticed your rhythm was much better today..."
+          class="w-full p-3 border-2 border-gray-200 rounded-lg resize-none"
+          rows="4"
+        ></textarea>
+      </div>
+      
+      <div class="flex gap-3">
+        <button 
+          @click="closeCommentModal"
+          class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          @click="addCommentToActivity"
+          :disabled="!commentText.trim()"
+          class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Add Comment
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { BarChart3, Bell, Users, Music } from 'lucide-vue-next'
+import { computed, ref, onUnmounted } from 'vue'
+import { BarChart3, Bell, Users, Music, Play, Pause, Trophy, MessageCircle, CheckCircle } from 'lucide-vue-next'
+import AudioWaveform from '../StudentDashboard/AudioWaveform.vue'
+import { getInstrumentImage, getInstrumentName } from '../../lib/instruments.js'
 
 const props = defineProps({
   currentUser: {
@@ -276,10 +536,271 @@ const props = defineProps({
   classGoals: {
     type: Object,
     default: () => ({})
+  },
+  isLoadingRecentActivity: {
+    type: Boolean,
+    default: false
+  },
+  giveSticker: {
+    type: Function,
+    default: () => {}
+  },
+  addComment: {
+    type: Function,
+    default: () => {}
+  },
+  markAsComplete: {
+    type: Function,
+    default: () => {}
   }
 })
 
 const emit = defineEmits(['changeTab', 'selectStudent', 'selectClassForRoster'])
+
+// Audio playback state
+const currentPlayingAudio = ref(null)
+const currentPlayingActivityId = ref(null)
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (currentPlayingAudio.value) {
+    currentPlayingAudio.value.pause()
+    currentPlayingAudio.value = null
+  }
+})
+
+// Audio playback functions
+const playRecording = (recording, activityId) => {
+  console.log('🎵 playRecording called with:', recording, 'activityId:', activityId)
+  
+  if (!recording) {
+    console.log('No recording URL provided')
+    return
+  }
+  
+  try {
+    // If we're already playing this activity, pause it
+    if (currentPlayingActivityId.value === activityId && currentPlayingAudio.value) {
+      console.log('Pausing current recording')
+      currentPlayingAudio.value.pause()
+      currentPlayingAudio.value = null
+      currentPlayingActivityId.value = null
+      return
+    }
+    
+    // Stop any currently playing audio from other activities
+    if (currentPlayingAudio.value && currentPlayingActivityId.value !== activityId) {
+      console.log('Stopping other recording before playing new one')
+      currentPlayingAudio.value.pause()
+      currentPlayingAudio.value = null
+      currentPlayingActivityId.value = null
+    }
+    
+    // Create new audio element and play
+    const audio = new Audio(recording)
+    audio.crossOrigin = 'anonymous' // Enable CORS for Cloudinary URLs
+    
+    audio.addEventListener('error', (error) => {
+      console.error('Error playing recording:', error)
+      currentPlayingAudio.value = null
+      currentPlayingActivityId.value = null
+    })
+    
+    audio.addEventListener('loadstart', () => {
+      console.log('Audio loading started')
+    })
+    
+    audio.addEventListener('canplay', () => {
+      console.log('Audio can play')
+    })
+    
+    audio.addEventListener('ended', () => {
+      console.log('Audio playback ended')
+      currentPlayingAudio.value = null
+      currentPlayingActivityId.value = null
+    })
+    
+    audio.play().then(() => {
+      console.log('Audio playback started successfully')
+      currentPlayingAudio.value = audio
+      currentPlayingActivityId.value = activityId
+    }).catch((error) => {
+      console.error('Failed to play audio:', error)
+    })
+    
+  } catch (error) {
+    console.error('Error in playRecording:', error)
+  }
+}
+
+const isPlayingRecording = (activityId) => {
+  return currentPlayingActivityId.value === activityId && currentPlayingAudio.value
+}
+
+const getRecordingUrl = (activity) => {
+  console.log('🎵 getRecordingUrl called with activity:', activity)
+  console.log('🎵 activity.recording:', activity.recording)
+  
+  // Handle different recording data structures
+  if (activity.recording) {
+    // If recording is a string (direct URL)
+    if (typeof activity.recording === 'string' && activity.recording.startsWith('http')) {
+      console.log('✅ Found string URL:', activity.recording)
+      return activity.recording
+    }
+    // If recording is an object with url property
+    if (typeof activity.recording === 'object' && activity.recording.url) {
+      console.log('✅ Found object URL:', activity.recording.url)
+      return activity.recording.url
+    }
+    console.log('❌ Recording data structure not recognized:', typeof activity.recording, activity.recording)
+  } else {
+    console.log('❌ No recording data found in activity')
+  }
+  return null
+}
+
+const onWaveformPlay = () => {
+  console.log('Waveform playback started')
+}
+
+const onWaveformPause = () => {
+  console.log('Waveform playback paused')
+}
+
+const onWaveformError = (error) => {
+  console.error('Waveform error:', error)
+}
+
+// Modal state
+const showStickerModal = ref(false)
+const showCommentModal = ref(false)
+const selectedActivity = ref(null)
+const selectedSticker = ref(null)
+const stickerMessage = ref('')
+const commentText = ref('')
+
+// Modal functions
+const openStickerModal = (activity) => {
+  selectedActivity.value = activity
+  selectedSticker.value = null
+  stickerMessage.value = ''
+  showStickerModal.value = true
+}
+
+const closeStickerModal = () => {
+  showStickerModal.value = false
+  selectedActivity.value = null
+  selectedSticker.value = null
+  stickerMessage.value = ''
+}
+
+const selectSticker = (stickerNumber) => {
+  selectedSticker.value = stickerNumber
+}
+
+const giveStickerToActivity = async () => {
+  if (!selectedSticker.value || !selectedActivity.value) return
+  
+  try {
+    const result = await props.giveSticker(
+      selectedActivity.value.id,
+      selectedActivity.value.studentId,
+      `sticker${selectedSticker.value}`,
+      stickerMessage.value || 'Great job!'
+    )
+    
+    if (result) {
+      closeStickerModal()
+    }
+  } catch (error) {
+    console.error('Error giving sticker:', error)
+  }
+}
+
+const openCommentModal = (activity) => {
+  selectedActivity.value = activity
+  commentText.value = ''
+  showCommentModal.value = true
+}
+
+const closeCommentModal = () => {
+  showCommentModal.value = false
+  selectedActivity.value = null
+  commentText.value = ''
+}
+
+const addCommentToActivity = async () => {
+  if (!commentText.value.trim() || !selectedActivity.value) return
+  
+  try {
+    const result = await props.addComment(
+      selectedActivity.value.id,
+      selectedActivity.value.studentId,
+      commentText.value.trim()
+    )
+    
+    if (result) {
+      closeCommentModal()
+    }
+  } catch (error) {
+    console.error('Error adding comment:', error)
+  }
+}
+
+const markAsComplete = async (activity) => {
+  if (activity.isComplete) return
+  
+  try {
+    console.log('🎯 Marking activity as complete:', activity.id)
+    const result = await props.markAsComplete(
+      activity.id,
+      activity.studentId
+    )
+    
+    if (result) {
+      console.log('✅ Activity marked as complete')
+      // The parent component should refresh the activity list
+    }
+  } catch (error) {
+    console.error('Error marking activity as complete:', error)
+  }
+}
+
+// Helper functions for feedback display
+const getStickers = (activity) => {
+  console.log('🎯 Getting stickers for activity:', activity.id, 'feedback:', activity.feedback)
+  if (!activity.feedback) return []
+  const stickers = activity.feedback.filter(f => f.type === 'sticker' || f.stickerType)
+  console.log('🏆 Found stickers:', stickers)
+  return stickers
+}
+
+const getComments = (activity) => {
+  console.log('💬 Getting comments for activity:', activity.id, 'feedback:', activity.feedback)
+  if (!activity.feedback) return []
+  const comments = activity.feedback.filter(f => f.type === 'comment' || f.comment)
+  console.log('💭 Found comments:', comments)
+  return comments
+}
+
+// Utility functions
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const formatDuration = (seconds) => {
+  if (!seconds) return '0:00'
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
 
 const totalStudents = computed(() => props.allStudents.length)
 const totalAssignments = computed(() => {

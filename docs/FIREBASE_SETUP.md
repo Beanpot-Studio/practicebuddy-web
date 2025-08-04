@@ -61,6 +61,11 @@ service cloud.firestore {
     // Users can read and write their own data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Users can read and write their own practices
+      match /practices/{practiceId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
     
     // Students can read and write their own data
@@ -72,6 +77,18 @@ service cloud.firestore {
     match /classes/{classId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
+    }
+    
+    // Practices collection - teachers can see all practices from students in their classes
+    match /practices/{studentId}/sessions/{practiceId} {
+      // Students can read/write their own practices
+      allow read, write: if request.auth != null && request.auth.uid == studentId;
+      
+      // Teachers can read/write practices for students in their classes
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/classes/{classId}) &&
+        get(/databases/$(database)/documents/classes/{classId}).data.teacherId == request.auth.uid &&
+        exists(/databases/$(database)/documents/classes/{classId}/students/$(studentId));
     }
     
     // AI requests and responses (for future features)

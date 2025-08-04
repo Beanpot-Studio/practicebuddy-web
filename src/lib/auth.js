@@ -97,6 +97,8 @@ export const registerTeacher = async (email, password, displayName, teacherData 
  */
 export const registerStudent = async (email, password, displayName, studentData = {}) => {
   try {
+    console.log('registerStudent called with:', { email, displayName, studentData })
+    
     // Create user account
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
     const user = userCredential.user
@@ -110,12 +112,16 @@ export const registerStudent = async (email, password, displayName, studentData 
       email: email,
       displayName: displayName,
       role: USER_ROLES.STUDENT,
+      instrument: studentData.instrument || '', // Ensure instrument is saved
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ...studentData
     }
+    
+    console.log('Student document to be saved:', studentDoc)
 
     await setDoc(doc(db, 'users', user.uid), studentDoc)
+    console.log('Student document saved successfully')
 
     // If class code is provided, attempt to join the class
     if (studentData.classCode) {
@@ -1975,39 +1981,54 @@ export const updatePracticeWithRecording = async (practiceId, userId, recordingD
   try {
     console.log('updatePracticeWithRecording called with practiceId:', practiceId, 'userId:', userId, 'recordingData:', recordingData)
     
-    const userRef = doc(db, 'users', userId)
-    const userDoc = await getDoc(userRef)
-    
-    if (!userDoc.exists()) {
-      throw new Error('User not found')
+    // Try to update in the new practices collection first
+    try {
+      const practiceRef = doc(db, 'practices', userId, 'sessions', practiceId)
+      const practiceDoc = await getDoc(practiceRef)
+      
+      if (practiceDoc.exists()) {
+        // Update the practice document with recording data
+        await updateDoc(practiceRef, {
+          recording: {
+            publicId: recordingData.publicId,
+            url: recordingData.url,
+            duration: recordingData.duration,
+            format: recordingData.format,
+            provider: 'cloudinary',
+            createdAt: new Date().toISOString()
+          },
+          updatedAt: new Date().toISOString()
+        })
+        
+        console.log('Practice session updated with recording successfully in practices collection')
+        return { success: true }
+      }
+    } catch (practicesError) {
+      console.log('Could not update in practices collection, trying user subcollection...')
     }
     
-    const userData = userDoc.data()
-    const practiceSessions = userData.practiceSessions || []
+    // Fallback to user subcollection
+    const userPracticeRef = doc(db, 'users', userId, 'practices', practiceId)
+    const userPracticeDoc = await getDoc(userPracticeRef)
     
-    // Find the practice session to update
-    const practiceIndex = practiceSessions.findIndex(practice => practice.id === practiceId)
-    
-    if (practiceIndex === -1) {
+    if (!userPracticeDoc.exists()) {
       throw new Error('Practice session not found')
     }
     
     // Update practice session with recording data
-    practiceSessions[practiceIndex].recording = {
-      publicId: recordingData.publicId,
-      url: recordingData.url,
-      duration: recordingData.duration,
-      format: recordingData.format,
-      provider: 'cloudinary',
-      createdAt: new Date().toISOString()
-    }
-    
-    await updateDoc(userRef, {
-      practiceSessions: practiceSessions,
+    await updateDoc(userPracticeRef, {
+      recording: {
+        publicId: recordingData.publicId,
+        url: recordingData.url,
+        duration: recordingData.duration,
+        format: recordingData.format,
+        provider: 'cloudinary',
+        createdAt: new Date().toISOString()
+      },
       updatedAt: new Date().toISOString()
     })
     
-    console.log('Practice session updated with recording successfully')
+    console.log('Practice session updated with recording successfully in user subcollection')
     
     return { success: true }
   } catch (error) {
@@ -2017,3 +2038,432 @@ export const updatePracticeWithRecording = async (practiceId, userId, recordingD
     return createErrorResponse(errorInfo.message, errorInfo.code, 'update-practice-with-recording')
   }
 } 
+
+// Create practice session in student subcollection
+export const createPractice = async (userId, practiceData) => {
+  try {
+    const practiceRef = doc(db, 'practices', userId, 'sessions', `practice_${Date.now()}`)
+    
+    const practice = {
+      studentId: userId,
+      studentName: practiceData.studentName || 'Student',
+      studentEmail: practiceData.studentEmail,
+      instrument: practiceData.instrument,
+      instrumentName: practiceData.instrumentName,
+      practiceMinutes: practiceData.practiceMinutes,
+      description: practiceData.description,
+      completed: practiceData.completed,
+      actualDuration: practiceData.actualDuration,
+      roundedDuration: practiceData.roundedDuration,
+      timestamp: practiceData.timestamp || new Date().toISOString(),
+      recording: practiceData.recording,
+      recordingDuration: practiceData.recordingDuration,
+      className: practiceData.className,
+      classId: practiceData.classId,
+      createdAt: new Date().toISOString()
+    }
+    
+    await setDoc(practiceRef, practice)
+    
+    return {
+      success: true,
+      practiceId: practiceRef.id
+    }
+  } catch (error) {
+    console.error('Error creating practice in practices collection:', error)
+    
+    // Fallback to user subcollection
+    try {
+      console.log('Falling back to user subcollection...')
+      const userPracticeRef = doc(db, 'users', userId, 'practices', `practice_${Date.now()}`)
+      
+      const userPractice = {
+        instrument: practiceData.instrument,
+        instrumentName: practiceData.instrumentName,
+        practiceMinutes: practiceData.practiceMinutes,
+        description: practiceData.description,
+        completed: practiceData.completed,
+        actualDuration: practiceData.actualDuration,
+        roundedDuration: practiceData.roundedDuration,
+        timestamp: practiceData.timestamp || new Date().toISOString(),
+        recording: practiceData.recording,
+        recordingDuration: practiceData.recordingDuration,
+        className: practiceData.className,
+        classId: practiceData.classId,
+        createdAt: new Date().toISOString()
+      }
+      
+      await setDoc(userPracticeRef, userPractice)
+      
+      return {
+        success: true,
+        practiceId: userPracticeRef.id
+      }
+    } catch (fallbackError) {
+      console.error('Error creating practice in user subcollection:', fallbackError)
+      return {
+        success: false,
+        error: fallbackError.message
+      }
+    }
+  }
+}
+
+// Get practices for a student
+export const getStudentPractices = async (studentId) => {
+  try {
+    // Use a subcollection to avoid the invalid collection reference
+    const practicesQuery = query(collection(db, 'practices', studentId, 'sessions'))
+    const querySnapshot = await getDocs(practicesQuery)
+    const practices = []
+    
+    querySnapshot.forEach((doc) => {
+      practices.push({
+        id: doc.id,
+        ...doc.data()
+      })
+    })
+    
+    // Sort by timestamp (most recent first)
+    practices.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    
+    return {
+      success: true,
+      practices: practices
+    }
+  } catch (error) {
+    console.error('Error getting student practices from practices collection:', error)
+    
+    // Fallback to user subcollection
+    try {
+      console.log('Falling back to user subcollection for reading practices...')
+      const userPracticesQuery = query(collection(db, 'users', studentId, 'practices'))
+      const querySnapshot = await getDocs(userPracticesQuery)
+      const practices = []
+      
+      querySnapshot.forEach((doc) => {
+        practices.push({
+          id: doc.id,
+          ...doc.data()
+        })
+      })
+      
+      // Sort by timestamp (most recent first)
+      practices.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      
+      return {
+        success: true,
+        practices: practices
+      }
+    } catch (fallbackError) {
+      console.error('Error getting student practices from user subcollection:', fallbackError)
+      return {
+        success: false,
+        error: fallbackError.message
+      }
+    }
+  }
+}
+
+// Get practices for a teacher (all practices from their classes)
+export const getTeacherPractices = async (teacherId, classId = null) => {
+  try {
+    console.log('🔍 Getting practices for teacher:', teacherId)
+    
+    // Get all students from teacher's classes
+    const classesQuery = query(
+      collection(db, 'classes'),
+      where('teacherId', '==', teacherId)
+    )
+    const classesSnapshot = await getDocs(classesQuery)
+    
+    console.log('📚 Found classes for teacher:', classesSnapshot.docs.length)
+    
+    const allPractices = []
+    
+    // For each class, get all student practices
+    for (const classDoc of classesSnapshot.docs) {
+      const classData = classDoc.data()
+      console.log('🏫 Processing class:', classData.name, 'with code:', classData.code)
+      console.log('🏫 Class data:', classData)
+      
+      // If filtering by specific class
+      if (classId && classData.code !== classId) continue
+      
+      // Get all students in this class
+      const students = classData.students || []
+      console.log('👥 Students in class:', students.length)
+      console.log('👥 Students array:', students)
+      
+      for (const student of students) {
+        console.log('🎓 Processing student:', student.name, 'ID:', student.studentId || student.id)
+        
+        try {
+          // Get practices for this student from the new practices collection
+          const studentPracticesQuery = query(
+            collection(db, 'practices', student.studentId || student.id, 'sessions')
+          )
+          const studentPracticesSnapshot = await getDocs(studentPracticesQuery)
+          
+          console.log('📝 Found practices for student:', studentPracticesSnapshot.docs.length)
+          
+          studentPracticesSnapshot.forEach((practiceDoc) => {
+            const practiceData = practiceDoc.data()
+            console.log('🎵 Practice data:', {
+              id: practiceDoc.id,
+              classId: practiceData.classId,
+              classCode: classData.code,
+              hasClassId: !!practiceData.classId,
+              studentId: practiceData.studentId,
+              instrument: practiceData.instrument
+            })
+            
+            // Include ALL practices from this student, not just class-specific ones
+            allPractices.push({
+              id: practiceDoc.id,
+              ...practiceData,
+              className: classData.name,
+              teacherName: classData.teacherName,
+              studentName: student.name || 'Student'
+            })
+            console.log('✅ Added practice to teacher view')
+          })
+        } catch (studentError) {
+          console.error('❌ Error getting practices for student:', student.studentId, studentError)
+          
+          // Fallback: try user subcollection
+          try {
+            console.log('🔄 Trying fallback to user subcollection...')
+            const userPracticesQuery = query(
+              collection(db, 'users', student.studentId || student.id, 'practices')
+            )
+            const userPracticesSnapshot = await getDocs(userPracticesQuery)
+            
+            console.log('📝 Found practices in user subcollection:', userPracticesSnapshot.docs.length)
+            
+            userPracticesSnapshot.forEach((practiceDoc) => {
+              const practiceData = practiceDoc.data()
+              // Include ALL practices from this student
+              allPractices.push({
+                id: practiceDoc.id,
+                ...practiceData,
+                className: classData.name,
+                teacherName: classData.teacherName,
+                studentName: student.name || 'Student'
+              })
+              console.log('✅ Added practice from user subcollection to teacher view')
+            })
+          } catch (fallbackError) {
+            console.error('❌ Error getting practices from user subcollection for student:', student.studentId, fallbackError)
+          }
+        }
+      }
+    }
+    
+    console.log('🎯 Total practices found for teacher:', allPractices.length)
+    
+    // Sort by timestamp (most recent first)
+    allPractices.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    
+    return {
+      success: true,
+      practices: allPractices
+    }
+  } catch (error) {
+    console.error('💥 Error getting teacher practices:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+// Give sticker to student practice
+export const giveStickerToPractice = async (practiceId, studentId, teacherId, stickerData) => {
+  try {
+    console.log('Giving sticker to practice:', { practiceId, studentId, teacherId, stickerData })
+    
+    // Try to update in the new practices collection first
+    try {
+      const practiceRef = doc(db, 'practices', studentId, 'sessions', practiceId)
+      const practiceDoc = await getDoc(practiceRef)
+      
+      if (practiceDoc.exists()) {
+        const currentFeedback = practiceDoc.data().feedback || []
+        const newFeedback = {
+          type: 'sticker',
+          stickerType: stickerData.stickerType,
+          message: stickerData.message || '',
+          teacherId: teacherId,
+          teacherName: stickerData.teacherName || 'Teacher',
+          createdAt: new Date().toISOString()
+        }
+        
+        currentFeedback.push(newFeedback)
+        
+        await updateDoc(practiceRef, {
+          feedback: currentFeedback,
+          updatedAt: new Date().toISOString()
+        })
+        
+        console.log('Sticker given successfully in practices collection')
+        return { success: true }
+      }
+    } catch (practicesError) {
+      console.log('Could not update in practices collection, trying user subcollection...')
+    }
+    
+    // Fallback to user subcollection
+    const userPracticeRef = doc(db, 'users', studentId, 'practices', practiceId)
+    const userPracticeDoc = await getDoc(userPracticeRef)
+    
+    if (!userPracticeDoc.exists()) {
+      throw new Error('Practice session not found')
+    }
+    
+    const currentFeedback = userPracticeDoc.data().feedback || []
+    const newFeedback = {
+      type: 'sticker',
+      stickerType: stickerData.stickerType,
+      message: stickerData.message || '',
+      teacherId: teacherId,
+      teacherName: stickerData.teacherName || 'Teacher',
+      createdAt: new Date().toISOString()
+    }
+    
+    currentFeedback.push(newFeedback)
+    
+    await updateDoc(userPracticeRef, {
+      feedback: currentFeedback,
+      updatedAt: new Date().toISOString()
+    })
+    
+    console.log('Sticker given successfully in user subcollection')
+    return { success: true }
+    
+  } catch (error) {
+    console.error('Error giving sticker to practice:', error)
+    logError(error, 'give-sticker-to-practice')
+    const errorInfo = handleFirebaseError(error, 'give-sticker-to-practice')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'give-sticker-to-practice')
+  }
+}
+
+// Add comment to student practice
+export const addCommentToPractice = async (practiceId, studentId, teacherId, commentData) => {
+  try {
+    console.log('Adding comment to practice:', { practiceId, studentId, teacherId, commentData })
+    
+    // Try to update in the new practices collection first
+    try {
+      const practiceRef = doc(db, 'practices', studentId, 'sessions', practiceId)
+      const practiceDoc = await getDoc(practiceRef)
+      
+      if (practiceDoc.exists()) {
+        const currentFeedback = practiceDoc.data().feedback || []
+        const newFeedback = {
+          type: 'comment',
+          comment: commentData.comment,
+          teacherId: teacherId,
+          teacherName: commentData.teacherName || 'Teacher',
+          createdAt: new Date().toISOString()
+        }
+        
+        currentFeedback.push(newFeedback)
+        
+        await updateDoc(practiceRef, {
+          feedback: currentFeedback,
+          updatedAt: new Date().toISOString()
+        })
+        
+        console.log('Comment added successfully in practices collection')
+        return { success: true }
+      }
+    } catch (practicesError) {
+      console.log('Could not update in practices collection, trying user subcollection...')
+    }
+    
+    // Fallback to user subcollection
+    const userPracticeRef = doc(db, 'users', studentId, 'practices', practiceId)
+    const userPracticeDoc = await getDoc(userPracticeRef)
+    
+    if (!userPracticeDoc.exists()) {
+      throw new Error('Practice session not found')
+    }
+    
+    const currentFeedback = userPracticeDoc.data().feedback || []
+    const newFeedback = {
+      type: 'comment',
+      comment: commentData.comment,
+      teacherId: teacherId,
+      teacherName: commentData.teacherName || 'Teacher',
+      createdAt: new Date().toISOString()
+    }
+    
+    currentFeedback.push(newFeedback)
+    
+    await updateDoc(userPracticeRef, {
+      feedback: currentFeedback,
+      updatedAt: new Date().toISOString()
+    })
+    
+    console.log('Comment added successfully in user subcollection')
+    return { success: true }
+    
+  } catch (error) {
+    console.error('Error adding comment to practice:', error)
+    logError(error, 'add-comment-to-practice')
+    const errorInfo = handleFirebaseError(error, 'add-comment-to-practice')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'add-comment-to-practice')
+  }
+}
+
+// Mark practice as complete
+export const markPracticeAsComplete = async (practiceId, studentId, teacherId) => {
+  try {
+    console.log('🎯 Marking practice as complete:', { practiceId, studentId, teacherId })
+    
+    // Try to update in the new practices collection first
+    try {
+      const practiceRef = doc(db, 'practices', studentId, 'sessions', practiceId)
+      const practiceDoc = await getDoc(practiceRef)
+      
+      if (practiceDoc.exists()) {
+        await updateDoc(practiceRef, {
+          isComplete: true,
+          completedAt: new Date().toISOString(),
+          completedBy: teacherId
+        })
+        
+        console.log('✅ Practice marked as complete in practices collection')
+        return { success: true }
+      }
+    } catch (error) {
+      console.error('Error marking practice as complete in practices collection:', error)
+    }
+    
+    // Fallback to user subcollection
+    try {
+      const userPracticeRef = doc(db, 'users', studentId, 'practices', practiceId)
+      const userPracticeDoc = await getDoc(userPracticeRef)
+      
+      if (userPracticeDoc.exists()) {
+        await updateDoc(userPracticeRef, {
+          isComplete: true,
+          completedAt: new Date().toISOString(),
+          completedBy: teacherId
+        })
+        
+        console.log('✅ Practice marked as complete in user subcollection')
+        return { success: true }
+      }
+    } catch (fallbackError) {
+      console.error('Error marking practice as complete in user subcollection:', fallbackError)
+    }
+    
+    return { success: false, error: 'Practice session not found' }
+  } catch (error) {
+    console.error('Error marking practice as complete:', error)
+    return { success: false, error: error.message }
+  }
+}

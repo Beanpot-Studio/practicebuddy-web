@@ -6,7 +6,16 @@
       </div>
       <h3 class="text-lg text-gray-800 font-bold">Stickers and Feedback</h3>
     </div>
-    <div class="flex flex-col gap-3">
+    
+    <!-- Empty State -->
+    <div v-if="achievements.length === 0" class="text-center py-8 text-gray-500">
+      <Trophy class="w-12 h-12 mx-auto mb-3 text-gray-300" />
+      <p class="text-sm">No stickers yet</p>
+      <p class="text-xs mt-1">Your teacher will give you stickers for great work!</p>
+    </div>
+    
+    <!-- Achievements/Stickers List -->
+    <div v-else class="flex flex-col gap-3">
       <div 
         v-for="achievement in achievements" 
         :key="achievement.id"
@@ -27,6 +36,12 @@
         <div class="flex-1">
           <div class="font-semibold text-base mb-1">{{ achievement.title }}</div>
           <div class="text-sm opacity-80 font-medium">{{ achievement.description }}</div>
+          <div v-if="achievement.teacherName" class="text-xs opacity-60 mt-1">
+            From: {{ achievement.teacherName }}
+          </div>
+          <div v-if="achievement.date" class="text-xs opacity-60">
+            {{ formatDate(achievement.date) }}
+          </div>
         </div>
       </div>
     </div>
@@ -35,12 +50,56 @@
 
 <script setup>
 import { Trophy, Calendar, Zap, Music, Star } from 'lucide-vue-next'
+import { onMounted } from 'vue'
+import { ref } from 'vue'
 
-defineProps({
-  achievements: {
-    type: Array,
-    default: () => []
+const props = defineProps({
+  userId: {
+    type: String,
+    required: true
   }
+})
+
+const achievements = ref([])
+
+// Load achievements from practice sessions
+const loadAchievements = async () => {
+  if (!props.userId) return
+  
+  try {
+    const { getStudentPractices } = await import('../../lib/auth.js')
+    const result = await getStudentPractices(props.userId)
+    
+    if (result.success) {
+      const allFeedback = []
+      
+      // Collect all feedback from practice sessions
+      result.practices.forEach(practice => {
+        if (practice.feedback && Array.isArray(practice.feedback)) {
+          practice.feedback.forEach(feedback => {
+            allFeedback.push({
+              ...feedback,
+              practiceId: practice.id,
+              practiceDescription: practice.description,
+              practiceDate: practice.timestamp
+            })
+          })
+        }
+      })
+      
+      // Sort by date (most recent first)
+      allFeedback.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      
+      achievements.value = allFeedback
+    }
+  } catch (error) {
+    console.error('Error loading achievements:', error)
+  }
+}
+
+// Load achievements on mount
+onMounted(() => {
+  loadAchievements()
 })
 
 const getAchievementIcon = (iconName) => {
@@ -52,4 +111,9 @@ const getAchievementIcon = (iconName) => {
   }
   return iconMap[iconName] || Star
 }
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+};
 </script> 
