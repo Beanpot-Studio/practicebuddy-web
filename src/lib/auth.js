@@ -1514,22 +1514,84 @@ export const getUserPracticeStats = async (userId) => {
   try {
     console.log('getUserPracticeStats called with userId:', userId)
     
-    const userRef = doc(db, 'users', userId)
-    const userDoc = await getDoc(userRef)
+    // Get all practice sessions from the practices collection
+    const practicesQuery = query(collection(db, 'practices', userId, 'sessions'))
+    const querySnapshot = await getDocs(practicesQuery)
     
-    if (!userDoc.exists()) {
-      throw new Error('User not found')
+    let totalPracticeMinutes = 0
+    let lastPracticeAt = null
+    const practiceDates = new Set()
+    
+    querySnapshot.forEach((doc) => {
+      const practice = doc.data()
+      totalPracticeMinutes += practice.practiceMinutes || 0
+      
+      if (practice.timestamp) {
+        const practiceDate = new Date(practice.timestamp)
+        if (!lastPracticeAt || practiceDate > new Date(lastPracticeAt)) {
+          lastPracticeAt = practice.timestamp
+        }
+        
+        // Add practice date to set for streak calculation
+        practiceDates.add(practiceDate.toDateString())
+      }
+    })
+    
+    // Calculate current week practice minutes
+    const now = new Date()
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - now.getDay()) // Start of current week (Sunday)
+    startOfWeek.setHours(0, 0, 0, 0)
+    
+    let currentWeekPracticeMinutes = 0
+    querySnapshot.forEach((doc) => {
+      const practice = doc.data()
+      if (practice.timestamp) {
+        const practiceDate = new Date(practice.timestamp)
+        if (practiceDate >= startOfWeek) {
+          currentWeekPracticeMinutes += practice.practiceMinutes || 0
+        }
+      }
+    })
+    
+    // Calculate current streak
+    let currentStreak = 0
+    if (lastPracticeAt) {
+      const today = new Date()
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      
+      const lastPracticeDate = new Date(lastPracticeAt)
+      const lastPracticeDateString = lastPracticeDate.toDateString()
+      
+      if (lastPracticeDateString === today.toDateString() || 
+          lastPracticeDateString === yesterday.toDateString()) {
+        // Calculate consecutive days
+        let streak = 0
+        let checkDate = new Date(today)
+        
+        while (true) {
+          const checkDateString = checkDate.toDateString()
+          if (practiceDates.has(checkDateString)) {
+            streak++
+            checkDate.setDate(checkDate.getDate() - 1)
+          } else {
+            break
+          }
+        }
+        currentStreak = streak
+      }
     }
     
-    const userData = userDoc.data()
-    const practiceStats = userData.practiceStats || {
-      totalPracticeMinutes: 0,
-      currentWeekPracticeMinutes: 0,
-      lastPracticeAt: null,
-      weeklyPracticeGoal: 120
+    const practiceStats = {
+      totalPracticeMinutes,
+      currentWeekPracticeMinutes,
+      lastPracticeAt,
+      weeklyPracticeGoal: 120,
+      currentStreak
     }
     
-    console.log('User practice stats:', practiceStats)
+    console.log('Calculated practice stats from practices collection:', practiceStats)
     
     return {
       success: true,
@@ -2168,6 +2230,14 @@ export const createPractice = async (userId, practiceData) => {
     
     await setDoc(practiceRef, practice)
     
+    // Update user's practice statistics
+    try {
+      await updateUserPracticeStats(userId, practiceData.practiceMinutes)
+    } catch (statsError) {
+      console.error('Error updating user practice stats:', statsError)
+      // Don't fail the entire operation if stats update fails
+    }
+    
     return {
       success: true,
       practiceId: practiceRef.id
@@ -2197,6 +2267,14 @@ export const createPractice = async (userId, practiceData) => {
       }
       
       await setDoc(userPracticeRef, userPractice)
+      
+      // Update user's practice statistics
+      try {
+        await updateUserPracticeStats(userId, practiceData.practiceMinutes)
+      } catch (statsError) {
+        console.error('Error updating user practice stats:', statsError)
+        // Don't fail the entire operation if stats update fails
+      }
       
       return {
         success: true,

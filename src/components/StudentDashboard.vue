@@ -283,11 +283,13 @@ const handlePracticeSession = async (practiceData) => {
       console.error('Failed to create practice session:', result)
     }
     
-    // Refresh practice stats
-    await loadUserPracticeStats()
-    
     // Refresh practice sessions to show the new recording
     await refreshPracticeSessions()
+    
+    // Refresh practice stats after a short delay to ensure the stats are updated
+    setTimeout(async () => {
+      await loadUserPracticeStats()
+    }, 1000)
     
     // Update goal progress and check for completion
     const goalCompletion = await updateGoalProgressAndCheckCompletion(practiceData)
@@ -401,11 +403,40 @@ const loadUserPracticeStats = async () => {
       userPracticeStats.value = result.practiceStats
       // Update the display values
       totalPracticeMinutes.value = result.practiceStats.totalPracticeMinutes || 0
-      currentStreak.value = Math.floor(result.practiceStats.totalPracticeMinutes / 30) || 0 // Simple streak calculation
-      stickerCount.value = result.practiceStats.stickerCount || 0
+      
+      // Use the calculated streak from the practice stats
+      currentStreak.value = result.practiceStats.currentStreak || 0
+      
+      // Calculate sticker count from practice sessions
+      await calculateStickerCount()
     }
   } catch (error) {
     console.error('Error loading practice stats:', error)
+  }
+}
+
+
+
+const calculateStickerCount = async () => {
+  try {
+    // Get all practice sessions to count stickers
+    const { getStudentPractices } = await import('../lib/auth.js')
+    const result = await getStudentPractices(currentUser.value.uid)
+    
+    if (result.success) {
+      let totalStickers = 0
+      result.practices.forEach(practice => {
+        if (practice.feedback) {
+          const stickers = practice.feedback.filter(f => f.type === 'sticker' || f.stickerType)
+          totalStickers += stickers.length
+        }
+      })
+      
+      stickerCount.value = totalStickers
+    }
+  } catch (error) {
+    console.error('Error calculating sticker count:', error)
+    stickerCount.value = 0
   }
 }
 
