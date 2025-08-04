@@ -9,16 +9,16 @@
       </div>
       <div class="grid grid-cols-3 gap-4">
         <div class="text-center p-4 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)]">
-          <div class="text-2xl font-bold mb-1">{{ totalPracticeTime }}</div>
-          <div class="text-xs opacity-90 font-semibold">Minutes Today</div>
+          <div class="text-2xl font-bold mb-1">{{ totalPracticeMinutes }}</div>
+          <div class="text-xs opacity-90 font-semibold">Total Minutes</div>
         </div>
-        <div class="text-center p-4 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)]">
+        <div class="text-center p-4 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)]">
           <div class="text-2xl font-bold mb-1">{{ currentStreak }}</div>
           <div class="text-xs opacity-90 font-semibold">Day Streak</div>
         </div>
         <div class="text-center p-4 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 text-white transition-all duration-200 hover:transform hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)]">
           <div class="text-2xl font-bold mb-1">{{ stickerCount }}</div>
-          <div class="text-xs opacity-90 font-semibold">Stickers Earned</div>
+          <div class="text-xs opacity-90 font-semibold">Stickers</div>
         </div>
       </div>
     </div>
@@ -29,7 +29,7 @@
 import { BarChart3 } from 'lucide-vue-next'
 
 defineProps({
-  totalPracticeTime: {
+  totalPracticeMinutes: {
     type: Number,
     default: 0
   },

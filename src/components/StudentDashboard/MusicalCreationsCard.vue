@@ -92,7 +92,7 @@
         <div v-if="session.isComplete && session.feedback && session.feedback.length > 0" class="mt-3">
           <div class="border-t border-gray-200 pt-3">
             <div class="text-xs font-medium text-gray-600 mb-2">Teacher Feedback:</div>
-            <div class="space-y-2">
+            <div class="flex flex-wrap gap-3">
               <!-- Stickers -->
               <div v-if="getStickers(session).length > 0" class="flex flex-wrap gap-2">
                 <div 
@@ -113,7 +113,7 @@
               </div>
               
               <!-- Comments -->
-              <div v-if="getComments(session).length > 0" class="space-y-2">
+              <div v-if="getComments(session).length > 0" class="flex flex-wrap gap-2">
                 <div 
                   v-for="comment in getComments(session)" 
                   :key="comment.id"

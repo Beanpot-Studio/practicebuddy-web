@@ -6,7 +6,7 @@
 
       <!-- Stats Card - Full Width -->
       <StatsCard 
-        :total-practice-time="totalPracticeTime"
+        :total-practice-minutes="totalPracticeMinutes"
         :current-streak="currentStreak"
         :sticker-count="stickerCount"
       />
@@ -21,6 +21,7 @@
           v-model:practice-description="practiceDescription"
           v-model:selected-class="selectedClass"
           :enrolled-classes="enrolledClasses"
+          :current-goal="currentGoal"
           @start-practice="startPractice"
         />
         
@@ -60,18 +61,9 @@
         />
       </div>
 
-      <!-- Other Cards Section - Half Width Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Practice Goals Card -->
-        <PracticeGoalsCard
-          :student-id="currentUser?.uid"
-        />
-        
-        <!-- Achievements Card -->
-        <AchievementsCard :user-id="currentUser?.uid" />
-        
-        <!-- Practice sessions are now shown in the Musical Creations card -->
-      </div>
+
+
+
     </div>
 
     <!-- Recording functionality is now integrated into PracticeTimer component -->
@@ -92,8 +84,22 @@
         </div>
       </div>
     </div>
+    
   </div>
 </template>
+
+<style scoped>
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-10px) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+</style>
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -111,10 +117,6 @@ import PracticeTimer from './StudentDashboard/PracticeTimer.vue'
 import MusicalCreationsCard from './StudentDashboard/MusicalCreationsCard.vue'
 import ClassEnrollmentCard from './StudentDashboard/ClassEnrollmentCard.vue'
 import ClassesAndAssignmentsCard from './StudentDashboard/ClassesAndAssignmentsCard.vue'
-import AchievementsCard from './StudentDashboard/AchievementsCard.vue'
-// StandalonePracticeCard import removed - practice sessions shown in Musical Creations card
-// RecordingModal import removed - functionality moved to PracticeTimer
-import PracticeGoalsCard from './StudentDashboard/PracticeGoalsCard.vue'
 
 const props = defineProps({
   studentName: {
@@ -134,14 +136,13 @@ const {
   // getStandalonePractices removed - practice sessions handled differently
   getUserPracticeStats,
   getTeacherClasses,
-  getStudentPracticeGoals,
-  updatePracticeGoalProgress,
-  fetchClassData // Added fetchClassData to the composable
+  getClassData // Fixed: use getClassData instead of fetchClassData
 } = useAuth()
 
-const totalPracticeTime = ref(45)
-const currentStreak = ref(7)
+const totalPracticeMinutes = ref(0)
+const currentStreak = ref(0)
 const stickerCount = ref(0)
+const currentGoal = ref(null)
 
 const selectedInstrument = ref('')
 const practiceTime = ref(30)
@@ -212,7 +213,7 @@ const handlePracticeSession = async (practiceData) => {
   const actualMinutes = practiceData.actualDuration || 0
   const roundedMinutes = Math.ceil(actualMinutes) // Round up to next whole minute
   
-  totalPracticeTime.value += roundedMinutes
+  totalPracticeMinutes.value += roundedMinutes
   
   // Record practice session in Firebase
   try {
@@ -288,8 +289,12 @@ const handlePracticeSession = async (practiceData) => {
     // Refresh practice sessions to show the new recording
     await refreshPracticeSessions()
     
-    // Update practice goal progress
-    await updateLocalPracticeGoalProgress(practiceData)
+    // Update goal progress and check for completion
+    const goalCompletion = await updateGoalProgressAndCheckCompletion(practiceData)
+    
+    if (goalCompletion.completed) {
+      showGoalCelebration(goalCompletion.goal)
+    }
   } catch (error) {
     console.error('Error recording practice session:', error)
   }
@@ -317,28 +322,7 @@ const handlePracticeSession = async (practiceData) => {
   selectedClass.value = null
 }
 
-const updateLocalPracticeGoalProgress = async (practiceData) => {
-  try {
-    // Get current practice goals
-    const goalsResult = await getStudentPracticeGoals(currentUser.value.uid)
-    
-    if (goalsResult.success && goalsResult.goals.length > 0) {
-      const activeGoals = goalsResult.goals.filter(goal => goal.status === 'active')
-      
-      // Update progress for each active goal
-      for (const goal of activeGoals) {
-        await updatePracticeGoalProgress(
-          currentUser.value.uid,
-          goal.id,
-          goal.type,
-          practiceData.classCode
-        )
-      }
-    }
-  } catch (error) {
-    // Error updating practice goal progress
-  }
-}
+
 
 const loadEnrolledClasses = async () => {
   if (!currentUser.value?.uid) return
@@ -416,10 +400,131 @@ const loadUserPracticeStats = async () => {
     if (result.success) {
       userPracticeStats.value = result.practiceStats
       // Update the display values
-      totalPracticeTime.value = result.practiceStats.totalPracticeMinutes || 0
+      totalPracticeMinutes.value = result.practiceStats.totalPracticeMinutes || 0
       currentStreak.value = Math.floor(result.practiceStats.totalPracticeMinutes / 30) || 0 // Simple streak calculation
+      stickerCount.value = result.practiceStats.stickerCount || 0
     }
   } catch (error) {
+    console.error('Error loading practice stats:', error)
+  }
+}
+
+const loadGoalProgress = async () => {
+  if (!currentUser.value?.uid) return
+  
+  try {
+    const { getStudentPracticeGoals } = await import('../lib/auth.js')
+    const result = await getStudentPracticeGoals(currentUser.value.uid)
+    
+    if (result.success && result.goals.length > 0) {
+      // Get the first active goal
+      const activeGoal = result.goals.find(goal => 
+        goal.status === 'active' || goal.status === undefined
+      )
+      
+      if (activeGoal) {
+        currentGoal.value = activeGoal
+      } else {
+        currentGoal.value = null
+      }
+    } else {
+      currentGoal.value = null
+    }
+  } catch (error) {
+    console.error('Error loading goal progress:', error)
+    currentGoal.value = null
+  }
+}
+
+const updateGoalProgressAndCheckCompletion = async (practiceData) => {
+  if (!currentUser.value?.uid || !currentGoal.value) {
+    return { completed: false, goal: null }
+  }
+  
+  try {
+    const { updatePracticeGoalProgress } = await import('../lib/auth.js')
+    
+    // Update progress for the current goal
+    const result = await updatePracticeGoalProgress(
+      currentUser.value.uid,
+      currentGoal.value.id,
+      currentGoal.value.type,
+      practiceData.classCode
+    )
+    
+    if (result.success) {
+      // Reload the goal to get updated progress
+      await loadGoalProgress()
+      
+      // Check if goal is completed
+      if (currentGoal.value && currentGoal.value.status === 'completed') {
+        const completedGoal = { ...currentGoal.value }
+        
+        // Reset the goal after completion
+        await resetCompletedGoal(currentGoal.value.id, currentGoal.value.type, practiceData.classCode)
+        
+        return { completed: true, goal: completedGoal }
+      }
+    }
+    
+    return { completed: false, goal: null }
+  } catch (error) {
+    console.error('Error updating goal progress:', error)
+    return { completed: false, goal: null }
+  }
+}
+
+const resetCompletedGoal = async (goalId, goalType, classCode) => {
+  try {
+    const { resetPracticeGoal } = await import('../lib/auth.js')
+    await resetPracticeGoal(goalId, goalType, currentUser.value.uid, classCode)
+    
+    // Reload goal progress to show next goal
+    await loadGoalProgress()
+  } catch (error) {
+    console.error('Error resetting goal:', error)
+  }
+}
+
+const showGoalCelebration = (goal) => {
+  // Show celebration toast
+  showSuccessNotification(
+    '🎉 Goal Achieved!',
+    `Congratulations! You've completed "${goal.title}" and earned: ${goal.reward}`
+  )
+  
+  // Trigger confetti animation
+  triggerConfetti()
+}
+
+const triggerConfetti = () => {
+  // Create confetti effect
+  const confettiCount = 200
+  const confettiColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3']
+  
+  for (let i = 0; i < confettiCount; i++) {
+    setTimeout(() => {
+      const confetti = document.createElement('div')
+      confetti.style.position = 'fixed'
+      confetti.style.left = Math.random() * 100 + 'vw'
+      confetti.style.top = '-10px'
+      confetti.style.width = '10px'
+      confetti.style.height = '10px'
+      confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)]
+      confetti.style.borderRadius = '50%'
+      confetti.style.pointerEvents = 'none'
+      confetti.style.zIndex = '10000'
+      confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`
+      
+      document.body.appendChild(confetti)
+      
+      // Remove confetti after animation
+      setTimeout(() => {
+        if (confetti.parentNode) {
+          confetti.parentNode.removeChild(confetti)
+        }
+      }, 5000)
+    }, i * 10)
   }
 }
 
@@ -475,7 +580,7 @@ const loadAssignments = async () => {
     // Load assignments for each enrolled class
     for (const classItem of enrolledClasses.value) {
       // Get the class data which contains assignments arrays
-      const classResult = await fetchClassData(classItem.code)
+      const classResult = await getClassData(classItem.code)
       if (classResult.success && classResult.class) {
         const classData = classResult.class
         
@@ -532,5 +637,6 @@ onMounted(async () => {
   await loadAssignments() // Then load assignments for all enrolled classes
   await trackLoginActivity()
   await loadUserPracticeStats() // Load practice stats on mount
+  await loadGoalProgress() // Load goal progress on mount
 })
 </script>

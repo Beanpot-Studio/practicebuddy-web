@@ -1630,8 +1630,9 @@ export const createPracticeGoal = async (goalData) => {
   try {
     console.log('Creating practice goal:', goalData)
     
+    const goalId = `goal_${Date.now()}`
     const goal = {
-      id: Date.now().toString(),
+      id: goalId,
       title: goalData.title,
       description: goalData.description,
       targetPracticeSessions: goalData.targetPracticeSessions,
@@ -1639,6 +1640,7 @@ export const createPracticeGoal = async (goalData) => {
       type: goalData.type, // 'individual' or 'class'
       studentId: goalData.studentId || null,
       classCode: goalData.classCode || null,
+      className: goalData.className || null,
       createdBy: goalData.createdBy,
       dueDate: goalData.dueDate ? new Date(goalData.dueDate).toISOString() : null,
       createdAt: new Date().toISOString(),
@@ -1647,61 +1649,27 @@ export const createPracticeGoal = async (goalData) => {
       completedSessions: 0
     }
     
+    console.log('Goal object to save:', goal)
+    
     if (goalData.type === 'individual') {
-      // Store in user's document
-      const userRef = doc(db, 'users', goalData.studentId)
-      const userDoc = await getDoc(userRef)
-      
-      if (!userDoc.exists()) {
-        throw new Error('Student not found')
-      }
-      
-      const userData = userDoc.data()
-      const goals = userData.practiceGoals || []
-      goals.push(goal)
-      
-      await updateDoc(userRef, {
-        practiceGoals: goals,
-        updatedAt: new Date().toISOString()
-      })
-      
-      console.log('Individual practice goal created successfully:', goal.id)
+      // Store individual goal under the student's practices collection
+      console.log('Creating individual goal for student:', goalData.studentId)
+      const goalRef = doc(db, 'practices', goalData.studentId, 'goals', goalId)
+      await setDoc(goalRef, goal)
+      console.log('Individual goal created at path:', `practices/${goalData.studentId}/goals/${goalId}`)
     } else if (goalData.type === 'class') {
-      // Store in class document
-      let classRef = doc(db, 'classes', goalData.classCode)
-      let classDoc = await getDoc(classRef)
-      
-      if (!classDoc.exists()) {
-        const classesQuery = query(
-          collection(db, 'classes'),
-          where('code', '==', goalData.classCode)
-        )
-        const querySnapshot = await getDocs(classesQuery)
-        
-        if (!querySnapshot.empty) {
-          const foundDoc = querySnapshot.docs[0]
-          classRef = foundDoc.ref
-          classDoc = foundDoc
-        } else {
-          throw new Error('Class not found')
-        }
-      }
-      
-      const classData = classDoc.data()
-      const goals = classData.practiceGoals || []
-      goals.push(goal)
-      
-      await updateDoc(classRef, {
-        practiceGoals: goals,
-        updatedAt: new Date().toISOString()
-      })
-      
-      console.log('Class practice goal created successfully:', goal.id)
+      // Store class goal under the class code in practices collection
+      console.log('Creating class goal for class:', goalData.classCode)
+      const goalRef = doc(db, 'practices', goalData.classCode, 'goals', goalId)
+      await setDoc(goalRef, goal)
+      console.log('Class goal created at path:', `practices/${goalData.classCode}/goals/${goalId}`)
     }
+    
+    console.log('Practice goal created successfully in practices collection:', goalId)
     
     return {
       success: true,
-      goalId: goal.id,
+      goalId: goalId,
       message: 'Practice goal created successfully'
     }
   } catch (error) {
@@ -1721,6 +1689,7 @@ export const getStudentPracticeGoals = async (studentId) => {
   try {
     console.log('Getting practice goals for student:', studentId)
     
+    // Get user data to check class enrollment
     const userRef = doc(db, 'users', studentId)
     const userDoc = await getDoc(userRef)
     
@@ -1729,35 +1698,40 @@ export const getStudentPracticeGoals = async (studentId) => {
     }
     
     const userData = userDoc.data()
-    const individualGoals = userData.practiceGoals || []
+    const classCode = userData.classCode
     
-    // Also get class goals if student is enrolled in a class
-    let classGoals = []
-    if (userData.classCode) {
-      let classRef = doc(db, 'classes', userData.classCode)
-      let classDoc = await getDoc(classRef)
+    // Query goals for this student
+    const allGoals = []
+    
+    // Get individual goals from student's practices collection
+    const individualGoalsQuery = query(
+      collection(db, 'practices', studentId, 'goals'),
+      where('status', '==', 'active')
+    )
+    const individualGoalsSnapshot = await getDocs(individualGoalsQuery)
+    
+    individualGoalsSnapshot.forEach((goalDoc) => {
+      const goal = goalDoc.data()
+      if (goal.type === 'individual') {
+        allGoals.push(goal)
+      }
+    })
+    
+    // Get class goals if student is enrolled in a class
+    if (classCode) {
+      const classGoalsQuery = query(
+        collection(db, 'practices', classCode, 'goals'),
+        where('status', '==', 'active')
+      )
+      const classGoalsSnapshot = await getDocs(classGoalsQuery)
       
-      if (!classDoc.exists()) {
-        const classesQuery = query(
-          collection(db, 'classes'),
-          where('code', '==', userData.classCode)
-        )
-        const querySnapshot = await getDocs(classesQuery)
-        
-        if (!querySnapshot.empty) {
-          const foundDoc = querySnapshot.docs[0]
-          classRef = foundDoc.ref
-          classDoc = foundDoc
+      classGoalsSnapshot.forEach((goalDoc) => {
+        const goal = goalDoc.data()
+        if (goal.type === 'class') {
+          allGoals.push(goal)
         }
-      }
-      
-      if (classDoc.exists()) {
-        const classData = classDoc.data()
-        classGoals = classData.practiceGoals || []
-      }
+      })
     }
-    
-    const allGoals = [...individualGoals, ...classGoals]
     
     console.log('Student practice goals:', allGoals)
     
@@ -1785,84 +1759,213 @@ export const updatePracticeGoalProgress = async (studentId, goalId, goalType, cl
   try {
     console.log('Updating practice goal progress:', { studentId, goalId, goalType, classCode })
     
-    if (goalType === 'individual') {
-      // Update individual goal
-      const userRef = doc(db, 'users', studentId)
-      const userDoc = await getDoc(userRef)
+    // Find the goal in the practices collection
+    let goalRef = null
+    let goalDoc = null
+    
+    // First try to find in student's individual goals
+    const studentGoalRef = doc(db, 'practices', studentId, 'goals', goalId)
+    const studentGoalDoc = await getDoc(studentGoalRef)
+    
+    if (studentGoalDoc.exists()) {
+      goalRef = studentGoalRef
+      goalDoc = studentGoalDoc
+    } else if (classCode) {
+      // Try to find in class goals
+      const classGoalRef = doc(db, 'practices', classCode, 'goals', goalId)
+      const classGoalDoc = await getDoc(classGoalRef)
       
-      if (!userDoc.exists()) {
-        throw new Error('Student not found')
-      }
-      
-      const userData = userDoc.data()
-      const goals = userData.practiceGoals || []
-      const goalIndex = goals.findIndex(g => g.id === goalId)
-      
-      if (goalIndex !== -1) {
-        goals[goalIndex].completedSessions += 1
-        goals[goalIndex].progress = Math.min(100, (goals[goalIndex].completedSessions / goals[goalIndex].targetPracticeSessions) * 100)
-        
-        if (goals[goalIndex].completedSessions >= goals[goalIndex].targetPracticeSessions) {
-          goals[goalIndex].status = 'completed'
-        }
-        
-        await updateDoc(userRef, {
-          practiceGoals: goals,
-          updatedAt: new Date().toISOString()
-        })
-        
-        console.log('Individual goal progress updated successfully')
-      }
-    } else if (goalType === 'class' && classCode) {
-      // Update class goal
-      let classRef = doc(db, 'classes', classCode)
-      let classDoc = await getDoc(classRef)
-      
-      if (!classDoc.exists()) {
-        const classesQuery = query(
-          collection(db, 'classes'),
-          where('code', '==', classCode)
-        )
-        const querySnapshot = await getDocs(classesQuery)
-        
-        if (!querySnapshot.empty) {
-          const foundDoc = querySnapshot.docs[0]
-          classRef = foundDoc.ref
-          classDoc = foundDoc
-        }
-      }
-      
-      if (classDoc.exists()) {
-        const classData = classDoc.data()
-        const goals = classData.practiceGoals || []
-        const goalIndex = goals.findIndex(g => g.id === goalId)
-        
-        if (goalIndex !== -1) {
-          goals[goalIndex].completedSessions += 1
-          goals[goalIndex].progress = Math.min(100, (goals[goalIndex].completedSessions / goals[goalIndex].targetPracticeSessions) * 100)
-          
-          if (goals[goalIndex].completedSessions >= goals[goalIndex].targetPracticeSessions) {
-            goals[goalIndex].status = 'completed'
-          }
-          
-          await updateDoc(classRef, {
-            practiceGoals: goals,
-            updatedAt: new Date().toISOString()
-          })
-          
-          console.log('Class goal progress updated successfully')
-        }
+      if (classGoalDoc.exists()) {
+        goalRef = classGoalRef
+        goalDoc = classGoalDoc
       }
     }
     
-    return { success: true }
+    if (!goalDoc.exists()) {
+      throw new Error('Goal not found')
+    }
+    
+    const goalData = goalDoc.data()
+    const updatedCompletedSessions = (goalData.completedSessions || 0) + 1
+    const updatedProgress = Math.min(100, (updatedCompletedSessions / goalData.targetPracticeSessions) * 100)
+    
+    const updateData = {
+      completedSessions: updatedCompletedSessions,
+      progress: updatedProgress,
+      updatedAt: new Date().toISOString()
+    }
+    
+    // Mark as completed if target reached
+    if (updatedCompletedSessions >= goalData.targetPracticeSessions) {
+      updateData.status = 'completed'
+    }
+    
+    await updateDoc(goalRef, updateData)
+    
+    console.log('Goal progress updated successfully in practices collection')
+    
+    return { 
+      success: true,
+      message: 'Practice goal progress updated successfully'
+    }
   } catch (error) {
     console.error('Error updating practice goal progress:', error)
     logError(error, 'update-practice-goal-progress')
     const errorInfo = handleFirebaseError(error, 'update-practice-goal-progress')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'update-practice-goal-progress')
   }
+}
+
+/**
+ * Reset a completed practice goal
+ * @param {string} goalId - Goal ID
+ * @param {string} goalType - 'individual' or 'class'
+ * @param {string} studentId - Student ID (for individual goals)
+ * @param {string} classCode - Class code (for class goals)
+ * @returns {Object} Success/error response
+ */
+export const resetPracticeGoal = async (goalId, goalType, studentId = null, classCode = null) => {
+  try {
+    console.log('Resetting practice goal:', { goalId, goalType, classCode })
+    
+    // Find the goal in the practices collection
+    let goalRef = null
+    let goalDoc = null
+    
+    if (goalType === 'individual' && studentId) {
+      // Find in student's individual goals
+      const studentGoalRef = doc(db, 'practices', studentId, 'goals', goalId)
+      const studentGoalDoc = await getDoc(studentGoalRef)
+      
+      if (studentGoalDoc.exists()) {
+        goalRef = studentGoalRef
+        goalDoc = studentGoalDoc
+      }
+    } else if (goalType === 'class' && classCode) {
+      // Find in class goals
+      const classGoalRef = doc(db, 'practices', classCode, 'goals', goalId)
+      const classGoalDoc = await getDoc(classGoalRef)
+      
+      if (classGoalDoc.exists()) {
+        goalRef = classGoalRef
+        goalDoc = classGoalDoc
+      }
+    }
+    
+    if (!goalDoc || !goalDoc.exists()) {
+      throw new Error('Goal not found')
+    }
+    
+    // Reset the goal
+    const updateData = {
+      status: 'completed',
+      completedSessions: 0,
+      progress: 0,
+      completedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    await updateDoc(goalRef, updateData)
+    
+    console.log('Goal reset successfully')
+    
+    return { 
+      success: true,
+      message: 'Practice goal reset successfully'
+    }
+  } catch (error) {
+    console.error('Error resetting practice goal:', error)
+    logError(error, 'reset-practice-goal')
+    const errorInfo = handleFirebaseError(error, 'reset-practice-goal')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'reset-practice-goal')
+  }
 } 
+
+/**
+ * Get practice goals for a teacher
+ * @param {string} teacherId - Teacher ID
+ * @returns {Object} Success/error response with goals
+ */
+export const getTeacherPracticeGoals = async (teacherId) => {
+  try {
+    console.log('Getting practice goals for teacher:', teacherId)
+    
+    // Query goals created by this teacher
+    const goals = []
+    
+    // Get all classes for this teacher (same logic as getTeacherPractices)
+    const classesQuery = query(
+      collection(db, 'classes'),
+      where('teacherId', '==', teacherId)
+    )
+    const classesSnapshot = await getDocs(classesQuery)
+    
+    console.log('Found classes for teacher:', classesSnapshot.docs.length)
+    
+    // For each class, get all student goals
+    for (const classDoc of classesSnapshot.docs) {
+      const classData = classDoc.data()
+      console.log('Processing class:', classData.name, 'with code:', classData.code)
+      
+      // Get all students in this class
+      const students = classData.students || []
+      console.log('Students in class:', students.length)
+      
+      for (const student of students) {
+        const studentId = student.studentId || student.id
+        console.log('Processing student:', student.name, 'ID:', studentId)
+        
+        if (!studentId) {
+          console.log('Skipping student with no ID:', student)
+          continue
+        }
+        
+        try {
+          // Get goals for this student from the practices collection (same logic as getStudentPractices)
+          const studentGoalsQuery = query(collection(db, 'practices', studentId, 'goals'))
+          const studentGoalsSnapshot = await getDocs(studentGoalsQuery)
+          
+          console.log(`Found ${studentGoalsSnapshot.docs.length} goals for student ${studentId}`)
+          
+          studentGoalsSnapshot.forEach((goalDoc) => {
+            const goal = goalDoc.data()
+            console.log('Goal found:', goal)
+            console.log('Goal createdBy:', goal.createdBy, 'Teacher ID:', teacherId, 'Match:', goal.createdBy === teacherId)
+            
+            if (goal.createdBy === teacherId) {
+              console.log('Goal created by this teacher:', goal)
+              goals.push({
+                id: goalDoc.id,
+                studentId: studentId,
+                studentName: student.name || student.studentName,
+                className: classData.name,
+                classCode: classData.code,
+                ...goal
+              })
+            }
+          })
+        } catch (error) {
+          console.log(`Error getting goals for student ${studentId}:`, error.message)
+        }
+      }
+    }
+    
+    // Sort by creation date (most recent first)
+    goals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    
+    console.log('Final teacher practice goals:', goals)
+    
+    return {
+      success: true,
+      goals: goals
+    }
+  } catch (error) {
+    console.error('Error getting teacher practice goals:', error)
+    logError(error, 'get-teacher-practice-goals')
+    const errorInfo = handleFirebaseError(error, 'get-teacher-practice-goals')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'get-teacher-practice-goals')
+  }
+}
 
 /**
  * Get class data including assignments

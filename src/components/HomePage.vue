@@ -140,6 +140,16 @@
                             {{ hasError ? 'Fix Errors First' : isStudentLoginLoading ? 'Signing In...' : 'Make Some Music!' }}
                           </button>
                         </form>
+                        
+                        <div class="flex justify-center items-center py-6">
+                          <button 
+                            @click="toggleStudentResetPasswordForm" 
+                            class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
+                          >
+                            <RefreshCw v-if="!showStudentResetPasswordForm" class="w-4 h-4" />
+                            {{ showStudentResetPasswordForm ? 'Back to Login' : 'Reset Password' }}
+                          </button>
+                        </div>
                       </div>
                       
                       <!-- Student Registration Form -->
@@ -273,194 +283,221 @@
                         <p class="text-musical-graphite">Guide your students and celebrate their musical journey!</p>
                       </div>
                       
-                      <form @submit.prevent="loginTeacher" class="space-y-6">
-                        <div class="space-y-2">
-                          <label for="teacher-email" class="block text-sm font-semibold text-musical-graphite">
-                            Teacher Email
-                            <span v-if="registrationSuccess" class="text-green-600 text-xs ml-2">(Pre-filled from registration)</span>
-                          </label>
-                          <input 
-                            id="teacher-email"
-                            v-model="teacherForm.email" 
-                            type="email" 
-                            placeholder="teacher@musicschool.edu"
-                            required
+                      <!-- Teacher Login/Create Account Toggle -->
+                      <div class="flex justify-center mb-6">
+                        <div class="bg-gray-100 rounded-xl p-1 flex">
+                          <button 
+                            @click="toggleTeacherMode" 
                             :class="[
-                              'w-full px-4 py-3 border-3  bg-gray-200 rounded-xl text-base transition-all duration-300 focus:outline-none focus:shadow-md',
-                              registrationSuccess ? 'border-green-400 bg-green-50' : 'border-gray-300 focus:border-musical-primary'
+                              'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+                              !showTeacherCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
                             ]"
-                          />
+                          >
+                            <Lock class="w-4 h-4" />
+                            Login
+                          </button>
+                          <button 
+                            @click="toggleTeacherMode" 
+                            :class="[
+                              'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+                              showTeacherCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+                            ]"
+                          >
+                            <Plus class="w-4 h-4" />
+                            Create Account
+                          </button>
                         </div>
-                        
-                        <div class="space-y-2">
-                          <label for="teacher-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
-                          <input 
-                            id="teacher-password"
-                            v-model="teacherForm.password" 
-                            type="password" 
-                            placeholder="Enter your secure password"
-                            required
-                            class="w-full px-4 py-3 border-3  bg-gray-200 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                          />
-                        </div>
-                        
-                        <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isTeacherLoginLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isTeacherLoginLoading }">
-                          <BookOpen v-if="!isTeacherLoginLoading" class="w-4 h-4" />
-                          <div v-if="isTeacherLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          {{ hasError ? 'Fix Errors First' : isTeacherLoginLoading ? 'Validating...' : 'Access Teacher Hub' }}
-                        </button>
-                      </form>
-                      
-                      <div class="flex justify-between items-center py-6 border-b-3 border-gray-200">
-                        <button 
-                          @click="toggleResetPasswordForm" 
-                          class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
-                        >
-                          <RefreshCw v-if="!showResetPasswordForm" class="w-4 h-4" />
-                          {{ showResetPasswordForm ? 'Back to Login' : 'Reset Password' }}
-                        </button>
-                        <button 
-                          @click="toggleRegisterForm" 
-                          class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
-                        >
-                          <Plus v-if="!showRegisterForm" class="w-4 h-4" />
-                          {{ showRegisterForm ? 'Back to Login' : 'Join as Teacher' }}
-                        </button>
                       </div>
                       
-                      <!-- Teacher Registration Form -->
-                      <div v-if="showRegisterForm" class="animate-fadeIn mt-6 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200">
-                        <h3 class="text-xl font-bold text-musical-graphite mb-4">Create Teacher Account</h3>
-                        <form @submit.prevent="registerTeacher" class="space-y-4">
+                      <!-- Teacher Login Form -->
+                      <div v-if="!showTeacherCreateAccount">
+                        <form @submit.prevent="loginTeacher" class="space-y-6">
                           <div class="space-y-2">
-                            <label for="register-display-name" class="block text-sm font-semibold text-musical-graphite">Full Name</label>
+                            <label for="teacher-email" class="block text-sm font-semibold text-musical-graphite">
+                              Teacher Email
+                              <span v-if="registrationSuccess" class="text-green-600 text-xs ml-2">(Pre-filled from registration)</span>
+                            </label>
                             <input 
-                              id="register-display-name"
-                              v-model="registerForm.displayName" 
-                              type="text" 
-                              placeholder="Enter your full name"
-                              required
-                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                            />
-                          </div>
-                          
-                          <div class="space-y-2">
-                            <label for="register-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
-                            <input 
-                              id="register-email"
-                              v-model="registerForm.email" 
+                              id="teacher-email"
+                              v-model="teacherForm.email" 
                               type="email" 
                               placeholder="teacher@musicschool.edu"
                               required
-                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              :class="[
+                                'w-full px-4 py-3 border-3  bg-gray-200 rounded-xl text-base transition-all duration-300 focus:outline-none focus:shadow-md',
+                                registrationSuccess ? 'border-green-400 bg-green-50' : 'border-gray-300 focus:border-musical-primary'
+                              ]"
                             />
                           </div>
                           
                           <div class="space-y-2">
-                            <label for="register-school" class="block text-sm font-semibold text-musical-graphite">School/Institution</label>
+                            <label for="teacher-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
                             <input 
-                              id="register-school"
-                              v-model="registerForm.school" 
-                              type="text" 
-                              placeholder="Music School Name"
-                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              id="teacher-password"
+                              v-model="teacherForm.password" 
+                              type="password" 
+                              placeholder="Enter your secure password"
+                              required
+                              class="w-full px-4 py-3 border-3  bg-gray-200 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
                             />
                           </div>
                           
-                          <div class="space-y-2">
-                            <label for="register-instrument" class="block text-sm font-semibold text-musical-graphite">Primary Instrument</label>
-                            <div class="relative">
-                              <button 
-                                @click="showTeacherInstrumentDropdown = !showTeacherInstrumentDropdown"
-                                type="button"
-                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md flex items-center justify-between"
-                              >
-                                <div class="flex items-center gap-3">
-                                  <img 
-                                    v-if="registerForm.instrument" 
-                                    :src="`/instruments/${getTeacherInstrumentImage()}`" 
-                                    :alt="getTeacherInstrumentName()"
-                                    class="w-5 h-5 object-contain"
-                                  />
-                                  <span v-else class="text-gray-500">Select an instrument</span>
-                                  <span v-if="registerForm.instrument" class="text-gray-800">{{ getTeacherInstrumentName() }}</span>
-                                </div>
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                              </button>
-                              
-                              <div 
-                                v-if="showTeacherInstrumentDropdown"
-                                class="absolute z-50 w-full mt-1 bg-white border-3 border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto"
-                              >
-                                <div 
-                                  v-for="instrument in instruments" 
-                                  :key="instrument.value"
-                                  @click="selectTeacherInstrument(instrument.value)"
-                                  class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                          <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isTeacherLoginLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isTeacherLoginLoading }">
+                            <BookOpen v-if="!isTeacherLoginLoading" class="w-4 h-4" />
+                            <div v-if="isTeacherLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            {{ hasError ? 'Fix Errors First' : isTeacherLoginLoading ? 'Validating...' : 'Access Teacher Hub' }}
+                          </button>
+                        </form>
+                        
+                        <div class="flex justify-center items-center py-6">
+                          <button 
+                            @click="toggleResetPasswordForm" 
+                            class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
+                          >
+                            <RefreshCw v-if="!showResetPasswordForm" class="w-4 h-4" />
+                            {{ showResetPasswordForm ? 'Back to Login' : 'Reset Password' }}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <!-- Teacher Registration Form -->
+                      <div v-if="showTeacherCreateAccount" class="animate-fadeIn">
+                        <div class="p-6 bg-gray-50 rounded-2xl border-2 border-gray-200 w-full">
+                          <h3 class="text-xl font-bold text-musical-graphite mb-4">Create Teacher Account</h3>
+                          <p class="text-gray-600 mb-6">Join Practice Buddy and start guiding your students' musical journey!</p>
+                          <form @submit.prevent="registerTeacher" class="space-y-4">
+                            <div class="space-y-2">
+                              <label for="register-display-name" class="block text-sm font-semibold text-musical-graphite">Full Name</label>
+                              <input 
+                                id="register-display-name"
+                                v-model="registerForm.displayName" 
+                                type="text" 
+                                placeholder="Enter your full name"
+                                required
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="register-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
+                              <input 
+                                id="register-email"
+                                v-model="registerForm.email" 
+                                type="email" 
+                                placeholder="teacher@musicschool.edu"
+                                required
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="register-school" class="block text-sm font-semibold text-musical-graphite">School/Institution</label>
+                              <input 
+                                id="register-school"
+                                v-model="registerForm.school" 
+                                type="text" 
+                                placeholder="Music School Name"
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="register-instrument" class="block text-sm font-semibold text-musical-graphite">Primary Instrument</label>
+                              <div class="relative">
+                                <button 
+                                  @click="showTeacherInstrumentDropdown = !showTeacherInstrumentDropdown"
+                                  type="button"
+                                  class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md flex items-center justify-between"
                                 >
-                                  <img 
-                                    :src="`/instruments/${instrument.image}`" 
-                                    :alt="instrument.name"
-                                    class="w-5 h-5 object-contain"
-                                  />
-                                  <span class="text-gray-800">{{ instrument.name }}</span>
+                                  <div class="flex items-center gap-3">
+                                    <img 
+                                      v-if="registerForm.instrument" 
+                                      :src="`/instruments/${getTeacherInstrumentImage()}`" 
+                                      :alt="getTeacherInstrumentName()"
+                                      class="w-5 h-5 object-contain"
+                                    />
+                                    <span v-else class="text-gray-500">Select an instrument</span>
+                                    <span v-if="registerForm.instrument" class="text-gray-800">{{ getTeacherInstrumentName() }}</span>
+                                  </div>
+                                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                  </svg>
+                                </button>
+                                
+                                <div 
+                                  v-if="showTeacherInstrumentDropdown"
+                                  class="absolute z-50 w-full mt-1 bg-white border-3 border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                                >
+                                  <div 
+                                    v-for="instrument in instruments" 
+                                    :key="instrument.value"
+                                    @click="selectTeacherInstrument(instrument.value)"
+                                    class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                                  >
+                                    <img 
+                                      :src="`/instruments/${instrument.image}`" 
+                                      :alt="instrument.name"
+                                      class="w-5 h-5 object-contain"
+                                    />
+                                    <span class="text-gray-800">{{ instrument.name }}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                          
-                          <div class="space-y-2">
-                            <label for="register-experience" class="block text-sm font-semibold text-musical-graphite">Teaching Experience</label>
-                            <select 
-                              id="register-experience"
-                              v-model="registerForm.experience" 
-                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                            >
-                              <option value="beginner">Beginner (0-2 years)</option>
-                              <option value="intermediate">Intermediate (3-5 years)</option>
-                              <option value="advanced">Advanced (6-10 years)</option>
-                              <option value="expert">Expert (10+ years)</option>
-                            </select>
-                          </div>
-                          
-                          <div class="space-y-2">
-                            <label for="register-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
-                            <input 
-                              id="register-password"
-                              v-model="registerForm.password" 
-                              type="password" 
-                              placeholder="Create a secure password"
-                              required
-                              minlength="6"
-                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                            />
-                          </div>
-                          
-                          <div class="space-y-2">
-                            <label for="register-confirm-password" class="block text-sm font-semibold text-musical-graphite">Confirm Password</label>
-                            <input 
-                              id="register-confirm-password"
-                              v-model="registerForm.confirmPassword" 
-                              type="password" 
-                              placeholder="Confirm your password"
-                              required
-                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
-                            />
-                          </div>
-                          
-                          <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isTeacherRegistrationLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isTeacherRegistrationLoading }">
-                            <GraduationCap v-if="!isTeacherRegistrationLoading" class="w-4 h-4" />
-                            <div v-if="isTeacherRegistrationLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            {{ hasError ? 'Fix Errors First' : isTeacherRegistrationLoading ? 'Creating Account...' : 'Create Teacher Account' }}
-                          </button>
-                          
-                          <div class="text-xs text-gray-500 text-center mt-2">
-                            By creating an account, you agree to our Terms of Service and Privacy Policy.
-                          </div>
-                        </form>
+                            
+                            <div class="space-y-2">
+                              <label for="register-experience" class="block text-sm font-semibold text-musical-graphite">Teaching Experience</label>
+                              <select 
+                                id="register-experience"
+                                v-model="registerForm.experience" 
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              >
+                                <option value="beginner">Beginner (0-2 years)</option>
+                                <option value="intermediate">Intermediate (3-5 years)</option>
+                                <option value="advanced">Advanced (6-10 years)</option>
+                                <option value="expert">Expert (10+ years)</option>
+                              </select>
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="register-password" class="block text-sm font-semibold text-musical-graphite">Password</label>
+                              <input 
+                                id="register-password"
+                                v-model="registerForm.password" 
+                                type="password" 
+                                placeholder="Create a secure password"
+                                required
+                                minlength="6"
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <div class="space-y-2">
+                              <label for="register-confirm-password" class="block text-sm font-semibold text-musical-graphite">Confirm Password</label>
+                              <input 
+                                id="register-confirm-password"
+                                v-model="registerForm.confirmPassword" 
+                                type="password" 
+                                placeholder="Confirm your password"
+                                required
+                                class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                              />
+                            </div>
+                            
+                            <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isTeacherRegistrationLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isTeacherRegistrationLoading }">
+                              <GraduationCap v-if="!isTeacherRegistrationLoading" class="w-4 h-4" />
+                              <div v-if="isTeacherRegistrationLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              {{ hasError ? 'Fix Errors First' : isTeacherRegistrationLoading ? 'Creating Account...' : 'Create Teacher Account' }}
+                            </button>
+                            
+                            <div class="text-xs text-gray-500 text-center mt-2">
+                              By creating an account, you agree to our Terms of Service and Privacy Policy.
+                            </div>
+                          </form>
+                        </div>
                       </div>
+                      
+
                       
                       <!-- Password Reset Form -->
                       <div v-if="showResetPasswordForm" class="animate-fadeIn mt-6 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200">
@@ -491,6 +528,34 @@
                         </form>
                       </div>
                       
+                      <!-- Student Password Reset Form -->
+                      <div v-if="showStudentResetPasswordForm" class="animate-fadeIn mt-6 p-6 bg-gray-50 rounded-2xl border-2 border-gray-200">
+                        <h3 class="text-xl font-bold text-musical-graphite mb-4">Reset Your Password</h3>
+                        <p class="text-gray-600 mb-6">Enter your email address and we'll send you a link to reset your password.</p>
+                        <form @submit.prevent="resetStudentPassword" class="space-y-4">
+                          <div class="space-y-2">
+                            <label for="student-reset-email" class="block text-sm font-semibold text-musical-graphite">Email Address</label>
+                            <input 
+                              id="student-reset-email"
+                              v-model="studentResetPasswordForm.email" 
+                              type="email" 
+                              placeholder="your.email@example.com"
+                              required
+                              class="w-full px-4 py-3 border-3 border-gray-300 rounded-xl text-base transition-all duration-300 focus:outline-none focus:border-musical-primary focus:shadow-md"
+                            />
+                          </div>
+                          
+                          <button type="submit" class="btn btn-secondary btn-full" :disabled="hasError || isStudentPasswordResetLoading" :class="{ 'opacity-50 cursor-not-allowed': hasError || isStudentPasswordResetLoading }">
+                            <Mail v-if="!isStudentPasswordResetLoading" class="w-4 h-4" />
+                            <div v-if="isStudentPasswordResetLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            {{ hasError ? 'Fix Errors First' : isStudentPasswordResetLoading ? 'Sending...' : 'Send Reset Link' }}
+                          </button>
+                          
+                          <div class="text-xs text-gray-500 text-center mt-2">
+                            Check your email for a password reset link. The link will expire in 1 hour.
+                          </div>
+                        </form>
+                      </div>
                      
                     </div>
                   </div>
@@ -650,12 +715,15 @@ const activeTab = ref('student')
 const showRegisterForm = ref(false)
 const showResetPasswordForm = ref(false)
 const showStudentCreateAccount = ref(false)
+const showTeacherCreateAccount = ref(false)
+const showStudentResetPasswordForm = ref(false)
 const registrationSuccess = ref(false)
 const passwordResetSuccess = ref(false)
 
 // Individual loading states for each form
 const isStudentLoginLoading = ref(false)
 const isStudentRegistrationLoading = ref(false)
+const isStudentPasswordResetLoading = ref(false)
 const isTeacherLoginLoading = ref(false)
 const isTeacherRegistrationLoading = ref(false)
 const isPasswordResetLoading = ref(false)
@@ -700,6 +768,10 @@ const resetPasswordForm = ref({
   email: ''
 })
 
+const studentResetPasswordForm = ref({
+  email: ''
+})
+
 // Shuffling card functionality
 const isTiltShuffling = ref(false)
 const currentCardIndex = ref(0)
@@ -726,6 +798,12 @@ const switchToStudentTab = () => {
     clearError()
   }
   activeTab.value = 'student'
+  // Reset all form states when switching tabs
+  showRegisterForm.value = false
+  showResetPasswordForm.value = false
+  showStudentCreateAccount.value = false
+  showTeacherCreateAccount.value = false
+  showStudentResetPasswordForm.value = false
 }
 
 const switchToTeacherTab = () => {
@@ -734,12 +812,20 @@ const switchToTeacherTab = () => {
     clearError()
   }
   activeTab.value = 'teacher'
+  // Reset all form states when switching tabs
+  showRegisterForm.value = false
+  showResetPasswordForm.value = false
+  showStudentCreateAccount.value = false
+  showTeacherCreateAccount.value = false
+  showStudentResetPasswordForm.value = false
 }
 
 const toggleRegisterForm = () => {
   showRegisterForm.value = !showRegisterForm.value
   showResetPasswordForm.value = false
   showStudentCreateAccount.value = false
+  showTeacherCreateAccount.value = false
+  showStudentResetPasswordForm.value = false
   clearError()
 }
 
@@ -747,6 +833,8 @@ const toggleResetPasswordForm = () => {
   showResetPasswordForm.value = !showResetPasswordForm.value
   showRegisterForm.value = false
   showStudentCreateAccount.value = false
+  showTeacherCreateAccount.value = false
+  showStudentResetPasswordForm.value = false
   clearError()
 }
 
@@ -754,6 +842,25 @@ const toggleStudentMode = () => {
   showStudentCreateAccount.value = !showStudentCreateAccount.value
   showRegisterForm.value = false
   showResetPasswordForm.value = false
+  showTeacherCreateAccount.value = false
+  showStudentResetPasswordForm.value = false
+  clearError()
+}
+
+const toggleTeacherMode = () => {
+  showTeacherCreateAccount.value = !showTeacherCreateAccount.value
+  showRegisterForm.value = false
+  showResetPasswordForm.value = false
+  showStudentCreateAccount.value = false
+  clearError()
+}
+
+const toggleStudentResetPasswordForm = () => {
+  showStudentResetPasswordForm.value = !showStudentResetPasswordForm.value
+  showRegisterForm.value = false
+  showResetPasswordForm.value = false
+  showStudentCreateAccount.value = false
+  showTeacherCreateAccount.value = false
   clearError()
 }
 
@@ -909,6 +1016,25 @@ const resetPassword = async () => {
     }
   }).finally(() => {
     isPasswordResetLoading.value = false
+  })
+}
+
+const resetStudentPassword = async () => {
+  await executeWithErrorHandling(async () => {
+    isStudentPasswordResetLoading.value = true
+    clearError()
+    
+    const result = await resetUserPassword(studentResetPasswordForm.value.email)
+    
+    if (result.success) {
+      passwordResetSuccess.value = true
+      studentResetPasswordForm.value.email = ''
+      console.log('Student password reset email sent')
+    } else {
+      handleError(result.error || 'Password reset failed')
+    }
+  }).finally(() => {
+    isStudentPasswordResetLoading.value = false
   })
 }
 

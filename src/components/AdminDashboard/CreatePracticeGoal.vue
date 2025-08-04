@@ -149,12 +149,20 @@
         <span class="text-green-800 font-medium">{{ successMessage }}</span>
       </div>
     </div>
+
+    <!-- Error Message -->
+    <div v-if="showError" class="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+      <div class="flex items-center gap-2">
+        <XCircle class="w-5 h-5 text-red-600" />
+        <span class="text-red-800 font-medium">{{ errorMessage }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Target, CheckCircle, Users } from 'lucide-vue-next'
+import { Target, CheckCircle, Users, XCircle } from 'lucide-vue-next'
 import { createPracticeGoal, getTeacherClasses, getClassRoster } from '../../lib/auth'
 
 const props = defineProps({
@@ -180,6 +188,8 @@ const dueDate = ref('')
 const isCreating = ref(false)
 const showSuccess = ref(false)
 const successMessage = ref('')
+const showError = ref(false)
+const errorMessage = ref('')
 
 // Available data
 const availableStudents = ref([])
@@ -197,14 +207,11 @@ const isFormValid = computed(() => {
 const loadAvailableStudents = async () => {
   try {
     isLoadingStudents.value = true
-    console.log('Loading students for teacher:', props.currentUser.uid)
     
     // Get all classes for this teacher
     const classesResult = await getTeacherClasses(props.currentUser.uid)
-    console.log('Classes result:', classesResult)
     
     if (!classesResult.success) {
-      console.error('Failed to load teacher classes:', classesResult.error)
       return
     }
     
@@ -212,17 +219,13 @@ const loadAvailableStudents = async () => {
     
     // For each class, get the roster
     for (const classItem of classesResult.classes) {
-      console.log('Loading roster for class:', classItem.code)
       try {
         const rosterResult = await getClassRoster(classItem.code)
-        console.log('Roster result for class', classItem.code, ':', rosterResult)
         
         if (rosterResult.success && rosterResult.students) {
-          console.log('Raw students data from class', classItem.code, ':', rosterResult.students)
           
           // Add class info to each student
           const studentsWithClass = rosterResult.students.map(student => {
-            console.log('Processing student:', student)
             const mappedStudent = {
               studentId: student.studentId || student.uid || student.id,
               studentName: student.studentName || student.displayName || student.name || 'Unknown Student',
@@ -230,14 +233,11 @@ const loadAvailableStudents = async () => {
               classCode: classItem.code,
               className: classItem.name
             }
-            console.log('Mapped student:', mappedStudent)
             return mappedStudent
           })
           allStudents.push(...studentsWithClass)
-          console.log('Added students from class', classItem.code, ':', studentsWithClass)
         }
       } catch (error) {
-        console.error(`Error loading roster for class ${classItem.code}:`, error)
       }
     }
     
@@ -247,7 +247,6 @@ const loadAvailableStudents = async () => {
     )
     
     availableStudents.value = uniqueStudents
-    console.log('Final unique students:', uniqueStudents)
     
   } catch (error) {
     console.error('Error loading students:', error)
@@ -262,10 +261,8 @@ const loadAvailableClasses = async () => {
     if (result.success) {
       availableClasses.value = result.classes
     } else {
-      console.error('Failed to load classes:', result.error)
     }
   } catch (error) {
-    console.error('Error loading classes:', error)
   }
 }
 
@@ -274,6 +271,7 @@ const createGoal = async () => {
 
   isCreating.value = true
   showSuccess.value = false
+  showError.value = false
 
   try {
     const goalData = {
@@ -284,6 +282,7 @@ const createGoal = async () => {
       type: goalType.value,
       studentId: goalType.value === 'individual' ? selectedStudentId.value : null,
       classCode: goalType.value === 'class' ? selectedClassCode.value : null,
+      className: goalType.value === 'class' ? availableClasses.value.find(c => c.code === selectedClassCode.value)?.name : null,
       createdBy: props.currentUser.uid,
       dueDate: dueDate.value || null
     }
@@ -313,11 +312,23 @@ const createGoal = async () => {
       }, 3000)
     } else {
       console.error('Failed to create goal:', result.error)
-      alert('Failed to create practice goal. Please try again.')
+      errorMessage.value = result.error || 'Failed to create practice goal. Please try again.'
+      showError.value = true
+      
+      // Hide error message after 5 seconds
+      setTimeout(() => {
+        showError.value = false
+      }, 5000)
     }
   } catch (error) {
     console.error('Error creating goal:', error)
-    alert('An error occurred while creating the practice goal.')
+    errorMessage.value = 'An error occurred while creating the practice goal.'
+    showError.value = true
+    
+    // Hide error message after 5 seconds
+    setTimeout(() => {
+      showError.value = false
+    }, 5000)
   } finally {
     isCreating.value = false
   }
