@@ -48,14 +48,20 @@
               <h4 class="font-semibold text-gray-800 mb-1">{{ goal.title }}</h4>
               <p class="text-sm text-gray-600">{{ goal.description }}</p>
               <!-- Student/Class Name -->
-              <p class="text-md text-gray-500 mt-1">
-                <span v-if="goal.type === 'individual' && goal.studentName">
-                  Student: {{ goal.studentName }}
+              <div class="mt-2">
+                <span 
+                  v-if="goal.type === 'individual' && goal.studentName"
+                  class="inline-block px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 font-medium"
+                >
+                  👤 Student: {{ goal.studentName }}
                 </span>
-                <span v-else-if="goal.type === 'class' && goal.className">
-                  Class: {{ goal.className }}
+                <span 
+                  v-else-if="goal.type === 'class' && goal.className"
+                  class="inline-block px-3 py-1 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 font-medium"
+                >
+                  👥 Class: {{ goal.className }}
                 </span>
-              </p>
+              </div>
             </div>
             <div class="flex items-center gap-2">
               <span 
@@ -132,14 +138,20 @@
                 <h5 class="font-semibold text-gray-800 text-sm">{{ goal.title }}</h5>
                 <p class="text-xs text-gray-600">{{ goal.description }}</p>
                 <!-- Student/Class Name -->
-                <p class="text-xs text-gray-400 mt-1">
-                  <span v-if="goal.type === 'individual' && goal.studentName">
-                    Student: {{ goal.studentName }}
+                <div class="mt-2">
+                  <span 
+                    v-if="goal.type === 'individual' && goal.studentName"
+                    class="inline-block px-2 py-1 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 font-medium"
+                  >
+                    👤 Student: {{ goal.studentName }}
                   </span>
-                  <span v-else-if="goal.type === 'class' && goal.className">
-                    Class: {{ goal.className }}
+                  <span 
+                    v-else-if="goal.type === 'class' && goal.className"
+                    class="inline-block px-2 py-1 bg-green-50 border border-green-200 rounded text-xs text-green-700 font-medium"
+                  >
+                    👥 Class: {{ goal.className }}
                   </span>
-                </p>
+                </div>
               </div>
               <div class="flex items-center gap-2">
                 <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">

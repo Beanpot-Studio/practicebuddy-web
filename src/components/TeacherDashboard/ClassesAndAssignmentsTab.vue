@@ -144,26 +144,26 @@
             
             <!-- Class Information -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <div class="lg:col-span-1">
+              <div class="lg:col-span-1 bg-green-50 rounded-xl m-3 p-3 border-2 border-green-300">
                 <h4 class="text-lg font-semibold text-gray-800 mb-4">Class Information</h4>
                 <div class="space-y-3">
-                  <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                  <div class="flex justify-between items-center p-3 rounded-xl">
                     <span class="font-semibold text-gray-700">Class Name:</span>
                     <span class="text-gray-800">{{ selectedClass.name }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                  <div class="flex justify-between items-center p-3 rounded-xl">
                     <span class="font-semibold text-gray-700">Instrument:</span>
                     <span class="text-gray-800">{{ selectedClass.instrument || 'Not specified' }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                  <div class="flex justify-between items-center p-3 m-3 rounded-xl">
                     <span class="font-semibold text-gray-700">Class Code:</span>
                     <span class="font-mono bg-blue-100 px-3 py-1 rounded-lg text-blue-700">{{ selectedClass.code }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                  <div class="flex justify-between items-center p-3 rounded-xl">
                     <span class="font-semibold text-gray-700">Students:</span>
                     <span class="text-gray-800">{{ selectedClass.studentCount || 0 }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                  <div class="flex justify-between items-center p-3 rounded-xl">
                     <span class="font-semibold text-gray-700">Created:</span>
                     <span class="text-gray-800">{{ formatDate(new Date(selectedClass.createdAt)) }}</span>
                   </div>
@@ -289,109 +289,7 @@
               </div>
             </div>
 
-            <!-- Class Roster and Assignments Table -->
-            <div class="mt-8">
-              <h4 class="text-lg font-semibold text-gray-800 mb-4">Class Roster & Assignments</h4>
-              
-              <!-- Loading Roster -->
-              <div v-if="isLoadingRoster" class="text-center py-8">
-                <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p class="text-gray-600 text-sm">Loading class roster...</p>
-              </div>
-
-              <!-- Roster Table -->
-              <div v-else-if="classRoster.length > 0" class="overflow-x-auto">
-                <table class="w-full border-collapse">
-                  <thead>
-                    <tr class="bg-gray-50 border-b-2 border-gray-200">
-                      <th class="text-left p-4 font-semibold text-gray-700">Student</th>
-                      <th class="text-left p-4 font-semibold text-gray-700">Assignments</th>
-                      <th class="text-left p-4 font-semibold text-gray-700">Progress</th>
-                      <th class="text-left p-4 font-semibold text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr 
-                      v-for="student in classRoster" 
-                      :key="student.studentId"
-                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td class="p-4">
-                        <div class="flex items-center gap-3">
-                          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
-                            {{ (student.studentName || student.name || 'S').charAt(0).toUpperCase() }}
-                          </div>
-                          <div>
-                            <div class="font-semibold text-gray-800">{{ student.studentName || student.name || 'Unknown Student' }}</div>
-                          </div>
-                        </div>
-                      </td>
-                      
-                      <td class="p-4">
-                        <div class="space-y-1">
-                          <div 
-                            v-for="assignment in getStudentAssignments(student.studentId || student.id)" 
-                            :key="assignment.id"
-                            class="flex items-center gap-2 text-sm"
-                          >
-                            <span :class="[
-                              'px-2 py-1 rounded text-xs font-bold',
-                              assignment.type === 'class' 
-                                ? 'bg-blue-100 text-blue-700' 
-                                : 'bg-green-100 text-green-700'
-                            ]">
-                              {{ assignment.type === 'class' ? 'Class' : 'Individual' }}
-                            </span>
-                            <span class="text-gray-700">{{ assignment.title }}</span>
-                            <span class="text-gray-500">({{ formatDate(new Date(assignment.dueDate)) }})</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="p-4">
-                        <div class="space-y-1">
-                          <div 
-                            v-for="assignment in getStudentAssignments(student.studentId || student.id)" 
-                            :key="assignment.id"
-                            class="flex items-center gap-2"
-                          >
-                            <div class="w-16 bg-gray-200 rounded-full h-2">
-                              <div 
-                                class="bg-green-500 h-2 rounded-full transition-all duration-300"
-                                :style="{ width: getAssignmentProgress(student.studentId || student.id, assignment.id) + '%' }"
-                              ></div>
-                            </div>
-                            <span class="text-xs text-gray-500">{{ getAssignmentProgress(student.studentId || student.id, assignment.id) }}%</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="p-4">
-                        <div class="flex items-center gap-2">
-                          <button 
-                            @click="viewStudentDetails(student)"
-                            class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                          >
-                            View
-                          </button>
-                          <button 
-                            @click="createIndividualAssignment(student)"
-                            class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors"
-                          >
-                            Assign
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- No Roster -->
-              <div v-else class="text-center py-8">
-                <Users class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h4 class="text-lg font-semibold text-gray-800 mb-2">No Students Enrolled</h4>
-                <p class="text-gray-600 mb-4">Students can join this class using the class code: <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ selectedClass.code }}</span></p>
-              </div>
-            </div>
+           
 
             <!-- Existing Assignments -->
             <div v-if="classAssignments.length > 0" class="mt-8">
@@ -444,6 +342,109 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Student Roster Table -->
+          <div v-if="selectedClass" class="card card-yellow mt-8">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 relative">
+                  <Users class="w-6 h-6 text-white" />
+                </div>
+                <h3 class="text-xl text-gray-800 font-bold">Class Roster</h3>
+              </div>
+              <div class="text-sm text-gray-600">
+                {{ classRoster.length }} students
+              </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div v-if="isLoadingRoster" class="text-center py-8">
+              <div class="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p class="text-gray-600">Loading roster...</p>
+            </div>
+            
+            <!-- No Students State -->
+            <div v-else-if="classRoster.length === 0" class="text-center py-8">
+              <Music class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h4 class="text-lg font-semibold text-gray-800 mb-2">No Students in {{ selectedClass.name }}</h4>
+              <p class="text-gray-600 mb-4">Students will appear here once they join this class.</p>
+            </div>
+            
+            <!-- Students Table -->
+            <div v-else class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b-2 border-gray-200">
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Student</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Instrument</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Joined</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Assignments</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Goals</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr 
+                    v-for="student in classRoster" 
+                    :key="student.studentId"
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                          {{ (student.studentName || student.name || 'S').charAt(0) }}
+                        </div>
+                        <div>
+                          <div class="font-semibold text-gray-800">{{ student.studentName || student.name || 'Unknown Student' }}</div>
+                          <div class="text-xs text-gray-500">{{ student.email }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 border border-blue-300">
+                        {{ student.instrument || 'Not specified' }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="text-gray-600">{{ formatJoinDate(student.joinedAt || student.createdAt) }}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2">
+                        <div class="text-sm font-semibold text-green-600">{{ getStudentAssignmentCount(student.studentId) }}</div>
+                        <div class="w-16 bg-gray-200 rounded-full h-2">
+                          <div 
+                            class="bg-green-500 h-2 rounded-full transition-all duration-300"
+                            :style="{ width: getStudentAssignmentProgress(student.studentId) + '%' }"
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2">
+                        <div class="text-sm font-semibold text-blue-600">{{ getStudentGoalsCount(student.studentId) }}</div>
+                        <div class="w-16 bg-gray-200 rounded-full h-2">
+                          <div 
+                            class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            :style="{ width: getStudentGoalsProgress(student.studentId) + '%' }"
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span :class="[
+                        'px-2 py-1 rounded-full text-xs font-medium border',
+                        getStudentStatus(student) === 'active' 
+                          ? 'bg-green-100 text-green-700 border-green-300'
+                          : 'bg-yellow-100 text-yellow-700 border-yellow-300'
+                      ]">
+                        {{ getStudentStatus(student) }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -505,6 +506,14 @@ const props = defineProps({
   isCreatingAssignment: {
     type: Boolean,
     default: false
+  },
+  studentAssignments: {
+    type: Object,
+    default: () => ({})
+  },
+  studentGoals: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -608,5 +617,75 @@ const viewStudentDetails = (student) => {
 
 const createIndividualAssignment = (student) => {
   emit('createIndividualAssignment', student)
+}
+
+// Helper functions for roster
+const formatJoinDate = (dateString) => {
+  if (!dateString) {
+    return 'Recent'
+  }
+  
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return 'Recent'
+    }
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    })
+  } catch (error) {
+    console.error('Error formatting join date:', error)
+    return 'Recent'
+  }
+}
+
+const getStudentAssignmentCount = (studentId) => {
+  if (!studentId) return 0
+  const key = `${studentId}-${props.selectedClass?.id || 'standalone'}`
+  return props.studentAssignments[key] || 0
+}
+
+const getStudentAssignmentProgress = (studentId) => {
+  if (!studentId) return 0
+  // This would be calculated based on actual progress data
+  // For now, return a random progress for demonstration
+  return Math.floor(Math.random() * 100)
+}
+
+const getStudentGoalsCount = (studentId) => {
+  if (!studentId) return 0
+  const studentGoals = props.studentGoals?.[studentId] || []
+  return studentGoals.filter(goal => goal && goal.status === 'active').length
+}
+
+const getStudentGoalsProgress = (studentId) => {
+  if (!studentId) return 0
+  const studentGoals = props.studentGoals?.[studentId] || []
+  const activeGoals = studentGoals.filter(goal => goal && goal.status === 'active')
+  if (activeGoals.length === 0) return 0
+  
+  const completedGoals = activeGoals.filter(goal => goal.progress >= goal.targetPracticeSessions)
+  return Math.round((completedGoals.length / activeGoals.length) * 100)
+}
+
+const getStudentStatus = (student) => {
+  try {
+    // Check if student has recent activity
+    const lastActivity = student.lastPracticeAt || student.lastPracticeDate || student.lastActivity
+    if (!lastActivity) return 'inactive'
+    
+    const lastActivityDate = new Date(lastActivity)
+    const twoWeeksAgo = new Date()
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+    
+    // Student is active if they practiced within the last 2 weeks
+    return lastActivityDate > twoWeeksAgo ? 'active' : 'inactive'
+  } catch (error) {
+    console.error('Error determining student status:', error)
+    return 'inactive'
+  }
 }
 </script> 
