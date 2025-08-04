@@ -555,7 +555,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['changeTab', 'selectStudent', 'selectClassForRoster'])
+const emit = defineEmits(['changeTab', 'selectStudent', 'selectClassForRoster', 'loadClasses'])
 
 // Audio playback state
 const currentPlayingAudio = ref(null)
@@ -571,17 +571,14 @@ onUnmounted(() => {
 
 // Audio playback functions
 const playRecording = (recording, activityId) => {
-  console.log('🎵 playRecording called with:', recording, 'activityId:', activityId)
   
   if (!recording) {
-    console.log('No recording URL provided')
     return
   }
   
   try {
     // If we're already playing this activity, pause it
     if (currentPlayingActivityId.value === activityId && currentPlayingAudio.value) {
-      console.log('Pausing current recording')
       currentPlayingAudio.value.pause()
       currentPlayingAudio.value = null
       currentPlayingActivityId.value = null
@@ -590,7 +587,6 @@ const playRecording = (recording, activityId) => {
     
     // Stop any currently playing audio from other activities
     if (currentPlayingAudio.value && currentPlayingActivityId.value !== activityId) {
-      console.log('Stopping other recording before playing new one')
       currentPlayingAudio.value.pause()
       currentPlayingAudio.value = null
       currentPlayingActivityId.value = null
@@ -601,27 +597,22 @@ const playRecording = (recording, activityId) => {
     audio.crossOrigin = 'anonymous' // Enable CORS for Cloudinary URLs
     
     audio.addEventListener('error', (error) => {
-      console.error('Error playing recording:', error)
       currentPlayingAudio.value = null
       currentPlayingActivityId.value = null
     })
     
     audio.addEventListener('loadstart', () => {
-      console.log('Audio loading started')
     })
     
     audio.addEventListener('canplay', () => {
-      console.log('Audio can play')
     })
     
     audio.addEventListener('ended', () => {
-      console.log('Audio playback ended')
       currentPlayingAudio.value = null
       currentPlayingActivityId.value = null
     })
     
     audio.play().then(() => {
-      console.log('Audio playback started successfully')
       currentPlayingAudio.value = audio
       currentPlayingActivityId.value = activityId
     }).catch((error) => {
@@ -638,34 +629,26 @@ const isPlayingRecording = (activityId) => {
 }
 
 const getRecordingUrl = (activity) => {
-  console.log('🎵 getRecordingUrl called with activity:', activity)
-  console.log('🎵 activity.recording:', activity.recording)
   
   // Handle different recording data structures
   if (activity.recording) {
     // If recording is a string (direct URL)
     if (typeof activity.recording === 'string' && activity.recording.startsWith('http')) {
-      console.log('✅ Found string URL:', activity.recording)
       return activity.recording
     }
     // If recording is an object with url property
     if (typeof activity.recording === 'object' && activity.recording.url) {
-      console.log('✅ Found object URL:', activity.recording.url)
       return activity.recording.url
     }
-    console.log('❌ Recording data structure not recognized:', typeof activity.recording, activity.recording)
   } else {
-    console.log('❌ No recording data found in activity')
   }
   return null
 }
 
 const onWaveformPlay = () => {
-  console.log('Waveform playback started')
 }
 
 const onWaveformPause = () => {
-  console.log('Waveform playback paused')
 }
 
 const onWaveformError = (error) => {
@@ -752,35 +735,28 @@ const markAsComplete = async (activity) => {
   if (activity.isComplete) return
   
   try {
-    console.log('🎯 Marking activity as complete:', activity.id)
     const result = await props.markAsComplete(
       activity.id,
       activity.studentId
     )
     
     if (result) {
-      console.log('✅ Activity marked as complete')
       // The parent component should refresh the activity list
     }
   } catch (error) {
-    console.error('Error marking activity as complete:', error)
   }
 }
 
 // Helper functions for feedback display
 const getStickers = (activity) => {
-  console.log('🎯 Getting stickers for activity:', activity.id, 'feedback:', activity.feedback)
   if (!activity.feedback) return []
   const stickers = activity.feedback.filter(f => f.type === 'sticker' || f.stickerType)
-  console.log('🏆 Found stickers:', stickers)
   return stickers
 }
 
 const getComments = (activity) => {
-  console.log('💬 Getting comments for activity:', activity.id, 'feedback:', activity.feedback)
   if (!activity.feedback) return []
   const comments = activity.feedback.filter(f => f.type === 'comment' || f.comment)
-  console.log('💭 Found comments:', comments)
   return comments
 }
 
