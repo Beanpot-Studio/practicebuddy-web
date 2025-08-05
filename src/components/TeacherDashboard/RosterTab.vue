@@ -49,7 +49,6 @@
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Join Date</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Assignments</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Goals</th>
-              <th class="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -66,11 +65,9 @@
                   </div>
                   <div>
                     <div class="font-semibold text-gray-800">{{ student.studentName || student.name }}</div>
-                    <div class="text-sm text-gray-500">{{ student.email || 'No email' }}</div>
                   </div>
                 </div>
               </td>
-              
               <!-- Classes -->
               <td class="py-4 px-6">
                 <div class="flex flex-wrap gap-1">
@@ -86,10 +83,10 @@
               
               <!-- Join Date -->
               <td class="py-4 px-6 text-sm text-gray-600">
-                {{ formatJoinDate(student.joinDate) }}
+                {{ formatJoinDate(student.joinedAt) }}
               </td>
               
-              <!-- Assignments -->
+                            <!-- Assignments -->
               <td class="py-4 px-6">
                 <div class="flex items-center gap-2">
                   <div class="text-center">
@@ -117,32 +114,7 @@
                 </div>
               </td>
               
-              <!-- Actions -->
-              <td class="py-4 px-6">
-                <div class="flex items-center gap-2">
-                  <button 
-                    @click="$emit('viewStudentDetails', student)"
-                    class="px-3 py-1 bg-primary-500 text-white rounded-lg text-sm hover:bg-primary-600 transition-colors"
-                    title="View student details"
-                  >
-                    View
-                  </button>
-                  <button 
-                    @click="$emit('createIndividualAssignment', student)"
-                    class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"
-                    title="Create individual assignment"
-                  >
-                    Assignment
-                  </button>
-                  <button 
-                    @click="$emit('sendEmail', student)"
-                    class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
-                    title="Send email to student"
-                  >
-                    <Mail class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
+              
             </tr>
           </tbody>
         </table>
@@ -171,6 +143,14 @@ const props = defineProps({
   error: {
     type: String,
     default: null
+  },
+  classAssignments: {
+    type: Array,
+    default: () => []
+  },
+  studentGoals: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -227,22 +207,79 @@ const formatJoinDate = (date) => {
 }
 
 const getStudentAssignmentCount = (studentId) => {
-  // TODO: Implement actual assignment counting
-  return 0
+  let totalAssignments = 0
+  
+  // Count class assignments for classes this student is in
+  props.classes.forEach(classItem => {
+    if (classItem.students && classItem.students.some(s => (s.studentId || s.id) === studentId)) {
+      // Count class-wide assignments
+      if (classItem.assignments && Array.isArray(classItem.assignments)) {
+        totalAssignments += classItem.assignments.length
+      }
+      
+      // Count individual assignments for this student
+      if (classItem.individualAssignments && classItem.individualAssignments[studentId]) {
+        totalAssignments += classItem.individualAssignments[studentId].length
+      }
+    }
+  })
+  
+  return totalAssignments
 }
 
 const getStudentAssignmentProgress = (studentId) => {
-  // TODO: Implement actual progress calculation
-  return 0
+  let totalAssignments = 0
+  let completedAssignments = 0
+  
+  // Count assignments and completion for classes this student is in
+  props.classes.forEach(classItem => {
+    if (classItem.students && classItem.students.some(s => (s.studentId || s.id) === studentId)) {
+      // Count class-wide assignments
+      if (classItem.assignments && Array.isArray(classItem.assignments)) {
+        totalAssignments += classItem.assignments.length
+        completedAssignments += classItem.assignments.filter(assignment => assignment.isComplete).length
+      }
+      
+      // Count individual assignments for this student
+      if (classItem.individualAssignments && classItem.individualAssignments[studentId]) {
+        const individualAssignments = classItem.individualAssignments[studentId]
+        totalAssignments += individualAssignments.length
+        completedAssignments += individualAssignments.filter(assignment => assignment.isComplete).length
+      }
+    }
+  })
+  
+  if (totalAssignments === 0) return 0
+  return Math.round((completedAssignments / totalAssignments) * 100)
 }
 
 const getStudentGoalsCount = (studentId) => {
-  // TODO: Implement actual goals counting
-  return 0
+  if (!props.studentGoals || !props.studentGoals[studentId]) return 0
+  
+  const studentGoals = props.studentGoals[studentId]
+  if (!Array.isArray(studentGoals)) return 0
+  
+  // Count only active goals (not completed or cancelled)
+  return studentGoals.filter(goal => goal.status !== 'completed' && goal.status !== 'cancelled').length
 }
 
 const getStudentGoalsProgress = (studentId) => {
-  // TODO: Implement actual progress calculation
-  return 0
+  if (!props.studentGoals || !props.studentGoals[studentId]) return 0
+  
+  const studentGoals = props.studentGoals[studentId]
+  if (!Array.isArray(studentGoals)) return 0
+  
+  const activeGoals = studentGoals.filter(goal => goal.status !== 'completed' && goal.status !== 'cancelled')
+  if (activeGoals.length === 0) return 0
+  
+  // Calculate average progress across all active goals using the same logic as elsewhere in the app
+  const totalProgress = activeGoals.reduce((sum, goal) => {
+    const completedSessions = goal.completedSessions || 0
+    const targetPracticeSessions = goal.targetPracticeSessions || 1
+    const percentage = Math.round((completedSessions / targetPracticeSessions) * 100)
+    return sum + percentage
+  }, 0)
+  
+  return Math.round(totalProgress / activeGoals.length)
 }
 </script> 

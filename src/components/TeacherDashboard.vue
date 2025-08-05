@@ -101,6 +101,8 @@
           :classes="classes"
           :is-loading="isLoadingClasses"
           :error="classesError"
+          :class-assignments="classAssignments"
+          :student-goals="studentGoals"
           @load-classes="loadClasses"
           @view-student-details="viewStudentDetails"
           @create-individual-assignment="createIndividualAssignment"
