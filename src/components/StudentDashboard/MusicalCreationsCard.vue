@@ -2,7 +2,7 @@
   <div class="card card-green">
     <div class="flex items-center gap-3 mb-5">
       <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
-        <Music class="w-6 h-6 text-white" />
+        <Sparkle class="w-6 h-6 text-white" />
       </div>
       <div class="flex-1">
         <h3 class="text-lg text-gray-800 font-bold">Your Practice Sessions</h3>
@@ -51,7 +51,7 @@
          
           </div>
           <div class="flex items-center gap-2">
-            <div class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+            <div class="text-xs bg-primary-100 text-blue-700 px-2 py-1 rounded-full">
               {{ session.practiceMinutes }}m
             </div>
           </div>
@@ -117,7 +117,7 @@
                 <div 
                   v-for="comment in getComments(session)" 
                   :key="comment.id"
-                  class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2"
+                  class="bg-primary-50 border border-blue-200 rounded-lg px-3 py-2"
                 >
                   <div class="text-xs">
                     <div class="text-blue-700">{{ comment.comment }}</div>
@@ -145,7 +145,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Play, Music, Mic, Clock } from 'lucide-vue-next'
+import { Play, Music, Mic, Clock, Sparkle } from 'lucide-vue-next'
 import AudioWaveform from './AudioWaveform.vue'
 import { getStandalonePractices } from '../../lib/auth.js'
 import { getInstrumentImage, getInstrumentName } from '../../lib/instruments.js'

@@ -51,7 +51,7 @@
               <div class="mt-2">
                 <span 
                   v-if="goal.type === 'individual' && goal.studentName"
-                  class="inline-block px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 font-medium"
+                  class="inline-block px-3 py-1 bg-primary-50 border border-blue-200 rounded-lg text-sm text-blue-700 font-medium"
                 >
                   👤 Student: {{ goal.studentName }}
                 </span>
@@ -76,7 +76,7 @@
               </span>
               <span 
                 v-if="goal.type === 'class'"
-                class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
+                class="px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-blue-700"
               >
                 Class Goal
               </span>
@@ -141,7 +141,7 @@
                 <div class="mt-2">
                   <span 
                     v-if="goal.type === 'individual' && goal.studentName"
-                    class="inline-block px-2 py-1 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 font-medium"
+                    class="inline-block px-2 py-1 bg-primary-50 border border-blue-200 rounded text-xs text-blue-700 font-medium"
                   >
                     👤 Student: {{ goal.studentName }}
                   </span>
@@ -159,7 +159,7 @@
                 </span>
                 <span 
                   v-if="goal.type === 'class'"
-                  class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
+                  class="px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-blue-700"
                 >
                   Class Goal
                 </span>
@@ -201,7 +201,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Target, CheckCircle } from 'lucide-vue-next'
-import CreatePracticeGoal from '../AdminDashboard/CreatePracticeGoal.vue'
+import CreatePracticeGoal from './CreatePracticeGoal.vue'
 
 const props = defineProps({
   currentUser: {

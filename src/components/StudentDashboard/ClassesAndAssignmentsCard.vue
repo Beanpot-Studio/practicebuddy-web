@@ -1,10 +1,13 @@
 <template>
-  <div class="card card-blue w-full">
+  <div class="card card-blue w-full mb-8">
     <div class="flex items-center gap-3 mb-5">
       <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
         <GraduationCap class="w-5 h-5 text-white" />
       </div>
       <h3 class="text-lg text-gray-800 font-bold">My Classes & Assignments</h3>
+      <div class="text-xs text-gray-500 ml-auto">
+        Total: {{ assignments.length }} assignments
+      </div>
     </div>
     
     <div v-if="enrolledClasses.length === 0" class="text-center py-8">
@@ -30,7 +33,7 @@
             </div>
           </div>
           <div class="text-right">
-            <div class="font-mono bg-blue-100 px-3 py-1 rounded-lg text-blue-700 text-sm font-bold">
+            <div class="font-mono bg-primary-100 px-3 py-1 rounded-lg text-blue-700 text-sm font-bold">
               {{ classItem.code }}
             </div>
           </div>
@@ -52,7 +55,7 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
                     <span class="font-semibold text-gray-800">{{ assignment.title }}</span>
-                    <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700 border border-blue-300">
+                    <span class="px-2 py-1 rounded text-xs font-bold bg-primary-100 text-blue-700 border border-blue-300">
                       Class
                     </span>
                   </div>
@@ -68,9 +71,24 @@
                     </span>
                   </div>
                 </div>
-                <button class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                  View
-                </button>
+                <div class="flex items-center gap-2">
+                  <button 
+                    v-if="!assignment.isComplete"
+                    @click="markAssignmentComplete(assignment)"
+                    class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors flex items-center gap-1"
+                  >
+                    <CheckCircle class="w-3 h-3" />
+                    Mark Complete
+                  </button>
+                  <span 
+                    v-else
+                    class="px-3 py-1 bg-green-500 text-white rounded text-sm flex items-center gap-1"
+                  >
+                    <CheckCircle class="w-3 h-3" />
+                    Completed
+                  </span>
+                 
+                </div>
               </div>
             </div>
           </div>
@@ -119,9 +137,24 @@
                   </span>
                 </div>
               </div>
-              <button class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                View
-              </button>
+              <div class="flex items-center gap-2">
+                <button 
+                  v-if="!assignment.isComplete"
+                  @click="markAssignmentComplete(assignment)"
+                  class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors flex items-center gap-1"
+                >
+                  <CheckCircle class="w-3 h-3" />
+                  Mark Complete
+                </button>
+                <span 
+                  v-else
+                  class="px-3 py-1 bg-green-500 text-white rounded text-sm flex items-center gap-1"
+                >
+                  <CheckCircle class="w-3 h-3" />
+                  Completed
+                </span>
+              
+              </div>
             </div>
           </div>
         </div>
@@ -159,11 +192,76 @@
                   </span>
                 </div>
               </div>
-              <button class="px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 transition-colors">
-                View
-              </button>
+              <div class="flex items-center gap-2">
+                <button 
+                  v-if="!assignment.isComplete"
+                  @click="markAssignmentComplete(assignment)"
+                  class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors flex items-center gap-1"
+                >
+                  <CheckCircle class="w-3 h-3" />
+                  Mark Complete
+                </button>
+                <span 
+                  v-else
+                  class="px-3 py-1 bg-green-500 text-white rounded text-sm flex items-center gap-1"
+                >
+                  <CheckCircle class="w-3 h-3" />
+                  Completed
+                </span>
+                <button class="px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 transition-colors">
+                  View
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Assignment Completion Modal -->
+    <div v-if="showCompletionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-800">Mark Assignment Complete</h3>
+          <button @click="closeCompletionModal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="mb-4">
+          <h4 class="font-semibold text-gray-800 mb-2">{{ selectedAssignment?.title }}</h4>
+          <p class="text-gray-600 text-sm mb-4">{{ selectedAssignment?.description }}</p>
+        </div>
+        
+        <div class="mb-4">
+          <label class="block mb-2 font-semibold text-gray-700">Completion Notes (Optional)</label>
+          <textarea 
+            v-model="completionNotes"
+            placeholder="How did it go? Any challenges or achievements?"
+            rows="4"
+            class="w-full p-3 border-2 border-gray-200 rounded-lg resize-none focus:outline-none focus:border-green-400"
+          ></textarea>
+        </div>
+        
+        <div class="flex gap-3">
+          <button 
+            @click="closeCompletionModal"
+            class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="submitAssignmentCompletion"
+            :disabled="isSubmitting"
+            class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <div v-if="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <CheckCircle v-else class="w-4 h-4" />
+            <span v-if="!isSubmitting">Mark Complete</span>
+            <span v-else>Submitting...</span>
+          </button>
         </div>
       </div>
     </div>
@@ -171,7 +269,8 @@
 </template>
 
 <script setup>
-import { GraduationCap, BookOpen, Calendar, Clock, User, Target } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { GraduationCap, BookOpen, Calendar, Clock, User, Target, CheckCircle } from 'lucide-vue-next'
 
 const props = defineProps({
   enrolledClasses: {
@@ -183,6 +282,14 @@ const props = defineProps({
     default: () => []
   }
 })
+
+const emit = defineEmits(['assignment-completed'])
+
+// Modal state
+const showCompletionModal = ref(false)
+const selectedAssignment = ref(null)
+const completionNotes = ref('')
+const isSubmitting = ref(false)
 
 const getClassAssignments = (classCode) => {
   return props.assignments.filter(assignment => 
@@ -213,6 +320,43 @@ const formatDueDate = (dueDate) => {
     return 'Due tomorrow'
   } else {
     return `Due in ${diffDays} days`
+  }
+}
+
+// Assignment completion functions
+const markAssignmentComplete = (assignment) => {
+  selectedAssignment.value = assignment
+  completionNotes.value = ''
+  showCompletionModal.value = true
+}
+
+const closeCompletionModal = () => {
+  showCompletionModal.value = false
+  selectedAssignment.value = null
+  completionNotes.value = ''
+  isSubmitting.value = false
+}
+
+const submitAssignmentCompletion = async () => {
+  if (!selectedAssignment.value) return
+  
+  isSubmitting.value = true
+  
+  try {
+    // Emit the completion event to parent component
+    await emit('assignment-completed', {
+      assignmentId: selectedAssignment.value.id,
+      assignment: selectedAssignment.value,
+      notes: completionNotes.value.trim(),
+      completedAt: new Date().toISOString()
+    })
+    
+    // Close modal
+    closeCompletionModal()
+  } catch (error) {
+    console.error('Error completing assignment:', error)
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script> 

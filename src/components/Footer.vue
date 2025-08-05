@@ -15,9 +15,9 @@
         <div>
           <h4 class="text-lg font-semibold text-gray-800 mb-4 relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-8 after:h-1 after:bg-gradient-to-r after:from-musical-primary after:to-purple-400 after:rounded-sm">Quick Links</h4>
           <ul class="space-y-2">
-            <li class="text-sm text-gray-800"><a href="#" @click="$emit('switch-mode', 'student')" class="text-gray-800 no-underline transition-colors duration-300 hover:text-musical-primary">Student Dashboard</a></li>
-            <li class="text-sm text-gray-800"><a href="#" @click="$emit('switch-mode', 'teacher')" class="text-gray-800 no-underline transition-colors duration-300 hover:text-musical-primary">Teacher Dashboard</a></li>
-            <li class="text-sm text-gray-800"><a href="#" @click="$emit('go-home')" class="text-gray-800 no-underline transition-colors duration-300 hover:text-musical-primary">Home</a></li>
+            <li class="text-sm text-gray-800"><a href="#" @click="$emit('switch-mode', 'student')" class="text-gray-800 no-underline transition-colors duration-300 hover:text-blue">Student Dashboard</a></li>
+            <li class="text-sm text-gray-800"><a href="#" @click="$emit('switch-mode', 'teacher')" class="text-gray-800 no-underline transition-colors duration-300 hover:text-blue">Teacher Dashboard</a></li>
+            <li class="text-sm text-gray-800"><a href="#" @click="$emit('go-home')" class="text-gray-800 no-underline transition-colors duration-300 hover:text-blue">Home</a></li>
           </ul>
         </div>
         
@@ -52,12 +52,12 @@
       
       <div class="border-t-2 border-gray-200 pt-5 text-center">
         <div class="mb-4 flex items-center justify-center gap-4">
-          <Music class="w-6 h-6 text-musical-primary animate-bounce" />
+          <Music class="w-6 h-6 text-blue animate-bounce" />
           <Music class="w-6 h-6 text-musical-secondary animate-pulse" />
           <Star class="w-6 h-6 text-yellow-500" />
           <Music class="w-6 h-6 text-purple-500" />
         </div>
-        <p class="text-gray-800 text-xs">© {{ new Date().getFullYear() }} Practice Buddy. Made with <Heart class="w-3 h-3 text-red-500 inline" /> in Boston by <a href="https://beanpotstudio.com" class="text-musical-primary hover:underline">Beanpot Studio</a> for music lovers everywhere!</p>
+        <p class="text-gray-800 text-xs">© {{ new Date().getFullYear() }} Practice Buddy. Made with <Heart class="w-3 h-3 text-red-500 inline" /> in Boston by <a href="https://beanpotstudio.com" class="text-blue hover:underline">Beanpot Studio</a> for music lovers everywhere!</p>
       </div>
     </div>
   </footer>

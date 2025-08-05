@@ -100,7 +100,7 @@
         <button 
           v-if="hasRecording"
           @click="playRecording"
-          class="py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 bg-blue-500 text-white hover:bg-blue-600 shadow-lg"
+          class="py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 bg-primary-500 text-white hover:bg-primary-600 shadow-lg"
         >
           <Play class="w-5 h-5" />
           {{ isPlayingRecording ? 'Pause' : 'Play' }}

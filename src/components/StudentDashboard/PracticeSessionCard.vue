@@ -72,41 +72,13 @@
         />
       </div>
 
-      <!-- Goal Progress Section -->
-      <div v-if="currentGoal" class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border-2 border-purple-200">
-        <div class="flex items-center gap-2 mb-3">
-          <Target class="w-5 h-5 text-purple-600" />
-          <h4 class="font-semibold text-gray-800 text-base">Your Practice Goal</h4>
-        </div>
-        <div class="mb-3">
-          <div class="text-sm text-gray-700 mb-2">{{ currentGoal.title }}</div>
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-sm font-medium text-gray-700">Progress</span>
-            <span class="text-sm font-bold text-purple-600">{{ Math.round(currentGoal.progress || 0) }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              class="bg-gradient-to-r from-purple-400 to-purple-500 h-2 rounded-full transition-all duration-300"
-              :style="{ width: `${Math.min(100, currentGoal.progress || 0)}%` }"
-            ></div>
-          </div>
-        </div>
-        <div class="text-sm text-gray-600">
-          <span class="font-semibold text-purple-600">{{ currentGoal.completedSessions || 0 }}</span> 
-          out of 
-          <span class="font-semibold text-purple-600">{{ currentGoal.targetPracticeSessions }}</span> 
-          practices required
-        </div>
-        <div v-if="getGoalStatusText(currentGoal)" class="text-xs text-purple-600 mt-1 font-medium">
-          {{ getGoalStatusText(currentGoal) }}
-        </div>
-      </div>
+   
 
       <!-- Start Practice Button -->
       <button 
         @click="startPractice" 
         :disabled="!selectedInstrument || !practiceTime"
-        class="btn btn-purple w-full p-4 text-base font-bold"
+        class="btn bg-musical-coral w-full p-4 text-base font-bold"
       >
         <Play class="w-5 h-5" />
         {{ selectedClass ? `Start Practice for ${selectedClass.name || selectedClass.code}` : 'Start Practice Session!' }}

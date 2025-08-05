@@ -23,7 +23,7 @@
     <div v-if="isPlaying" class="mt-2">
       <div class="w-full bg-gray-200 rounded-full h-1">
         <div 
-          class="bg-blue-500 h-1 rounded-full transition-all duration-100"
+          class="bg-primary-500 h-1 rounded-full transition-all duration-100"
           :style="{ width: `${progress}%` }"
         ></div>
       </div>

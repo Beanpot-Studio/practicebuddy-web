@@ -127,7 +127,7 @@
               <div class="flex items-center gap-2">
                 <button 
                   @click="$emit('copyClassCode', selectedClass.code)"
-                  class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors flex items-center gap-2"
+                  class="px-4 py-2 bg-primary-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-primary-200 transition-colors flex items-center gap-2"
                 >
                   <Copy class="w-4 h-4" />
                   Copy Code
@@ -157,7 +157,7 @@
                   </div>
                   <div class="flex justify-between items-center p-3 m-3 rounded-xl">
                     <span class="font-semibold text-gray-700">Class Code:</span>
-                    <span class="font-mono bg-blue-100 px-3 py-1 rounded-lg text-blue-700">{{ selectedClass.code }}</span>
+                    <span class="font-mono bg-primary-100 px-3 py-1 rounded-lg text-blue-700">{{ selectedClass.code }}</span>
                   </div>
                   <div class="flex justify-between items-center p-3 rounded-xl">
                     <span class="font-semibold text-gray-700">Students:</span>
@@ -307,7 +307,7 @@
                         <span :class="[
                           'px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1',
                           assignment.type === 'class' 
-                            ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                            ? 'bg-primary-100 text-blue-700 border border-blue-300' 
                             : 'bg-green-100 text-green-700 border border-green-300'
                         ]">
                           <BookOpen v-if="assignment.type === 'class'" class="w-3 h-3" />
@@ -455,7 +455,7 @@
                   >
                     <td class="py-3 px-4">
                       <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                        <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold">
                           {{ (student.studentName || student.name || 'S').charAt(0) }}
                         </div>
                         <div>
@@ -465,7 +465,7 @@
                       </div>
                     </td>
                     <td class="py-3 px-4">
-                      <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 border border-blue-300">
+                      <span class="px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-blue-700 border border-blue-300">
                         {{ student.instrument || 'Not specified' }}
                       </span>
                     </td>
@@ -488,7 +488,7 @@
                         <div class="text-sm font-semibold text-blue-600">{{ getStudentGoalsCount(student.studentId) }}</div>
                         <div class="w-16 bg-gray-200 rounded-full h-2">
                           <div 
-                            class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            class="bg-primary-500 h-2 rounded-full transition-all duration-300"
                             :style="{ width: getStudentGoalsProgress(student.studentId) + '%' }"
                           ></div>
                         </div>
@@ -516,7 +516,7 @@
                         </button>
                         <button 
                           @click="viewStudentDetails(student)"
-                          class="px-3 py-1 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600 transition-colors"
+                          class="px-3 py-1 bg-primary-500 text-white rounded-lg text-xs hover:bg-primary-600 transition-colors"
                           title="View student details"
                         >
                           View

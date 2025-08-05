@@ -30,37 +30,47 @@
             @click="changeTab('overview')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'overview' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+              activeTab === 'overview' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
             ]"
           >
             <BarChart3 class="w-4 h-4" />
             Overview
           </button>
           <button
-            @click="changeTab('create-class')"
+            @click="changeTab('roster')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'create-class' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+              activeTab === 'roster' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
             ]"
           >
-            <Plus class="w-4 h-4" />
-            Create Class
+            <Users class="w-4 h-4" />
+            Roster
           </button>
           <button
-            @click="changeTab('classes-assignments')"
+            @click="changeTab('classes')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'classes-assignments' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+              activeTab === 'classes' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
             ]"
           >
             <GraduationCap class="w-4 h-4" />
-            Classes & Assignments
+            Classes
+          </button>
+          <button
+            @click="changeTab('assignments')"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'assignments' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
+            ]"
+          >
+            <BookOpen class="w-4 h-4" />
+            Assignments
           </button>
           <button
             @click="changeTab('goals')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'goals' ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+              activeTab === 'goals' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
             ]"
           >
             <Target class="w-4 h-4" />
@@ -93,35 +103,41 @@
           @select-class-for-roster="selectClassForRoster"
           @select-student="selectStudent"
         />
-        <CreateClassTab
-          v-if="activeTab === 'create-class'"
-          :current-user="currentUser"
-          :new-class="newClass"
-          :is-creating-class="isCreatingClass"
-          @class-created="onClassCreated"
-          @create-class="createClass"
-          @update:new-class="newClass = $event"
-        />
-        <ClassesAndAssignmentsTab
-          v-if="activeTab === 'classes-assignments'"
+        <RosterTab
+          v-if="activeTab === 'roster'"
           :classes="classes"
-          :selected-class="selectedClass"
           :is-loading="isLoadingClasses"
           :error="classesError"
-          :class-roster="classRoster"
-          :is-loading-roster="isLoadingRoster"
-          :class-assignments="classAssignments"
-          :new-assignment="newAssignment"
-          :is-creating-assignment="isCreatingAssignment"
           @load-classes="loadClasses"
-          @change-tab="changeTab"
-          @select-class="selectClass"
-          @copy-class-code="copyClassCode"
-          @send-email="sendEmail"
-          @create-new-assignment="createNewAssignment"
-          @delete-assignment="deleteAssignment"
           @view-student-details="viewStudentDetails"
           @create-individual-assignment="createIndividualAssignment"
+          @send-email="sendIndividualEmail"
+        />
+        <ClassesTab
+          v-if="activeTab === 'classes'"
+          :classes="classes"
+          :is-loading="isLoadingClasses"
+          :error="classesError"
+          :new-class="newClass"
+          :is-creating-class="isCreatingClass"
+          @create-class="createClass"
+          @update:new-class="newClass = $event"
+          @load-classes="loadClasses"
+          @select-class="selectClass"
+          @copy-class-code="copyClassCode"
+          @send-email="sendClassInvitation"
+        />
+        <AssignmentsTab
+          v-if="activeTab === 'assignments'"
+          :classes="classes"
+          :class-assignments="classAssignments"
+          :is-loading="isLoadingClasses"
+          :new-assignment="newAssignment"
+          :is-creating-assignment="isCreatingAssignment"
+          @create-new-assignment="createNewAssignment"
+          @update:new-assignment="newAssignment = $event"
+          @delete-assignment="deleteAssignment"
+          @edit-assignment="editAssignment"
         />
         <GoalsTab
           v-if="activeTab === 'goals'"
@@ -129,22 +145,103 @@
         />
       </div>
     </div>
+    
+    <!-- Email Modal -->
+    <div v-if="showEmailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-800">
+            {{ emailType === 'class-invitation' ? 'Send Class Invitation' : 'Send Email' }}
+          </h3>
+          <button @click="showEmailModal = false" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <form @submit.prevent="sendEmailMessage" class="space-y-4">
+          <!-- Recipient Email -->
+          <div v-if="emailType !== 'class-invitation'">
+            <label class="block mb-2 font-semibold text-gray-700">Recipient Email</label>
+            <input 
+              v-model="emailRecipient"
+              type="email" 
+              required
+              placeholder="student@example.com"
+              class="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-400"
+            />
+          </div>
+          
+          <!-- Subject -->
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700">Subject</label>
+            <input 
+              v-model="emailSubject"
+              type="text" 
+              required
+              placeholder="Email subject"
+              class="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-400"
+            />
+          </div>
+          
+          <!-- Message Body -->
+          <div>
+            <label class="block mb-2 font-semibold text-gray-700">Message</label>
+            <textarea 
+              v-model="emailBody"
+              rows="8"
+              required
+              placeholder="Your message here..."
+              class="w-full p-3 border-2 border-gray-200 rounded-lg resize-none focus:outline-none focus:border-blue-400"
+            ></textarea>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="flex gap-3 pt-4">
+            <button 
+              type="button"
+              @click="showEmailModal = false"
+              class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            >
+              Send Email
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Success/Error Messages -->
+    <div v-if="showSuccessMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+      {{ successMessage }}
+    </div>
+    <div v-if="showErrorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+      {{ errorMessage }}
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { getInstrumentName } from '../lib/instruments'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
-import CreateClassTab from './TeacherDashboard/CreateClassTab.vue'
-import ClassesAndAssignmentsTab from './TeacherDashboard/ClassesAndAssignmentsTab.vue'
+import RosterTab from './TeacherDashboard/RosterTab.vue'
+import ClassesTab from './TeacherDashboard/ClassesTab.vue'
+import AssignmentsTab from './TeacherDashboard/AssignmentsTab.vue'
 import GoalsTab from './TeacherDashboard/GoalsTab.vue'
 import { 
   GraduationCap, 
   BarChart3, 
   Plus, 
   BookOpen, 
-  Target 
+  Target, Users
 } from 'lucide-vue-next'
 
 const { currentUser, fetchTeacherClasses, createTeacherClass, fetchClassRoster, fetchUserData } = useAuth()
@@ -623,9 +720,80 @@ const copyClassCode = (code) => {
   // You could add a toast notification here
 }
 
-const sendEmail = (classItem) => {
-  // Implement email functionality
-  // console.log('Send email to class:', classItem)
+// Email functionality
+const showEmailModal = ref(false)
+const emailRecipient = ref('')
+const emailSubject = ref('')
+const emailBody = ref('')
+const emailType = ref('') // 'class-invitation', 'individual', 'general'
+
+const sendEmail = (recipient) => {
+  emailRecipient.value = recipient
+  emailType.value = 'general'
+  emailSubject.value = ''
+  emailBody.value = ''
+  showEmailModal.value = true
+}
+
+const sendClassInvitation = (classItem) => {
+  emailRecipient.value = ''
+  emailType.value = 'class-invitation'
+  emailSubject.value = `Join ${classItem.name} - Music Class Invitation`
+  emailBody.value = `Hello!
+
+You're invited to join my music class "${classItem.name}" on Practice Buddy!
+
+Class Details:
+- Name: ${classItem.name}
+- Instrument: ${classItem.instrument ? getInstrumentName(classItem.instrument) : 'Various'}
+- Level: ${classItem.level}
+- Schedule: ${classItem.schedule || 'TBD'}
+
+To join the class:
+1. Go to https://practicebuddy.club
+2. Create an account or login. For new accounts, you can login and enter your class code.
+3. If you've already logged in, you can join this class by enterin the class code in your dashboard.
+4. Enter the class code: ${classItem.code}
+
+I'm excited to have you in the class!
+
+Best regards,
+${currentUser.value?.displayName || 'Your Music Teacher'}`
+  showEmailModal.value = true
+}
+
+const sendIndividualEmail = (student) => {
+  emailRecipient.value = student.email || ''
+  emailType.value = 'individual'
+  emailSubject.value = ''
+  emailBody.value = ''
+  showEmailModal.value = true
+}
+
+const sendEmailMessage = async () => {
+  try {
+    // For now, we'll use the browser's mailto functionality
+    // In a real app, you'd send this through your backend
+    const mailtoLink = `mailto:${emailRecipient.value}?subject=${encodeURIComponent(emailSubject.value)}&body=${encodeURIComponent(emailBody.value)}`
+    window.open(mailtoLink, '_blank')
+    
+    // Close modal
+    showEmailModal.value = false
+    
+    // Show success message
+    showSuccessMessage.value = true
+    successMessage.value = 'Email opened in your default email client'
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
+  } catch (error) {
+    console.error('Error sending email:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to send email'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  }
 }
 
 const selectClassForAssignments = (classItem) => {
@@ -680,6 +848,11 @@ const createNewAssignment = async () => {
 const deleteAssignment = async (assignmentId) => {
   // TODO: Implement assignment deletion
   // console.log('Deleting assignment:', assignmentId)
+}
+
+const editAssignment = (assignment) => {
+  // TODO: Implement assignment editing
+  console.log('Edit assignment:', assignment)
 }
 
 const selectClassForRoster = (classItem) => {

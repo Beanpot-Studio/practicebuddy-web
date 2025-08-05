@@ -77,7 +77,7 @@
                             @click="toggleStudentMode" 
                             :class="[
                               'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-                              !showStudentCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+                              !showStudentCreateAccount ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
                             ]"
                           >
                             <Lock class="w-4 h-4" />
@@ -87,7 +87,7 @@
                             @click="toggleStudentMode" 
                             :class="[
                               'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-                              showStudentCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+                              showStudentCreateAccount ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
                             ]"
                           >
                             <Plus class="w-4 h-4" />
@@ -144,7 +144,7 @@
                         <div class="flex justify-center items-center py-6">
                           <button 
                             @click="toggleStudentResetPasswordForm" 
-                            class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
+                            class="text-blue text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-primary-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
                           >
                             <RefreshCw v-if="!showStudentResetPasswordForm" class="w-4 h-4" />
                             {{ showStudentResetPasswordForm ? 'Back to Login' : 'Reset Password' }}
@@ -290,7 +290,7 @@
                             @click="toggleTeacherMode" 
                             :class="[
                               'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-                              !showTeacherCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+                              !showTeacherCreateAccount ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
                             ]"
                           >
                             <Lock class="w-4 h-4" />
@@ -300,7 +300,7 @@
                             @click="toggleTeacherMode" 
                             :class="[
                               'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-                              showTeacherCreateAccount ? 'bg-white text-musical-primary shadow-sm' : 'text-gray-600 hover:text-musical-primary'
+                              showTeacherCreateAccount ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
                             ]"
                           >
                             <Plus class="w-4 h-4" />
@@ -352,7 +352,7 @@
                         <div class="flex justify-center items-center py-6">
                           <button 
                             @click="toggleResetPasswordForm" 
-                            class="text-musical-primary text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
+                            class="text-blue text-sm font-semibold transition-all duration-200 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-primary-50 hover:transform hover:-translate-y-0.5 flex items-center gap-2"
                           >
                             <RefreshCw v-if="!showResetPasswordForm" class="w-4 h-4" />
                             {{ showResetPasswordForm ? 'Back to Login' : 'Reset Password' }}

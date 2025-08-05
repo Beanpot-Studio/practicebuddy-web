@@ -143,12 +143,12 @@
 
             <!-- Mailing List Opt-in -->
             <div class="space-y-2">
-              <div class="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div class="flex items-start gap-3 p-4 bg-primary-50 border border-blue-200 rounded-xl">
                 <input 
                   id="mailing-list"
                   v-model="mailingListOptIn"
                   type="checkbox"
-                  class="mt-1 w-5 h-5 text-musical-primary border-gray-300 rounded focus:ring-musical-primary focus:ring-2"
+                  class="mt-1 w-5 h-5 text-blue border-gray-300 rounded focus:ring-musical-primary focus:ring-2"
                 />
                 <label for="mailing-list" class="text-sm text-gray-700 leading-relaxed">
                   <span class="font-semibold text-blue-800">📧 Join our mailing list</span><br>

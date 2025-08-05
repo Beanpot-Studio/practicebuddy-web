@@ -23,32 +23,55 @@
 
     <!-- Dashboard Content -->
     <div v-else>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div class="card card-red">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 relative">
-              <BarChart3 class="w-6 h-6 text-white" />
+      <!-- Horizontal Stats UI -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="card card-blue">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+              <GraduationCap class="w-5 h-5 text-white" />
             </div>
-            <h3 class="text-lg text-gray-800 font-bold">Dashboard Overview</h3>
+            <h3 class="text-lg text-gray-800 font-bold">Total Classes</h3>
           </div>
-          <div class="flex flex-col gap-3">
-            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-red-600 bg-gradient-to-br from-red-400 to-red-500 text-white">
-              <div class="text-2xl font-bold">{{ totalStudents }}</div>
-              <div class="text-sm opacity-90 font-semibold">Music Students</div>
-            </div>
-            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 text-white">
-              <div class="text-2xl font-bold">{{ classes.length }}</div>
-              <div class="text-sm opacity-90 font-semibold">Active Classes</div>
-            </div>
-            <div class="flex justify-between items-center p-3 rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 text-white">
-              <div class="text-2xl font-bold">{{ totalAssignments }}</div>
-              <div class="text-sm opacity-90 font-semibold">Total Assignments</div>
-            </div>
-          </div>
+          <div class="text-3xl font-bold text-blue-600 mb-2">{{ classes.length }}</div>
+          <p class="text-gray-600 text-sm">Active music classes</p>
         </div>
 
-        <!-- Recent Activity Card -->
-        <div class="card card-blue">
+        <div class="card card-green">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
+              <Users class="w-5 h-5 text-white" />
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Total Students</h3>
+          </div>
+          <div class="text-3xl font-bold text-green-600 mb-2">{{ totalStudents }}</div>
+          <p class="text-gray-600 text-sm">Enrolled students</p>
+        </div>
+
+        <div class="card card-yellow">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-yellow-600 bg-gradient-to-br from-yellow-400 to-yellow-500 relative">
+              <BookOpen class="w-5 h-5 text-white" />
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Total Assignments</h3>
+          </div>
+          <div class="text-3xl font-bold text-yellow-600 mb-2">{{ totalAssignments }}</div>
+          <p class="text-gray-600 text-sm">Active assignments</p>
+        </div>
+
+        <div class="card card-purple">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-purple-600 bg-gradient-to-br from-purple-400 to-purple-500 relative">
+              <Target class="w-5 h-5 text-white" />
+            </div>
+            <h3 class="text-lg text-gray-800 font-bold">Active Goals</h3>
+          </div>
+          <div class="text-3xl font-bold text-purple-600 mb-2">{{ totalGoals }}</div>
+          <p class="text-gray-600 text-sm">Practice goals set</p>
+        </div>
+      </div>
+
+      <!-- Recent Activity Card - Full Screen -->
+      <div class="card card-blue w-full">
           <div class="flex items-center gap-3 mb-5">
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
               <Bell class="w-6 h-6 text-white" />
@@ -84,7 +107,7 @@
               <!-- Student Info -->
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                  <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold">
                     {{ activity.studentName?.charAt(0) || 'S' }}
                   </div>
                   <div>
@@ -165,7 +188,7 @@
                     <div 
                       v-for="comment in getComments(activity)" 
                       :key="comment.id"
-                      class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2"
+                      class="bg-primary-50 border border-blue-200 rounded-lg px-3 py-2"
                     >
                       <div class="text-xs">
                         <div class="text-blue-700">{{ comment.comment }}</div>
@@ -187,7 +210,7 @@
                 </button>
                 <button 
                   @click="openCommentModal(activity)"
-                  class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors flex items-center gap-1"
+                  class="px-3 py-1 bg-primary-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-primary-200 transition-colors flex items-center gap-1"
                 >
                   <MessageCircle class="w-4 h-4" />
                   Add Comment
@@ -210,10 +233,8 @@
           </div>
         </div>
       </div>
-
-
     </div>
-  </div>
+  
   
   <!-- Sticker Modal -->
   <div v-if="showStickerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -240,7 +261,7 @@
             :class="[
               'p-2 rounded-lg border-2 transition-all duration-200 hover:scale-105',
               selectedSticker === i 
-                ? 'border-blue-500 bg-blue-50' 
+                ? 'border-blue-500 bg-primary-50' 
                 : 'border-gray-200 hover:border-gray-300'
             ]"
           >
@@ -273,7 +294,7 @@
         <button 
           @click="giveStickerToActivity"
           :disabled="!selectedSticker"
-          class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Give Sticker
         </button>
@@ -316,7 +337,7 @@
         <button 
           @click="addCommentToActivity"
           :disabled="!commentText.trim()"
-          class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Comment
         </button>
@@ -327,7 +348,7 @@
 
 <script setup>
 import { computed, ref, onUnmounted } from 'vue'
-import { BarChart3, Bell, Users, Music, Play, Pause, Trophy, MessageCircle, CheckCircle } from 'lucide-vue-next'
+import { BarChart3, Bell, Users, Music, Play, Pause, Trophy, MessageCircle, CheckCircle, GraduationCap, BookOpen, Target } from 'lucide-vue-next'
 import AudioWaveform from '../StudentDashboard/AudioWaveform.vue'
 import { getInstrumentImage, getInstrumentName } from '../../lib/instruments.js'
 
@@ -595,4 +616,5 @@ const formatDuration = (seconds) => {
 
 const totalStudents = computed(() => 0) // Placeholder since roster moved
 const totalAssignments = computed(() => 0) // Placeholder since roster moved
+const totalGoals = computed(() => 0) // Placeholder since goals moved
 </script> 
