@@ -728,10 +728,7 @@ const isTeacherLoginLoading = ref(false)
 const isTeacherRegistrationLoading = ref(false)
 const isPasswordResetLoading = ref(false)
 
-// Watch for unexpected tab changes
-watch(activeTab, (newTab, oldTab) => {
-  console.log('activeTab changed from', oldTab, 'to', newTab)
-})
+
 
 const studentForm = ref({
   email: '',
@@ -793,7 +790,6 @@ const stopTiltShuffle = () => {
 }
 
 const switchToStudentTab = () => {
-  console.log('switchToStudentTab called, hasError:', hasError.value, 'activeTab:', activeTab.value)
   if (hasError.value) {
     clearError()
   }
@@ -807,7 +803,6 @@ const switchToStudentTab = () => {
 }
 
 const switchToTeacherTab = () => {
-  console.log('switchToTeacherTab called, hasError:', hasError.value, 'activeTab:', activeTab.value)
   if (hasError.value) {
     clearError()
   }
@@ -872,7 +867,6 @@ const loginStudent = async () => {
     const result = await loginStudentAccount(studentForm.value.email, studentForm.value.password, studentForm.value.classCode)
     
     if (result.success) {
-      console.log('Student login successful')
       // Emit login event to parent component
       emit('login', { 
         user: result.user, 
@@ -920,7 +914,6 @@ const registerStudent = async () => {
         instrument: '',
         classCode: ''
       }
-      console.log('Student registration successful')
     } else {
       handleError(result.error || 'Registration failed')
     }
@@ -937,7 +930,6 @@ const loginTeacher = async () => {
     const result = await loginTeacherAccount(teacherForm.value.email, teacherForm.value.password)
     
     if (result.success) {
-      console.log('Teacher login successful')
       // Emit login event to parent component
       emit('login', { 
         user: result.user, 
@@ -989,7 +981,6 @@ const registerTeacher = async () => {
         instrument: '',
         experience: 'beginner'
       }
-      console.log('Teacher registration successful')
       // Show success message and switch to login
       showRegisterForm.value = false
     } else {
@@ -1010,7 +1001,6 @@ const resetPassword = async () => {
     if (result.success) {
       passwordResetSuccess.value = true
       resetPasswordForm.value.email = ''
-      console.log('Password reset email sent')
     } else {
       handleError(result.error || 'Password reset failed')
     }
@@ -1029,7 +1019,6 @@ const resetStudentPassword = async () => {
     if (result.success) {
       passwordResetSuccess.value = true
       studentResetPasswordForm.value.email = ''
-      console.log('Student password reset email sent')
     } else {
       handleError(result.error || 'Password reset failed')
     }

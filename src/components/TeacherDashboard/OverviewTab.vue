@@ -377,6 +377,14 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  studentGoals: {
+    type: Object,
+    default: () => ({})
+  },
+  classGoals: {
+    type: Object,
+    default: () => ({})
+  },
   giveSticker: {
     type: Function,
     default: () => {}
@@ -614,7 +622,56 @@ const formatDuration = (seconds) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-const totalStudents = computed(() => 0) // Placeholder since roster moved
-const totalAssignments = computed(() => 0) // Placeholder since roster moved
-const totalGoals = computed(() => 0) // Placeholder since goals moved
+// Calculate total students across all classes
+const totalStudents = computed(() => {
+  if (!props.classes || props.classes.length === 0) return 0
+  
+  let total = 0
+  props.classes.forEach(classItem => {
+    if (classItem.students && Array.isArray(classItem.students)) {
+      total += classItem.students.length
+    }
+  })
+  return total
+})
+
+// Calculate total assignments across all classes
+const totalAssignments = computed(() => {
+  if (!props.classes || props.classes.length === 0) return 0
+  
+  let total = 0
+  props.classes.forEach(classItem => {
+    // Count class assignments
+    if (classItem.assignments && Array.isArray(classItem.assignments)) {
+      total += classItem.assignments.length
+    }
+    
+    // Count individual assignments
+    if (classItem.individualAssignments && typeof classItem.individualAssignments === 'object') {
+      let individualCount = 0
+      Object.values(classItem.individualAssignments).forEach(studentAssignments => {
+        if (Array.isArray(studentAssignments)) {
+          individualCount += studentAssignments.length
+        }
+      })
+      total += individualCount
+    }
+  })
+  return total
+})
+
+// Calculate total active goals
+const totalGoals = computed(() => {
+  if (!props.studentGoals || typeof props.studentGoals !== 'object') return 0
+  
+  let total = 0
+  Object.values(props.studentGoals).forEach(studentGoals => {
+    if (Array.isArray(studentGoals)) {
+      const activeGoals = studentGoals.filter(goal => goal.status !== 'completed' && goal.status !== 'cancelled')
+      total += activeGoals.length
+    }
+  })
+  
+  return total
+})
 </script> 

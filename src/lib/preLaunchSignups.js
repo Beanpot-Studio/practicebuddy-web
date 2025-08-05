@@ -36,7 +36,6 @@ export const submitPreLaunchSignup = async (signupData) => {
     // Add to Firestore
     const docRef = await addDoc(collection(db, 'emails'), signupDoc)
     
-    console.log('Pre-launch signup submitted successfully:', docRef.id)
     
     return {
       success: true,

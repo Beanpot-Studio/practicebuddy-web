@@ -170,13 +170,10 @@ const loadPracticeSessions = async () => {
   
   isLoading.value = true
   try {
-    console.log('Loading practice sessions for user:', props.userId)
     const { getStudentPractices } = await import('../../lib/auth.js')
     const result = await getStudentPractices(props.userId)
-    console.log('Practice sessions result:', result)
     if (result.success) {
       practiceSessions.value = result.practices
-      console.log('Loaded practice sessions:', practiceSessions.value)
     }
   } catch (error) {
     console.error('Error loading practice sessions:', error)
@@ -218,17 +215,14 @@ const formatDuration = (seconds) => {
 }
 
 const playRecording = (recording, sessionId) => {
-  console.log('playRecording called with:', recording, 'sessionId:', sessionId)
   
   if (!recording) {
-    console.log('No recording URL provided')
     return
   }
   
   try {
     // If we're already playing this session, pause it
     if (currentPlayingSessionId.value === sessionId && currentPlayingAudio.value) {
-      console.log('Pausing current recording')
       currentPlayingAudio.value.pause()
       currentPlayingAudio.value = null
       currentPlayingSessionId.value = null
@@ -237,7 +231,6 @@ const playRecording = (recording, sessionId) => {
     
     // Stop any currently playing audio from other sessions
     if (currentPlayingAudio.value && currentPlayingSessionId.value !== sessionId) {
-      console.log('Stopping other recording before playing new one')
       currentPlayingAudio.value.pause()
       currentPlayingAudio.value = null
       currentPlayingSessionId.value = null
@@ -248,27 +241,18 @@ const playRecording = (recording, sessionId) => {
     audio.crossOrigin = 'anonymous' // Enable CORS for Cloudinary URLs
     
     audio.addEventListener('error', (error) => {
-      console.error('Error playing recording:', error)
       currentPlayingAudio.value = null
       currentPlayingSessionId.value = null
     })
     
-    audio.addEventListener('loadstart', () => {
-      console.log('Audio loading started')
-    })
-    
-    audio.addEventListener('canplay', () => {
-      console.log('Audio can play')
-    })
+
     
     audio.addEventListener('ended', () => {
-      console.log('Audio playback ended')
       currentPlayingAudio.value = null
       currentPlayingSessionId.value = null
     })
     
     audio.play().then(() => {
-      console.log('Audio playback started successfully')
       currentPlayingAudio.value = audio
       currentPlayingSessionId.value = sessionId
       
@@ -276,29 +260,15 @@ const playRecording = (recording, sessionId) => {
       // The timeupdate event will handle progress updates automatically
       
     }).catch((error) => {
-      console.error('Failed to play audio:', error)
     })
     
   } catch (error) {
-    console.error('Error in playRecording:', error)
   }
 }
 
-const onWaveformPlay = () => {
-  console.log('Waveform playback started')
-}
-
-const onWaveformPause = () => {
-  console.log('Waveform playback paused')
-}
-
-const onWaveformError = (error) => {
-  console.error('Waveform error:', error)
-}
 
 const loadMoreSessions = () => {
   // TODO: Implement pagination for practice sessions
-  console.log('Load more sessions clicked')
   // For now, just reload all sessions
   loadPracticeSessions()
 }

@@ -87,12 +87,7 @@
           :classes="classes"
           :is-loading="isLoadingClasses"
           :error="classesError"
-          :all-students="allStudents"
-          :student-assignments="studentAssignments"
           :recent-activity="recentActivity"
-          :selected-class-for-roster="selectedClassForRoster"
-          :class-roster="classRoster"
-          :is-loading-roster="isLoadingRoster"
           :student-goals="studentGoals"
           :class-goals="classGoals"
           :is-loading-recent-activity="isLoadingRecentActivity"
@@ -100,8 +95,6 @@
           :add-comment="addComment"
           :mark-as-complete="markAsComplete"
           @load-classes="loadClasses"
-          @select-class-for-roster="selectClassForRoster"
-          @select-student="selectStudent"
         />
         <RosterTab
           v-if="activeTab === 'roster'"
@@ -288,7 +281,6 @@ const giveSticker = async (practiceId, studentId, stickerType, message = '') => 
     })
     
     if (result.success) {
-      console.log('Sticker given successfully')
       // Refresh the recent activity to show the new feedback
       await loadRecentActivity()
     } else {
@@ -308,7 +300,6 @@ const addComment = async (practiceId, studentId, comment) => {
     })
     
     if (result.success) {
-      console.log('Comment added successfully')
       // Refresh the recent activity to show the new feedback
       await loadRecentActivity()
     } else {
@@ -325,7 +316,6 @@ const markAsComplete = async (practiceId, studentId) => {
     const result = await markPracticeAsComplete(practiceId, studentId, currentUser.value.uid)
     
     if (result.success) {
-      console.log('Practice marked as complete successfully')
       // Refresh the recent activity to show the updated status
       await loadRecentActivity()
     } else {
@@ -350,10 +340,7 @@ const classAssignments = ref([])
 const isLoadingAssignments = ref(false)
 const isCreatingAssignment = ref(false)
 
-// Debug: Watch for tab changes
-watch(activeTab, (newTab) => {
-  // console.log('Active tab changed to:', newTab)
-})
+
 
 const loadClasses = async () => {
   if (!currentUser.value?.uid) {
@@ -365,12 +352,10 @@ const loadClasses = async () => {
     isLoadingClasses.value = true
     classesError.value = null
     
-    // console.log('Loading classes for teacher:', currentUser.value.uid)
     const result = await fetchTeacherClasses(currentUser.value.uid)
     
     if (result.success) {
       classes.value = result.classes || []
-      // console.log('Classes loaded successfully:', classes.value)
       
       // Load all students from all classes
       await loadAllStudents()
@@ -433,13 +418,11 @@ const loadRecentActivity = async () => {
   try {
     isLoadingRecentActivity.value = true
     
-    console.log('🎯 Loading practices for teacher:', currentUser.value.uid)
     
     // Use the new unified practices collection
     const { getTeacherPractices } = await import('../lib/auth.js')
     const result = await getTeacherPractices(currentUser.value.uid)
     
-    console.log('📊 Teacher practices result:', result)
     
     if (result.success) {
       // Filter out completed practices or show them separately
@@ -448,12 +431,7 @@ const loadRecentActivity = async () => {
       
       // Show active practices first, then completed ones
       recentActivity.value = [...activePractices, ...completedPractices].slice(0, 20) // Limit to 20 items
-      console.log('✅ Recent activity loaded:', recentActivity.value.length, 'items')
-      console.log('📝 Active practices:', activePractices.length)
-      console.log('✅ Completed practices:', completedPractices.length)
-      if (recentActivity.value.length > 0) {
-        console.log('📝 Sample practice data:', recentActivity.value[0])
-      }
+
     } else {
       console.error('❌ Failed to load recent activity:', result.error)
       recentActivity.value = []
@@ -469,71 +447,45 @@ const loadRecentActivity = async () => {
 
 const loadStudentGoals = async () => {
   try {
-    // This would fetch goals from Firebase
-    // For now, create mock data
-    const mockStudentGoals = {}
-    allStudents.value.forEach(student => {
-      const studentId = student.studentId || student.id
-      mockStudentGoals[studentId] = [
-        {
-          id: `goal_${studentId}_1`,
-          title: 'Practice 30 minutes daily',
-          type: 'individual',
-          target: 30,
-          progress: Math.floor(Math.random() * 30),
-          status: 'active'
-        },
-        {
-          id: `goal_${studentId}_2`,
-          title: 'Complete 5 assignments this week',
-          type: 'individual',
-          target: 5,
-          progress: Math.floor(Math.random() * 5),
-          status: 'active'
+    const { getTeacherPracticeGoals } = await import('../lib/auth.js')
+    const result = await getTeacherPracticeGoals(currentUser.value.uid)
+    
+    if (result.success) {
+      // Group goals by student ID
+      const goalsByStudent = {}
+      result.goals.forEach(goal => {
+        const studentId = goal.studentId
+        if (!goalsByStudent[studentId]) {
+          goalsByStudent[studentId] = []
         }
-      ]
-    })
-    studentGoals.value = mockStudentGoals
+        goalsByStudent[studentId].push(goal)
+      })
+      
+      studentGoals.value = goalsByStudent
+    } else {
+      studentGoals.value = {}
+    }
   } catch (error) {
     console.error('Error loading student goals:', error)
+    studentGoals.value = {}
   }
 }
 
 const loadClassGoals = async () => {
   try {
-    // This would fetch goals from Firebase
-    // For now, create mock data
-    const mockClassGoals = {}
-    classes.value.forEach(classItem => {
-      mockClassGoals[classItem.id] = [
-        {
-          id: `class_goal_${classItem.id}_1`,
-          title: 'Class performance goal',
-          type: 'class',
-          target: 100,
-          progress: Math.floor(Math.random() * 100),
-          status: 'active'
-        },
-        {
-          id: `class_goal_${classItem.id}_2`,
-          title: 'Group practice sessions',
-          type: 'class',
-          target: 10,
-          progress: Math.floor(Math.random() * 10),
-          status: 'active'
-        }
-      ]
-    })
-    classGoals.value = mockClassGoals
+    // For now, class goals are not implemented in the current structure
+    // They would be stored in /practices/{classCode}/goals
+    // For now, set empty object
+    classGoals.value = {}
   } catch (error) {
     console.error('Error loading class goals:', error)
+    classGoals.value = {}
   }
 }
 
 const loadAllAssignments = async () => {
   if (classes.value.length === 0) {
     classAssignments.value = []
-    console.log('No classes found, setting classAssignments to empty array')
     return
   }
 
@@ -541,18 +493,13 @@ const loadAllAssignments = async () => {
     isLoadingAssignments.value = true
     const allAssignmentsList = []
 
-    console.log('Extracting assignments from', classes.value.length, 'classes')
 
     // Extract assignments from each class
     for (const classItem of classes.value) {
       try {
-        console.log('Processing assignments for class:', classItem.code, classItem.name)
-        console.log('Class assignments:', classItem.assignments)
-        console.log('Individual assignments:', classItem.individualAssignments)
         
         // Process class-wide assignments
         if (classItem.assignments && classItem.assignments.length > 0) {
-          console.log('Found', classItem.assignments.length, 'class assignments in class', classItem.name)
           const classAssignmentsWithContext = classItem.assignments.map(assignment => ({
             ...assignment,
             type: 'class',
@@ -565,7 +512,6 @@ const loadAllAssignments = async () => {
         
         // Process individual assignments
         if (classItem.individualAssignments && classItem.individualAssignments.length > 0) {
-          console.log('Found', classItem.individualAssignments.length, 'individual assignments in class', classItem.name)
           const individualAssignmentsWithContext = classItem.individualAssignments.map(assignment => ({
             ...assignment,
             type: 'individual',
@@ -577,10 +523,8 @@ const loadAllAssignments = async () => {
         }
         
         if (!classItem.assignments?.length && !classItem.individualAssignments?.length) {
-          console.log('No assignments found in class', classItem.name)
         }
       } catch (error) {
-        console.error(`Error processing assignments for class ${classItem.code}:`, error)
       }
     }
 
@@ -590,8 +534,6 @@ const loadAllAssignments = async () => {
     )
 
     classAssignments.value = uniqueAssignments
-    console.log('Total unique assignments loaded:', classAssignments.value.length)
-    console.log('All assignments:', classAssignments.value)
     
     // Update student assignments count
     updateStudentAssignmentsCount()
@@ -629,7 +571,6 @@ const updateStudentAssignmentsCount = () => {
   })
   
   studentAssignments.value = studentAssignmentCounts
-  // console.log('Updated student assignments count:', studentAssignments.value)
 }
 
 const createClass = async () => {
@@ -640,12 +581,10 @@ const createClass = async () => {
 
   try {
     isCreatingClass.value = true
-    console.log('Creating class:', newClass.value)
     
     const result = await createTeacherClass(currentUser.value.uid, newClass.value)
     
     if (result.success) {
-      console.log('Class created successfully:', result.class)
       // Reset form
       newClass.value = {
         name: '',
@@ -657,7 +596,6 @@ const createClass = async () => {
       // Refresh classes and switch to classes & assignments tab
       await loadClasses()
       activeTab.value = 'classes-assignments'
-      console.log('✅ Class created successfully! Switched to Classes & Assignments tab.')
       
       // Show success message
       successMessage.value = `Class "${result.class.name}" created successfully!`
@@ -691,7 +629,6 @@ const onClassCreated = () => {
 }
 
 const changeTab = (tab) => {
-  // console.log('Changing tab to:', tab)
   activeTab.value = tab
 }
 
@@ -799,7 +736,6 @@ const sendEmailMessage = async () => {
 const selectClassForAssignments = (classItem) => {
   selectedClassForAssignments.value = classItem
   // TODO: Load class roster and assignments for this class
-  // console.log('Selected class for assignments:', classItem)
 }
 
 const createNewAssignment = async () => {
@@ -810,7 +746,6 @@ const createNewAssignment = async () => {
 
   try {
     isCreatingAssignment.value = true
-    console.log('Creating new assignment:', newAssignment.value)
     
     const { createAssignment } = await import('../lib/auth.js')
     const result = await createAssignment(
@@ -822,7 +757,6 @@ const createNewAssignment = async () => {
     )
     
     if (result.success) {
-      console.log('Assignment created successfully:', result.assignment)
       // Reset form
       newAssignment.value = {
         type: 'class',
@@ -834,12 +768,9 @@ const createNewAssignment = async () => {
       }
       // Refresh classes and assignments data
       await loadClasses()
-      console.log('✅ Classes and assignments refreshed after assignment creation')
     } else {
-      console.error('Failed to create assignment:', result.error)
     }
   } catch (error) {
-    console.error('Error creating assignment:', error)
   } finally {
     isCreatingAssignment.value = false
   }
@@ -847,12 +778,10 @@ const createNewAssignment = async () => {
 
 const deleteAssignment = async (assignmentId) => {
   // TODO: Implement assignment deletion
-  // console.log('Deleting assignment:', assignmentId)
 }
 
 const editAssignment = (assignment) => {
   // TODO: Implement assignment editing
-  console.log('Edit assignment:', assignment)
 }
 
 const selectClassForRoster = (classItem) => {
@@ -882,12 +811,8 @@ const loadClassRoster = async (classCode) => {
   }
 }
 
-// loadClassAssignments function removed - assignments are now extracted from class data
 
-const selectStudent = (student) => {
-  // TODO: Implement student selection
-  // console.log('Selected student:', student)
-}
+
 
 const viewStudentDetails = (student) => {
   // TODO: Implement navigation to student details page

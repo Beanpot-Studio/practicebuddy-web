@@ -41,7 +41,6 @@ export function useErrorHandler() {
    * @param {Object} options - Additional options
    */
   const handleError = (error, context = 'general', options = {}) => {
-    console.log('handleError called:', error.message, 'context:', context)
     // Log error for debugging
     logError(error, context)
     
@@ -57,7 +56,6 @@ export function useErrorHandler() {
     
     // Set current error
     currentError.value = errorObject
-    console.log('Error set:', errorObject.message)
     
     // Add to error history (keep last 10 errors)
     errorHistory.value.unshift(errorObject)
@@ -99,7 +97,6 @@ export function useErrorHandler() {
    * Clear current error
    */
   const clearError = () => {
-    console.log('clearError called, current error was:', currentError.value?.message)
     currentError.value = null
   }
 

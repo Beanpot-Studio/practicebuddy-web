@@ -1,7 +1,6 @@
 // Simple verification script for teacher-readable practices
 // Run this in the browser console to test the functionality
 
-console.log('Testing teacher-readable practice creation...')
 
 // Test data
 const testPracticeData = {
@@ -20,9 +19,3 @@ const testPracticeData = {
   recordingDuration: 28.5
 }
 
-// Import the function (this would need to be done in the actual app context)
-// const { createTeacherReadablePractice } = await import('../lib/auth.js')
-
-console.log('Test practice data:', testPracticeData)
-console.log('This script verifies the data structure for teacher-readable practices')
-console.log('To test the actual creation, run a practice session in the student dashboard') 

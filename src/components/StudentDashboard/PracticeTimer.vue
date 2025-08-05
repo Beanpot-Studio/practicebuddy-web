@@ -272,7 +272,6 @@ const startRecording = async () => {
         recordingUrl.value = uploadResult.url
         hasRecording.value = true
         recordingStatus.value = 'Recording uploaded successfully!'
-        console.log('Recording uploaded to Cloudinary:', uploadResult)
       } catch (error) {
         console.error('Failed to upload recording:', error)
         recordingStatus.value = 'Failed to upload recording'
@@ -322,59 +321,43 @@ const toggleRecording = () => {
 }
 
 const playRecording = async () => {
-  console.log('playRecording called, recordingUrl:', recordingUrl.value)
-  console.log('isPlayingRecording:', isPlayingRecording.value)
   
   if (!recordingUrl.value) {
-    console.log('No recording URL available')
     return
   }
   
   try {
     if (isPlayingRecording.value) {
       // Pause recording
-      console.log('Pausing recording')
       if (recordingAudio.value) {
         recordingAudio.value.pause()
         isPlayingRecording.value = false
       }
     } else {
       // Play or restart recording
-      console.log('Playing recording')
       if (recordingAudio.value) {
         // If audio exists, restart from beginning
         recordingAudio.value.currentTime = 0
         await recordingAudio.value.play()
       } else {
         // Create new audio element
-        console.log('Creating new audio element with URL:', recordingUrl.value)
         recordingAudio.value = new Audio(recordingUrl.value)
         
         recordingAudio.value.addEventListener('ended', () => {
-          console.log('Audio playback ended')
           isPlayingRecording.value = false
         })
         
         recordingAudio.value.addEventListener('error', (error) => {
-          console.error('Error playing recording:', error)
           isPlayingRecording.value = false
         })
         
-        recordingAudio.value.addEventListener('loadstart', () => {
-          console.log('Audio loading started')
-        })
-        
-        recordingAudio.value.addEventListener('canplay', () => {
-          console.log('Audio can play')
-        })
+
         
         await recordingAudio.value.play()
       }
       isPlayingRecording.value = true
-      console.log('Audio playback started successfully')
     }
   } catch (error) {
-    console.error('Error in playRecording:', error)
     isPlayingRecording.value = false
   }
 }

@@ -225,14 +225,11 @@ const onGoalCreated = () => {
 const loadGoals = async () => {
   isLoadingGoals.value = true
   try {
-    console.log('Loading goals for teacher:', props.currentUser.uid)
     const { getTeacherPracticeGoals } = await import('../../lib/auth.js')
     const result = await getTeacherPracticeGoals(props.currentUser.uid)
     
-    console.log('Goals result:', result)
     
     if (result.success) {
-      console.log('All goals found:', result.goals)
       // Separate active and completed goals
       activeGoals.value = result.goals.filter(goal => 
         goal.status !== 'completed' && goal.status !== 'cancelled'
@@ -240,8 +237,6 @@ const loadGoals = async () => {
       completedGoals.value = result.goals.filter(goal => 
         goal.status === 'completed'
       )
-      console.log('Active goals:', activeGoals.value)
-      console.log('Completed goals:', completedGoals.value)
     } else {
       console.error('Failed to load goals:', result.error)
       activeGoals.value = []

@@ -21,9 +21,7 @@ export const db = getFirestore(app)
 
 // Connect to emulators in development if enabled
 if (import.meta.env.DEV && import.meta.env.PUBLIC_USE_FIREBASE_EMULATORS === 'true') {
-  console.log('🔧 Connecting to Firebase emulators...')
   connectFirestoreEmulator(db, 'localhost', 8080)
-  console.log('✅ Connected to Firestore emulator')
 }
 
 export default app 

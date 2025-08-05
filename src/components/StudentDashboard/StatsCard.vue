@@ -107,7 +107,6 @@ const progressPercentage = computed(() => {
   const completedSessions = props.currentGoal.completedSessions || 0
   const target = props.currentGoal.targetPracticeSessions
   const percentage = Math.round((completedSessions / target) * 100)
-  console.log('Goal progress calculation:', { completedSessions, target, percentage })
   return percentage
 })
 

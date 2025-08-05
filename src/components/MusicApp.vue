@@ -40,14 +40,12 @@ const testPreLaunch = ref(false)
 
 // Check if we're in pre-launch mode
 const isPreLaunch = computed(() => {
-  console.log('PUBLIC_STATUS:', import.meta.env.PUBLIC_STATUS)
   return import.meta.env.PUBLIC_STATUS === 'pre-launch' || testPreLaunch.value
 })
 
 const handleLogin = (userData) => {
   // The authentication is handled by the useAuth composable
   // This function is called after successful login
-  console.log('Login successful:', userData)
   currentMode.value = userData.role
 }
 

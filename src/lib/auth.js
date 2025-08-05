@@ -97,7 +97,6 @@ export const registerTeacher = async (email, password, displayName, teacherData 
  */
 export const registerStudent = async (email, password, displayName, studentData = {}) => {
   try {
-    console.log('registerStudent called with:', { email, displayName, studentData })
     
     // Create user account
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -118,10 +117,8 @@ export const registerStudent = async (email, password, displayName, studentData 
       ...studentData
     }
     
-    console.log('Student document to be saved:', studentDoc)
 
     await setDoc(doc(db, 'users', user.uid), studentDoc)
-    console.log('Student document saved successfully')
 
     // If class code is provided, attempt to join the class
     if (studentData.classCode) {
@@ -146,7 +143,6 @@ export const registerStudent = async (email, password, displayName, studentData 
           studentDoc.teacherId = classData.teacherId
         }
       } catch (classError) {
-        console.warn('Could not join class:', classError)
         // Registration still succeeds even if class joining fails
       }
     }
@@ -391,16 +387,13 @@ export const getTeacherClasses = async (teacherId) => {
  */
 export const addStudentToClassRoster = async (classCode, studentId, studentName, instrument = '') => {
   try {
-    console.log('addStudentToClassRoster called with:', { classCode, studentId, studentName, instrument })
     
     // First, try to find the class by document ID
     let classRef = doc(db, 'classes', classCode)
     let classDoc = await getDoc(classRef)
-    console.log('Class document exists (by ID):', classDoc.exists())
     
     // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      console.log('Class not found by document ID, searching by code field...')
       
       const classesQuery = query(
         collection(db, 'classes'),
@@ -413,23 +406,18 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
         const foundDoc = querySnapshot.docs[0]
         classRef = foundDoc.ref
         classDoc = foundDoc
-        console.log('Class found by code field with document ID:', foundDoc.id)
       } else {
-        console.log('Class not found by code field either')
         throw new Error('Class not found')
       }
     }
 
     const classData = classDoc.data()
-    console.log('Class data retrieved:', classData)
     
     const students = classData.students || []
-    console.log('Current students array:', students)
     
     // Check if student is already in the roster
     const existingStudent = students.find(s => s.studentId === studentId)
     if (existingStudent) {
-      console.log('Student already in roster:', existingStudent)
       return { success: true } // Student already in roster
     }
 
@@ -452,23 +440,18 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
       currentWeekPracticeMinutes: 0,
       assignments: []
     }
-    console.log('New student object:', newStudent)
 
     students.push(newStudent)
-    console.log('Updated students array:', students)
 
     // Update class document
-    console.log('Updating class document with students array...')
     await updateDoc(classRef, {
       students: students,
       studentCount: students.length,
       updatedAt: new Date().toISOString()
     })
-    console.log('Class document updated successfully')
 
     return { success: true }
   } catch (error) {
-    console.error('Error in addStudentToClassRoster:', error)
     logError(error, 'add-student-to-roster')
     const errorInfo = handleFirebaseError(error, 'add-student-to-roster')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'add-student-to-roster')
@@ -484,16 +467,13 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
  */
 export const joinClass = async (classCode, studentId, studentName, instrument = '') => {
   try {
-    console.log('joinClass called with:', { classCode, studentId, studentName, instrument })
     
     // First, try to find the class by document ID
     let classRef = doc(db, 'classes', classCode)
     let classDoc = await getDoc(classRef)
-    console.log('Class document exists (by ID):', classDoc.exists())
     
     // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      console.log('Class not found by document ID, searching by code field...')
       
       const classesQuery = query(
         collection(db, 'classes'),
@@ -506,20 +486,15 @@ export const joinClass = async (classCode, studentId, studentName, instrument = 
         const foundDoc = querySnapshot.docs[0]
         classRef = foundDoc.ref
         classDoc = foundDoc
-        console.log('Class found by code field with document ID:', foundDoc.id)
       } else {
-        console.log('Class not found by code field either')
-        console.log('Available classes in database:')
         
         // List all classes for debugging
         try {
           const allClassesQuery = query(collection(db, 'classes'))
           const allQuerySnapshot = await getDocs(allClassesQuery)
           allQuerySnapshot.forEach((doc) => {
-            console.log(`- Document ID: ${doc.id}, Code field: ${doc.data().code}`)
           })
         } catch (error) {
-          console.log('Could not list classes:', error)
         }
         
         throw new Error('Class not found. Please check your class code.')
@@ -527,28 +502,22 @@ export const joinClass = async (classCode, studentId, studentName, instrument = 
     }
 
     const classData = classDoc.data()
-    console.log('Class data:', classData)
     
     // Add student to class roster
-    console.log('Calling addStudentToClassRoster...')
     const rosterResult = await addStudentToClassRoster(classCode, studentId, studentName, instrument)
-    console.log('addStudentToClassRoster result:', rosterResult)
     
     // Update student's user document with class information
-    console.log('Updating user document with class information...')
     await updateDoc(doc(db, 'users', studentId), {
       classCode: classCode,
       teacherId: classData.teacherId,
       updatedAt: new Date().toISOString()
     })
-    console.log('User document updated successfully')
 
     return { 
       success: true,
       classData: classData
     }
   } catch (error) {
-    console.error('Error in joinClass:', error)
     logError(error, 'join-class')
     const errorInfo = handleFirebaseError(error, 'join-class')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'join-class')
@@ -561,15 +530,12 @@ export const joinClass = async (classCode, studentId, studentName, instrument = 
  */
 export const getClassRoster = async (classCode) => {
   try {
-    console.log('getClassRoster called with classCode:', classCode)
     
     // First, try to find the class by document ID
     let classDoc = await getDoc(doc(db, 'classes', classCode))
-    console.log('Class document exists (by ID):', classDoc.exists())
     
     // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      console.log('Class not found by document ID, searching by code field...')
       
       const classesQuery = query(
         collection(db, 'classes'),
@@ -580,9 +546,7 @@ export const getClassRoster = async (classCode) => {
       if (!querySnapshot.empty) {
         // Found by code field, use the first match
         classDoc = querySnapshot.docs[0]
-        console.log('Class found by code field with document ID:', classDoc.id)
       } else {
-        console.log('Class not found by code field either')
         return {
           success: false,
           error: 'Class not found'
@@ -591,8 +555,6 @@ export const getClassRoster = async (classCode) => {
     }
 
     const classData = classDoc.data()
-    console.log('Class data:', classData)
-    console.log('Students array:', classData.students || [])
     
     return {
       success: true,
@@ -741,15 +703,12 @@ export const createAssignment = async (classCode, assignmentData, assignmentType
  */
 export const getClassAssignments = async (classCode, studentId = null) => {
   try {
-    console.log('getClassAssignments called with classCode:', classCode, 'studentId:', studentId)
     
     // First, try to find the class by document ID
     let classDoc = await getDoc(doc(db, 'classes', classCode))
-    console.log('Class document exists (by ID):', classDoc.exists())
     
     // If not found by ID, search by code field
     if (!classDoc.exists()) {
-      console.log('Class not found by document ID, searching by code field...')
       
       const classesQuery = query(
         collection(db, 'classes'),
@@ -760,9 +719,7 @@ export const getClassAssignments = async (classCode, studentId = null) => {
       if (!querySnapshot.empty) {
         // Found by code field, use the first match
         classDoc = querySnapshot.docs[0]
-        console.log('Class found by code field with document ID:', classDoc.id)
       } else {
-        console.log('Class not found by code field either')
         return {
           success: false,
           error: 'Class not found'
@@ -771,7 +728,6 @@ export const getClassAssignments = async (classCode, studentId = null) => {
     }
 
     const classData = classDoc.data()
-    console.log('Class data:', classData)
     
     let allAssignments = []
     
@@ -786,7 +742,6 @@ export const getClassAssignments = async (classCode, studentId = null) => {
       allAssignments.push(...studentIndividualAssignments)
     }
     
-    console.log('All assignments:', allAssignments)
     
     return {
       success: true,
@@ -795,7 +750,6 @@ export const getClassAssignments = async (classCode, studentId = null) => {
       individualAssignments: studentId ? (classData.individualAssignments || {})[studentId] || [] : []
     }
   } catch (error) {
-    console.error('Error in getClassAssignments:', error)
     logError(error, 'get-class-assignments')
     const errorInfo = handleFirebaseError(error, 'get-class-assignments')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'get-class-assignments')
@@ -810,7 +764,6 @@ export const getClassAssignments = async (classCode, studentId = null) => {
  */
 export const getStudentStandaloneAssignments = async (studentId) => {
   try {
-    console.log('getStudentStandaloneAssignments called with studentId:', studentId)
     
     const studentRef = doc(db, 'users', studentId)
     const studentDoc = await getDoc(studentRef)
@@ -827,9 +780,7 @@ export const getStudentStandaloneAssignments = async (studentId) => {
     
     // Filter assignments by status
     const activeAssignments = assignments.filter(assignment => assignment.status === 'active')
-    
-    console.log('Student standalone assignments:', activeAssignments)
-    
+        
     return {
       success: true,
       assignments: activeAssignments
@@ -888,7 +839,6 @@ export const updateStudentLoginActivity = async (classCode, studentId) => {
     
     return { success: true }
   } catch (error) {
-    console.error('Error updating student login activity:', error)
     logError(error, 'update-student-login-activity')
     const errorInfo = handleFirebaseError(error, 'update-student-login-activity')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'update-student-login-activity')
@@ -949,7 +899,6 @@ export const updateStudentPracticeActivity = async (classCode, studentId, practi
     
     return { success: true }
   } catch (error) {
-    console.error('Error updating student practice activity:', error)
     logError(error, 'update-student-practice-activity')
     const errorInfo = handleFirebaseError(error, 'update-student-practice-activity')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'update-student-practice-activity')
@@ -977,7 +926,6 @@ const generateClassCode = () => {
  */
 export const createStandalonePractice = async (userId, practiceData) => {
   try {
-    console.log('createStandalonePractice called with userId:', userId, 'practiceData:', practiceData)
     
     const userRef = doc(db, 'users', userId)
     const userDoc = await getDoc(userRef)
@@ -1040,7 +988,6 @@ export const createStandalonePractice = async (userId, practiceData) => {
       updatedAt: new Date().toISOString()
     })
     
-    console.log('Standalone practice session created successfully:', practiceSession.id)
     
     return {
       success: true,
@@ -1048,7 +995,6 @@ export const createStandalonePractice = async (userId, practiceData) => {
       message: 'Practice session recorded successfully'
     }
   } catch (error) {
-    console.error('Error in createStandalonePractice:', error)
     logError(error, 'create-standalone-practice')
     const errorInfo = handleFirebaseError(error, 'create-standalone-practice')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'create-standalone-practice')
@@ -1063,7 +1009,6 @@ export const createStandalonePractice = async (userId, practiceData) => {
  */
 export const getStandalonePractices = async (userId, limit = 50) => {
   try {
-    console.log('getStandalonePractices called with userId:', userId, 'limit:', limit)
     
     const userRef = doc(db, 'users', userId)
     const userDoc = await getDoc(userRef)
@@ -1078,7 +1023,6 @@ export const getStandalonePractices = async (userId, limit = 50) => {
     // Return limited number of sessions (they're already sorted by creation date)
     const limitedSessions = practiceSessions.slice(0, limit)
     
-    console.log('User standalone practices:', limitedSessions)
     
     return {
       success: true,
@@ -1100,7 +1044,6 @@ export const getStandalonePractices = async (userId, limit = 50) => {
  */
 export const updateUserPracticeStats = async (userId, practiceMinutes) => {
   try {
-    console.log('updateUserPracticeStats called with userId:', userId, 'practiceMinutes:', practiceMinutes)
     
     const userRef = doc(db, 'users', userId)
     const userDoc = await getDoc(userRef)
@@ -1140,7 +1083,6 @@ export const updateUserPracticeStats = async (userId, practiceMinutes) => {
       updatedAt: new Date().toISOString()
     })
     
-    console.log('User practice stats updated successfully')
     
     return { success: true }
   } catch (error) {
@@ -1158,7 +1100,6 @@ export const updateUserPracticeStats = async (userId, practiceMinutes) => {
  */
 export const getUserPracticeStats = async (userId) => {
   try {
-    console.log('getUserPracticeStats called with userId:', userId)
     
     // Get all practice sessions from the practices collection
     const practicesQuery = query(collection(db, 'practices', userId, 'sessions'))
@@ -1237,7 +1178,7 @@ export const getUserPracticeStats = async (userId) => {
       currentStreak
     }
     
-    console.log('Calculated practice stats from practices collection:', practiceStats)
+
     
     return {
       success: true,
@@ -1259,7 +1200,6 @@ export const getUserPracticeStats = async (userId) => {
  */
 export const deleteStandalonePractice = async (practiceId, userId) => {
   try {
-    console.log('deleteStandalonePractice called with practiceId:', practiceId, 'userId:', userId)
     
     const userRef = doc(db, 'users', userId)
     const userDoc = await getDoc(userRef)
@@ -1306,7 +1246,6 @@ export const deleteStandalonePractice = async (practiceId, userId) => {
       updatedAt: new Date().toISOString()
     })
     
-    console.log('Standalone practice session deleted successfully')
     
     return {
       success: true,
@@ -1336,7 +1275,6 @@ export const deleteStandalonePractice = async (practiceId, userId) => {
  */
 export const createPracticeGoal = async (goalData) => {
   try {
-    console.log('Creating practice goal:', goalData)
     
     const goalId = `goal_${Date.now()}`
     const goal = {
@@ -1357,23 +1295,17 @@ export const createPracticeGoal = async (goalData) => {
       completedSessions: 0
     }
     
-    console.log('Goal object to save:', goal)
     
     if (goalData.type === 'individual') {
       // Store individual goal under the student's practices collection
-      console.log('Creating individual goal for student:', goalData.studentId)
       const goalRef = doc(db, 'practices', goalData.studentId, 'goals', goalId)
       await setDoc(goalRef, goal)
-      console.log('Individual goal created at path:', `practices/${goalData.studentId}/goals/${goalId}`)
     } else if (goalData.type === 'class') {
       // Store class goal under the class code in practices collection
-      console.log('Creating class goal for class:', goalData.classCode)
       const goalRef = doc(db, 'practices', goalData.classCode, 'goals', goalId)
       await setDoc(goalRef, goal)
-      console.log('Class goal created at path:', `practices/${goalData.classCode}/goals/${goalId}`)
     }
     
-    console.log('Practice goal created successfully in practices collection:', goalId)
     
     return {
       success: true,
@@ -1381,7 +1313,6 @@ export const createPracticeGoal = async (goalData) => {
       message: 'Practice goal created successfully'
     }
   } catch (error) {
-    console.error('Error creating practice goal:', error)
     logError(error, 'create-practice-goal')
     const errorInfo = handleFirebaseError(error, 'create-practice-goal')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'create-practice-goal')
@@ -1395,7 +1326,6 @@ export const createPracticeGoal = async (goalData) => {
  */
 export const getStudentPracticeGoals = async (studentId) => {
   try {
-    console.log('Getting practice goals for student:', studentId)
     
     // Get user data to check class enrollment
     const userRef = doc(db, 'users', studentId)
@@ -1441,7 +1371,6 @@ export const getStudentPracticeGoals = async (studentId) => {
       })
     }
     
-    console.log('Student practice goals:', allGoals)
     
     return {
       success: true,
@@ -1465,7 +1394,6 @@ export const getStudentPracticeGoals = async (studentId) => {
  */
 export const updatePracticeGoalProgress = async (studentId, goalId, goalType, classCode = null) => {
   try {
-    console.log('Updating practice goal progress:', { studentId, goalId, goalType, classCode })
     
     // Find the goal in the practices collection
     let goalRef = null
@@ -1510,7 +1438,6 @@ export const updatePracticeGoalProgress = async (studentId, goalId, goalType, cl
     
     await updateDoc(goalRef, updateData)
     
-    console.log('Goal progress updated successfully in practices collection')
     
     return { 
       success: true,
@@ -1534,7 +1461,6 @@ export const updatePracticeGoalProgress = async (studentId, goalId, goalType, cl
  */
 export const resetPracticeGoal = async (goalId, goalType, studentId = null, classCode = null) => {
   try {
-    console.log('Resetting practice goal:', { goalId, goalType, classCode })
     
     // Find the goal in the practices collection
     let goalRef = null
@@ -1575,7 +1501,7 @@ export const resetPracticeGoal = async (goalId, goalType, studentId = null, clas
     
     await updateDoc(goalRef, updateData)
     
-    console.log('Goal reset successfully')
+
     
     return { 
       success: true,
@@ -1596,7 +1522,6 @@ export const resetPracticeGoal = async (goalId, goalType, studentId = null, clas
  */
 export const getTeacherPracticeGoals = async (teacherId) => {
   try {
-    console.log('Getting practice goals for teacher:', teacherId)
     
     // Query goals created by this teacher
     const goals = []
@@ -1608,23 +1533,18 @@ export const getTeacherPracticeGoals = async (teacherId) => {
     )
     const classesSnapshot = await getDocs(classesQuery)
     
-    console.log('Found classes for teacher:', classesSnapshot.docs.length)
     
     // For each class, get all student goals
     for (const classDoc of classesSnapshot.docs) {
       const classData = classDoc.data()
-      console.log('Processing class:', classData.name, 'with code:', classData.code)
       
       // Get all students in this class
       const students = classData.students || []
-      console.log('Students in class:', students.length)
       
       for (const student of students) {
         const studentId = student.studentId || student.id
-        console.log('Processing student:', student.name, 'ID:', studentId)
         
         if (!studentId) {
-          console.log('Skipping student with no ID:', student)
           continue
         }
         
@@ -1633,15 +1553,11 @@ export const getTeacherPracticeGoals = async (teacherId) => {
           const studentGoalsQuery = query(collection(db, 'practices', studentId, 'goals'))
           const studentGoalsSnapshot = await getDocs(studentGoalsQuery)
           
-          console.log(`Found ${studentGoalsSnapshot.docs.length} goals for student ${studentId}`)
           
           studentGoalsSnapshot.forEach((goalDoc) => {
             const goal = goalDoc.data()
-            console.log('Goal found:', goal)
-            console.log('Goal createdBy:', goal.createdBy, 'Teacher ID:', teacherId, 'Match:', goal.createdBy === teacherId)
             
             if (goal.createdBy === teacherId) {
-              console.log('Goal created by this teacher:', goal)
               goals.push({
                 id: goalDoc.id,
                 studentId: studentId,
@@ -1653,7 +1569,6 @@ export const getTeacherPracticeGoals = async (teacherId) => {
             }
           })
         } catch (error) {
-          console.log(`Error getting goals for student ${studentId}:`, error.message)
         }
       }
     }
@@ -1661,7 +1576,6 @@ export const getTeacherPracticeGoals = async (teacherId) => {
     // Sort by creation date (most recent first)
     goals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     
-    console.log('Final teacher practice goals:', goals)
     
     return {
       success: true,
@@ -1730,7 +1644,6 @@ export const getClassData = async (classCode) => {
  */
 export const updatePracticeWithRecording = async (practiceId, userId, recordingData) => {
   try {
-    console.log('updatePracticeWithRecording called with practiceId:', practiceId, 'userId:', userId, 'recordingData:', recordingData)
     
     // Try to update in the new practices collection first
     try {
@@ -1751,11 +1664,9 @@ export const updatePracticeWithRecording = async (practiceId, userId, recordingD
           updatedAt: new Date().toISOString()
         })
         
-        console.log('Practice session updated with recording successfully in practices collection')
         return { success: true }
       }
     } catch (practicesError) {
-      console.log('Could not update in practices collection, trying user subcollection...')
     }
     
     // Fallback to user subcollection
@@ -1779,7 +1690,6 @@ export const updatePracticeWithRecording = async (practiceId, userId, recordingD
       updatedAt: new Date().toISOString()
     })
     
-    console.log('Practice session updated with recording successfully in user subcollection')
     
     return { success: true }
   } catch (error) {
@@ -1830,48 +1740,9 @@ export const createPractice = async (userId, practiceData) => {
     }
   } catch (error) {
     console.error('Error creating practice in practices collection:', error)
-    
-    // Fallback to user subcollection
-    try {
-      console.log('Falling back to user subcollection...')
-      const userPracticeRef = doc(db, 'users', userId, 'practices', `practice_${Date.now()}`)
-      
-      const userPractice = {
-        instrument: practiceData.instrument,
-        instrumentName: practiceData.instrumentName,
-        practiceMinutes: practiceData.practiceMinutes,
-        description: practiceData.description,
-        completed: practiceData.completed,
-        actualDuration: practiceData.actualDuration,
-        roundedDuration: practiceData.roundedDuration,
-        timestamp: practiceData.timestamp || new Date().toISOString(),
-        recording: practiceData.recording,
-        recordingDuration: practiceData.recordingDuration,
-        className: practiceData.className,
-        classId: practiceData.classId,
-        createdAt: new Date().toISOString()
-      }
-      
-      await setDoc(userPracticeRef, userPractice)
-      
-      // Update user's practice statistics
-      try {
-        await updateUserPracticeStats(userId, practiceData.practiceMinutes)
-      } catch (statsError) {
-        console.error('Error updating user practice stats:', statsError)
-        // Don't fail the entire operation if stats update fails
-      }
-      
-      return {
-        success: true,
-        practiceId: userPracticeRef.id
-      }
-    } catch (fallbackError) {
-      console.error('Error creating practice in user subcollection:', fallbackError)
-      return {
-        success: false,
-        error: fallbackError.message
-      }
+    return {
+      success: false,
+      error: error.message
     }
   }
 }
@@ -1900,34 +1771,9 @@ export const getStudentPractices = async (studentId) => {
     }
   } catch (error) {
     console.error('Error getting student practices from practices collection:', error)
-    
-    // Fallback to user subcollection
-    try {
-      console.log('Falling back to user subcollection for reading practices...')
-      const userPracticesQuery = query(collection(db, 'users', studentId, 'practices'))
-      const querySnapshot = await getDocs(userPracticesQuery)
-      const practices = []
-      
-      querySnapshot.forEach((doc) => {
-        practices.push({
-          id: doc.id,
-          ...doc.data()
-        })
-      })
-      
-      // Sort by timestamp (most recent first)
-      practices.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      
-      return {
-        success: true,
-        practices: practices
-      }
-    } catch (fallbackError) {
-      console.error('Error getting student practices from user subcollection:', fallbackError)
-      return {
-        success: false,
-        error: fallbackError.message
-      }
+    return {
+      success: false,
+      error: error.message
     }
   }
 }
@@ -1935,7 +1781,6 @@ export const getStudentPractices = async (studentId) => {
 // Get practices for a teacher (all practices from their classes)
 export const getTeacherPractices = async (teacherId, classId = null) => {
   try {
-    console.log('🔍 Getting practices for teacher:', teacherId)
     
     // Get all students from teacher's classes
     const classesQuery = query(
@@ -1944,26 +1789,20 @@ export const getTeacherPractices = async (teacherId, classId = null) => {
     )
     const classesSnapshot = await getDocs(classesQuery)
     
-    console.log('📚 Found classes for teacher:', classesSnapshot.docs.length)
     
     const allPractices = []
     
     // For each class, get all student practices
     for (const classDoc of classesSnapshot.docs) {
       const classData = classDoc.data()
-      console.log('🏫 Processing class:', classData.name, 'with code:', classData.code)
-      console.log('🏫 Class data:', classData)
       
       // If filtering by specific class
       if (classId && classData.code !== classId) continue
       
       // Get all students in this class
       const students = classData.students || []
-      console.log('👥 Students in class:', students.length)
-      console.log('👥 Students array:', students)
       
       for (const student of students) {
-        console.log('🎓 Processing student:', student.name, 'ID:', student.studentId || student.id)
         
         try {
           // Get practices for this student from the new practices collection
@@ -1972,18 +1811,10 @@ export const getTeacherPractices = async (teacherId, classId = null) => {
           )
           const studentPracticesSnapshot = await getDocs(studentPracticesQuery)
           
-          console.log('📝 Found practices for student:', studentPracticesSnapshot.docs.length)
           
           studentPracticesSnapshot.forEach((practiceDoc) => {
             const practiceData = practiceDoc.data()
-            console.log('🎵 Practice data:', {
-              id: practiceDoc.id,
-              classId: practiceData.classId,
-              classCode: classData.code,
-              hasClassId: !!practiceData.classId,
-              studentId: practiceData.studentId,
-              instrument: practiceData.instrument
-            })
+            
             
             // Include ALL practices from this student, not just class-specific ones
             allPractices.push({
@@ -1993,20 +1824,16 @@ export const getTeacherPractices = async (teacherId, classId = null) => {
               teacherName: classData.teacherName,
               studentName: student.name || 'Student'
             })
-            console.log('✅ Added practice to teacher view')
           })
         } catch (studentError) {
-          console.error('❌ Error getting practices for student:', student.studentId, studentError)
           
           // Fallback: try user subcollection
           try {
-            console.log('🔄 Trying fallback to user subcollection...')
             const userPracticesQuery = query(
               collection(db, 'users', student.studentId || student.id, 'practices')
             )
             const userPracticesSnapshot = await getDocs(userPracticesQuery)
             
-            console.log('📝 Found practices in user subcollection:', userPracticesSnapshot.docs.length)
             
             userPracticesSnapshot.forEach((practiceDoc) => {
               const practiceData = practiceDoc.data()
@@ -2018,16 +1845,13 @@ export const getTeacherPractices = async (teacherId, classId = null) => {
                 teacherName: classData.teacherName,
                 studentName: student.name || 'Student'
               })
-              console.log('✅ Added practice from user subcollection to teacher view')
             })
           } catch (fallbackError) {
-            console.error('❌ Error getting practices from user subcollection for student:', student.studentId, fallbackError)
           }
         }
       }
     }
     
-    console.log('🎯 Total practices found for teacher:', allPractices.length)
     
     // Sort by timestamp (most recent first)
     allPractices.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
@@ -2048,7 +1872,6 @@ export const getTeacherPractices = async (teacherId, classId = null) => {
 // Give sticker to student practice
 export const giveStickerToPractice = async (practiceId, studentId, teacherId, stickerData) => {
   try {
-    console.log('Giving sticker to practice:', { practiceId, studentId, teacherId, stickerData })
     
     // Try to update in the new practices collection first
     try {
@@ -2073,11 +1896,9 @@ export const giveStickerToPractice = async (practiceId, studentId, teacherId, st
           updatedAt: new Date().toISOString()
         })
         
-        console.log('Sticker given successfully in practices collection')
         return { success: true }
       }
     } catch (practicesError) {
-      console.log('Could not update in practices collection, trying user subcollection...')
     }
     
     // Fallback to user subcollection
@@ -2105,11 +1926,9 @@ export const giveStickerToPractice = async (practiceId, studentId, teacherId, st
       updatedAt: new Date().toISOString()
     })
     
-    console.log('Sticker given successfully in user subcollection')
     return { success: true }
     
   } catch (error) {
-    console.error('Error giving sticker to practice:', error)
     logError(error, 'give-sticker-to-practice')
     const errorInfo = handleFirebaseError(error, 'give-sticker-to-practice')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'give-sticker-to-practice')
@@ -2119,7 +1938,6 @@ export const giveStickerToPractice = async (practiceId, studentId, teacherId, st
 // Add comment to student practice
 export const addCommentToPractice = async (practiceId, studentId, teacherId, commentData) => {
   try {
-    console.log('Adding comment to practice:', { practiceId, studentId, teacherId, commentData })
     
     // Try to update in the new practices collection first
     try {
@@ -2143,11 +1961,9 @@ export const addCommentToPractice = async (practiceId, studentId, teacherId, com
           updatedAt: new Date().toISOString()
         })
         
-        console.log('Comment added successfully in practices collection')
         return { success: true }
       }
     } catch (practicesError) {
-      console.log('Could not update in practices collection, trying user subcollection...')
     }
     
     // Fallback to user subcollection
@@ -2174,7 +1990,6 @@ export const addCommentToPractice = async (practiceId, studentId, teacherId, com
       updatedAt: new Date().toISOString()
     })
     
-    console.log('Comment added successfully in user subcollection')
     return { success: true }
     
   } catch (error) {
@@ -2188,7 +2003,6 @@ export const addCommentToPractice = async (practiceId, studentId, teacherId, com
 // Mark practice as complete
 export const markPracticeAsComplete = async (practiceId, studentId, teacherId) => {
   try {
-    console.log('🎯 Marking practice as complete:', { practiceId, studentId, teacherId })
     
     // Try to update in the new practices collection first
     try {
@@ -2202,11 +2016,9 @@ export const markPracticeAsComplete = async (practiceId, studentId, teacherId) =
           completedBy: teacherId
         })
         
-        console.log('✅ Practice marked as complete in practices collection')
         return { success: true }
       }
     } catch (error) {
-      console.error('Error marking practice as complete in practices collection:', error)
     }
     
     // Fallback to user subcollection
@@ -2221,16 +2033,13 @@ export const markPracticeAsComplete = async (practiceId, studentId, teacherId) =
           completedBy: teacherId
         })
         
-        console.log('✅ Practice marked as complete in user subcollection')
         return { success: true }
       }
     } catch (fallbackError) {
-      console.error('Error marking practice as complete in user subcollection:', fallbackError)
     }
     
     return { success: false, error: 'Practice session not found' }
   } catch (error) {
-    console.error('Error marking practice as complete:', error)
     return { success: false, error: error.message }
   }
 }

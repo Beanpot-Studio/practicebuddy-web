@@ -40,7 +40,6 @@
         <MusicalCreationsCard
           ref="musicalCreationsCard"
           :user-id="currentUser?.uid"
-          @play-recording="playRecording"
         />
       </div>
 
@@ -257,7 +256,6 @@ const handlePracticeSession = async (practiceData) => {
     )
     
     if (result.success) {
-      console.log('Practice session created successfully:', result.practiceId)
       
       // If there's a recording, update the practice session with recording data
       if (practiceData.recording) {
@@ -276,7 +274,6 @@ const handlePracticeSession = async (practiceData) => {
             currentUser.value.uid,
             recordingData
           )
-          console.log('Recording data saved to practice session')
         } catch (recordingError) {
           console.error('Failed to save recording data:', recordingError)
         }
@@ -565,10 +562,7 @@ const trackLoginActivity = async () => {
   }
 }
 
-const playRecording = (recording) => {
-  console.log('Playing recording:', recording)
-  // The AudioWaveform component handles the actual playback
-}
+
 
 // Recording functionality is now handled in PracticeTimer component
 
@@ -596,7 +590,6 @@ const joinClass = async (classCode) => {
 
 const handleAssignmentCompletion = async (completionData) => {
   try {
-    console.log('Assignment completion:', completionData)
     
     // TODO: Implement backend functionality to mark assignment as complete
     // For now, we'll just show a success message
