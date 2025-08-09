@@ -107,6 +107,7 @@
           @view-student-details="viewStudentDetails"
           @create-individual-assignment="createIndividualAssignment"
           @send-email="sendIndividualEmail"
+          @copy-student-id="copyStudentId"
         />
         <ClassesTab
           v-if="activeTab === 'classes'"
@@ -133,6 +134,7 @@
           @update:new-assignment="newAssignment = $event"
           @delete-assignment="deleteAssignment"
           @edit-assignment="editAssignment"
+          @copy-assignment-id="copyAssignmentId"
         />
         <GoalsTab
           v-if="activeTab === 'goals'"
@@ -655,8 +657,57 @@ const selectClass = async (classItem) => {
 }
 
 const copyClassCode = (code) => {
-  navigator.clipboard.writeText(code)
-  // You could add a toast notification here
+  navigator.clipboard.writeText(code).then(() => {
+    // Show success message
+    showSuccessMessage.value = true
+    successMessage.value = `Class code "${code}" copied to clipboard!`
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
+  }).catch((error) => {
+    console.error('Error copying to clipboard:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to copy class code'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  })
+}
+
+const copyAssignmentId = (assignmentId) => {
+  navigator.clipboard.writeText(assignmentId).then(() => {
+    // Show success message
+    showSuccessMessage.value = true
+    successMessage.value = `Assignment ID "${assignmentId}" copied to clipboard!`
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
+  }).catch((error) => {
+    console.error('Error copying to clipboard:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to copy assignment ID'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  })
+}
+
+const copyStudentId = (studentId) => {
+  navigator.clipboard.writeText(studentId).then(() => {
+    // Show success message
+    showSuccessMessage.value = true
+    successMessage.value = `Student ID "${studentId}" copied to clipboard!`
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
+  }).catch((error) => {
+    console.error('Error copying to clipboard:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to copy student ID'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  })
 }
 
 // Email functionality
@@ -690,11 +741,12 @@ Class Details:
 
 To join the class:
 1. Go to https://practicebuddy.club
-2. Create an account or login. For new accounts, you can login and enter your class code.
-3. If you've already logged in, you can join this class by enterin the class code in your dashboard.
-4. Enter the class code: ${classItem.code}
+2. Create an account or login. 
+- If you're creating a new account, you can login and enter your class code on the login screen.
+- If you've already logged in, you can join this class by entering the class code in your dashboard.
+4. Here's the class code: ${classItem.code}
 
-I'm excited to have you in the class!
+I'm excited to work with you!
 
 Best regards,
 ${currentUser.value?.displayName || 'Your Music Teacher'}`
@@ -828,8 +880,10 @@ const createIndividualAssignment = (student) => {
     description: '',
     practiceMinutes: '',
     dueDate: '',
-    studentId: student.studentId
+    studentId: student.studentId || student.id
   }
+  // Switch to assignments tab
+  activeTab.value = 'assignments'
 }
 
 onMounted(() => {

@@ -51,7 +51,16 @@
                   {{ assignment.type === 'class' ? 'Class' : 'Individual' }}
                 </span>
               </div>
-              <p class="text-gray-600 text-sm">{{ assignment.description || 'No description provided' }}</p>
+              <div class="flex items-center gap-2 mb-2">
+                <p class="text-gray-600 text-sm">{{ assignment.description || 'No description provided' }}</p>
+                <button 
+                  @click="$emit('copyAssignmentId', assignment.id)"
+                  class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Copy assignment ID"
+                >
+                  <Copy class="w-3 h-3" />
+                </button>
+              </div>
             </div>
             <button 
               @click="$emit('deleteAssignment', assignment.id)"
@@ -244,7 +253,8 @@ import {
   GraduationCap, 
   Clock, 
   Calendar, 
-  Trash2 
+  Trash2,
+  Copy
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -270,7 +280,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['createNewAssignment', 'update:newAssignment', 'deleteAssignment', 'editAssignment'])
+const emit = defineEmits(['createNewAssignment', 'update:newAssignment', 'deleteAssignment', 'editAssignment', 'copyAssignmentId'])
 
 // Computed properties
 const allAssignments = computed(() => {

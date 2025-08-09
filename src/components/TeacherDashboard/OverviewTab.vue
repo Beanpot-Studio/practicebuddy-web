@@ -77,6 +77,14 @@
               <Bell class="w-6 h-6 text-white" />
             </div>
             <h3 class="text-lg text-gray-800 font-bold">Recent Activity</h3>
+            
+            <!-- Incomplete Activities Indicator -->
+            <div v-if="incompleteActivitiesCount > 0" class="flex items-center gap-2 ml-auto">
+              <span class="text-sm text-gray-600">Need Assessment:</span>
+              <div class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold border border-orange-200">
+                {{ incompleteActivitiesCount }} {{ incompleteActivitiesCount === 1 ? 'activity' : 'activities' }}
+              </div>
+            </div>
           </div>
           
           <!-- Loading State -->
@@ -284,19 +292,14 @@
         ></textarea>
       </div>
       
-      <div class="flex gap-3">
-        <button 
-          @click="closeStickerModal"
-          class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Cancel
-        </button>
+      <div class="flex justify-end">
         <button 
           @click="giveStickerToActivity"
           :disabled="!selectedSticker"
-          class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          Give Sticker
+          <Trophy class="w-4 h-4" />
+          Send
         </button>
       </div>
     </div>
@@ -327,19 +330,14 @@
         ></textarea>
       </div>
       
-      <div class="flex gap-3">
-        <button 
-          @click="closeCommentModal"
-          class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Cancel
-        </button>
+      <div class="flex justify-end">
         <button 
           @click="addCommentToActivity"
           :disabled="!commentText.trim()"
-          class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          Add Comment
+          <MessageCircle class="w-4 h-4" />
+          Send
         </button>
       </div>
     </div>
@@ -537,11 +535,12 @@ const giveStickerToActivity = async () => {
       stickerMessage.value || 'Great job!'
     )
     
-    if (result) {
-      closeStickerModal()
-    }
+    // Always close the modal after attempting to give sticker
+    closeStickerModal()
   } catch (error) {
     console.error('Error giving sticker:', error)
+    // Close modal even if there's an error
+    closeStickerModal()
   }
 }
 
@@ -567,11 +566,12 @@ const addCommentToActivity = async () => {
       commentText.value.trim()
     )
     
-    if (result) {
-      closeCommentModal()
-    }
+    // Always close the modal after attempting to add comment
+    closeCommentModal()
   } catch (error) {
     console.error('Error adding comment:', error)
+    // Close modal even if there's an error
+    closeCommentModal()
   }
 }
 
@@ -673,5 +673,12 @@ const totalGoals = computed(() => {
   })
   
   return total
+})
+
+// Calculate incomplete activities count
+const incompleteActivitiesCount = computed(() => {
+  if (!props.recentActivity || props.recentActivity.length === 0) return 0
+  
+  return props.recentActivity.filter(activity => !activity.isComplete).length
 })
 </script> 

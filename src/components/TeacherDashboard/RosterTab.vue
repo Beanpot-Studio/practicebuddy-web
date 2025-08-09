@@ -49,6 +49,7 @@
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Join Date</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Assignments</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Goals</th>
+              <th class="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -114,7 +115,41 @@
                 </div>
               </td>
               
-              
+              <!-- Actions -->
+              <td class="py-4 px-6">
+                <div class="flex flex-col gap-2">
+                  <!-- Primary Actions Row -->
+                  <div class="flex items-center gap-2">
+                    <button 
+                      @click="$emit('viewStudentDetails', student)"
+                      class="px-3 py-1 bg-primary-500 text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center gap-2"
+                      title="View student details"
+                    >
+                      <User class="w-4 h-4" />
+                      <span>View</span>
+                    </button>
+                    <button 
+                      @click="$emit('createIndividualAssignment', student)"
+                      class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors flex items-center gap-2"
+                      title="Create individual assignment"
+                    >
+                      <BookOpen class="w-4 h-4" />
+                      <span>Assignment</span>
+                    </button>
+                  </div>
+                  <!-- Secondary Actions Row -->
+                  <div class="flex items-center gap-2">
+                    <button 
+                      @click="$emit('sendEmail', student)"
+                      class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors flex items-center gap-2"
+                      title="Send email to student"
+                    >
+                      <Mail class="w-4 h-4" />
+                      <span>Email</span>
+                    </button>
+                  </div>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -128,7 +163,10 @@ import { computed } from 'vue'
 import { 
   Users, 
   AlertCircle, 
-  Mail 
+  Mail,
+  Copy,
+  User,
+  BookOpen
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -154,7 +192,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['loadClasses', 'viewStudentDetails', 'createIndividualAssignment', 'sendEmail'])
+const emit = defineEmits(['loadClasses', 'viewStudentDetails', 'createIndividualAssignment', 'sendEmail', 'copyStudentId'])
 
 // Computed properties
 const allStudents = computed(() => {

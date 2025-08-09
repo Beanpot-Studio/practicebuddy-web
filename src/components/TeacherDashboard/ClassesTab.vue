@@ -119,16 +119,18 @@
           <div class="flex gap-2">
             <button 
               @click="$emit('selectClass', classItem)"
-              class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-semibold hover:bg-primary-600 transition-colors"
+              class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-semibold hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
             >
-              View Details
+              <Eye class="w-4 h-4" />
+              <span>View Details</span>
             </button>
             <button 
               @click="$emit('sendEmail', classItem)"
-              class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
+              class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2"
               title="Send email to class"
             >
               <Mail class="w-4 h-4" />
+              <span>Email Class</span>
             </button>
           </div>
         </div>
@@ -263,7 +265,8 @@ import {
   Clock, 
   Hash, 
   Copy, 
-  Mail 
+  Mail,
+  Eye
 } from 'lucide-vue-next'
 
 const props = defineProps({
