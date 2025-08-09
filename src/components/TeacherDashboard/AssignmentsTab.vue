@@ -123,7 +123,7 @@
       <form @submit.prevent="$emit('createNewAssignment')" class="space-y-4">
         <!-- Assignment Type -->
         <div>
-          <label class="block mb-2 font-semibold text-gray-700 text-base">Assignment Type</label>
+          <label class="block mb-2 font-semibold text-gray-700  text-base">Assignment Type</label>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 cursor-pointer">
               <input 
@@ -231,7 +231,7 @@
           />
         </div>
         
-        <button type="submit" class="w-full btn btn-green flex items-center justify-center gap-2" :disabled="isCreatingAssignment">
+        <button type="submit" class="w-full bg-purple-500 text-white btn flex items-center justify-center gap-2" :disabled="isCreatingAssignment">
           <div v-if="isCreatingAssignment" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           <BookOpen v-else class="w-5 h-5" />
           <span v-if="!isCreatingAssignment">Create Assignment</span>
