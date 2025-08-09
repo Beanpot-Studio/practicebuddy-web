@@ -46,91 +46,137 @@
         <div 
           v-for="classItem in classes" 
           :key="classItem.id"
-          class="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-[0_4px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_0_rgba(0,0,0,0.15)] transition-all duration-200 hover:-translate-y-1"
+          class="bg-white rounded-2xl border-2 border-gray-200 shadow-[0_4px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_0_rgba(0,0,0,0.15)] transition-all duration-200 hover:-translate-y-1 flex flex-col h-96"
         >
-          <!-- Class Header -->
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex items-center gap-3">
+          <!-- Class Header with Three Dots -->
+          <div class="flex items-start justify-between p-6 pb-0">
+            <div class="flex items-center gap-3 flex-1">
               <img 
                 v-if="classItem.instrument" 
                 :src="`/instruments/${getInstrumentImage(classItem.instrument)}`" 
                 :alt="getInstrumentName(classItem.instrument)"
                 class="w-8 h-8 object-contain"
               />
-              <div>
-                <h4 class="font-bold text-gray-800 text-lg">{{ classItem.name }}</h4>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-gray-800 text-lg truncate">{{ classItem.name }}</h4>
                 <p class="text-sm text-gray-500">{{ getInstrumentName(classItem.instrument) }}</p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
+            
+            <!-- Three Dots Menu (Top Right) -->
+            <div class="relative ml-2">
+              <button 
+                @click="toggleClassMenu(classItem.code)"
+                class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Class options"
+              >
+                <MoreVertical class="w-4 h-4" />
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div 
+                v-if="openMenuClassCode === classItem.code"
+                class="absolute right-0 top-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 min-w-40"
+              >
+                <button 
+                  @click="$emit('archiveClass', classItem); closeClassMenu()"
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
+                >
+                  <Archive class="w-4 h-4" />
+                  Archive Class
+                </button>
+                <button 
+                  @click="$emit('deleteClass', classItem); closeClassMenu()"
+                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-lg"
+                >
+                  <Trash2 class="w-4 h-4" />
+                  Delete Class
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card Content -->
+          <div class="px-6 flex-1 flex flex-col overflow-hidden">
+            <!-- Scrollable Content Area -->
+            <div class="flex-1 overflow-y-auto pr-2">
+            <!-- Level Badge -->
+            <div class="flex justify-start mb-3">
               <span class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold">
                 {{ classItem.level }}
               </span>
             </div>
+            
+            <!-- Class Description -->
+            <p v-if="classItem.description" class="text-gray-600 text-sm mb-4 line-clamp-2">
+              {{ classItem.description }}
+            </p>
+            
+            <!-- Class Stats -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div class="text-center p-3 bg-gray-50 rounded-xl">
+                <div class="text-lg font-bold text-blue-600">{{ classItem.students?.length || 0 }}</div>
+                <div class="text-xs text-gray-500">Students</div>
+              </div>
+              <div class="text-center p-3 bg-gray-50 rounded-xl">
+                <div class="text-lg font-bold text-green-600">{{ classItem.assignments?.length || 0 }}</div>
+                <div class="text-xs text-gray-500">Assignments</div>
+              </div>
+            </div>
+            
+            <!-- Class Schedule -->
+            <div v-if="classItem.schedule" class="mb-4">
+              <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                <Clock class="w-4 h-4" />
+                <span class="font-medium">Schedule</span>
+              </div>
+              <p class="text-sm text-gray-500 truncate">{{ classItem.schedule }}</p>
+            </div>
+            
+            <!-- Class Code & Email Button -->
+            <div class="mb-4">
+              <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                <Hash class="w-4 h-4" />
+                <span class="font-medium">Class Code</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <!-- Copy Code Area (Half Width) -->
+                <div class="flex items-center gap-2 flex-1">
+                  <code class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-mono text-gray-700 flex-1 truncate">
+                    {{ classItem.code }}
+                  </code>
+                  <button 
+                    @click="$emit('copyClassCode', classItem.code)"
+                    class="p-1 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                    title="Copy class code"
+                  >
+                    <Copy class="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <!-- Email Button (Half Width) -->
+                <button 
+                  @click="$emit('sendEmail', classItem)"
+                  class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2 flex-1 justify-center"
+                  title="Send email to class"
+                >
+                  <Mail class="w-4 h-4" />
+                  <span>Email Class</span>
+                </button>
+              </div>
+            </div>
+            </div>
           </div>
           
-          <!-- Class Description -->
-          <p v-if="classItem.description" class="text-gray-600 text-sm mb-4 line-clamp-2">
-            {{ classItem.description }}
-          </p>
-          
-          <!-- Class Stats -->
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="text-center p-3 bg-gray-50 rounded-xl">
-              <div class="text-xl font-bold text-blue-600">{{ classItem.students?.length || 0 }}</div>
-              <div class="text-xs text-gray-500">Students</div>
-            </div>
-            <div class="text-center p-3 bg-gray-50 rounded-xl">
-              <div class="text-xl font-bold text-green-600">{{ classItem.assignments?.length || 0 }}</div>
-              <div class="text-xs text-gray-500">Assignments</div>
-            </div>
-          </div>
-          
-          <!-- Class Schedule -->
-          <div v-if="classItem.schedule" class="mb-4">
-            <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
-              <Clock class="w-4 h-4" />
-              <span class="font-medium">Schedule</span>
-            </div>
-            <p class="text-sm text-gray-500">{{ classItem.schedule }}</p>
-          </div>
-          
-          <!-- Class Code -->
-          <div class="mb-4">
-            <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
-              <Hash class="w-4 h-4" />
-              <span class="font-medium">Class Code</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <code class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-mono text-gray-700">
-                {{ classItem.code }}
-              </code>
-              <button 
-                @click="$emit('copyClassCode', classItem.code)"
-                class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                title="Copy class code"
-              >
-                <Copy class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-          
-          <!-- Action Buttons -->
-          <div class="flex gap-2">
+          <!-- Bottom Actions -->
+          <div class="p-6 pt-0 flex items-center justify-center">
+            <!-- View Details Button -->
             <button 
-              @click="$emit('selectClass', classItem)"
-              class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-semibold hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+              @click="$emit('viewClassDetails', classItem)"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               <Eye class="w-4 h-4" />
               <span>View Details</span>
-            </button>
-            <button 
-              @click="$emit('sendEmail', classItem)"
-              class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2"
-              title="Send email to class"
-            >
-              <Mail class="w-4 h-4" />
-              <span>Email Class</span>
             </button>
           </div>
         </div>
@@ -251,6 +297,97 @@
       </form>
     </div>
 
+    <!-- Archived Classes Section -->
+    <div v-if="archivedClasses.length > 0" class="card card-gray mt-8">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-gray-600 bg-gradient-to-br from-gray-400 to-gray-500 relative">
+          <Archive class="w-6 h-6 text-white" />
+        </div>
+        <h3 class="text-xl text-gray-800 font-bold">Archived Classes ({{ archivedClasses.length }})</h3>
+      </div>
+      
+      <!-- Archived Classes Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Class Name</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Instrument</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Students</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Archived Date</th>
+              <th class="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr 
+              v-for="classItem in archivedClasses" 
+              :key="classItem.id"
+              class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+            >
+              <!-- Class Name -->
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-3">
+                  <img 
+                    v-if="classItem.instrument" 
+                    :src="`/instruments/${getInstrumentImage(classItem.instrument)}`" 
+                    :alt="getInstrumentName(classItem.instrument)"
+                    class="w-6 h-6 object-contain"
+                  />
+                  <div>
+                    <div class="font-semibold text-gray-800">{{ classItem.name }}</div>
+                    <div class="text-sm text-gray-500">{{ classItem.level }}</div>
+                  </div>
+                </div>
+              </td>
+              
+              <!-- Instrument -->
+              <td class="py-4 px-4">
+                <span class="text-gray-600">{{ getInstrumentName(classItem.instrument) }}</span>
+              </td>
+              
+              <!-- Students Count -->
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-1 text-gray-600">
+                  <Users class="w-4 h-4" />
+                  <span>{{ classItem.students?.length || 0 }}</span>
+                </div>
+              </td>
+              
+              <!-- Archived Date -->
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-1 text-gray-600">
+                  <Calendar class="w-4 h-4" />
+                  <span>{{ formatDate(classItem.archivedAt) }}</span>
+                </div>
+              </td>
+              
+              <!-- Actions -->
+              <td class="py-4 px-4">
+                <div class="flex items-center justify-center gap-2">
+                  <button 
+                    @click="$emit('restoreClass', classItem)"
+                    class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-semibold hover:bg-green-200 transition-colors flex items-center gap-1"
+                    title="Restore class"
+                  >
+                    <RotateCcw class="w-4 h-4" />
+                    <span>Restore</span>
+                  </button>
+                  <button 
+                    @click="$emit('deleteClass', classItem)"
+                    class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200 transition-colors flex items-center gap-1"
+                    title="Delete permanently"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -266,11 +403,21 @@ import {
   Hash, 
   Copy, 
   Mail,
-  Eye
+  Eye,
+  MoreVertical,
+  Archive,
+  Trash2,
+  RotateCcw,
+  Calendar,
+  Users
 } from 'lucide-vue-next'
 
 const props = defineProps({
   classes: {
+    type: Array,
+    default: () => []
+  },
+  archivedClasses: {
     type: Array,
     default: () => []
   },
@@ -292,9 +439,10 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['createClass', 'update:newClass', 'loadClasses', 'selectClass', 'copyClassCode', 'sendEmail'])
+const emit = defineEmits(['createClass', 'update:newClass', 'loadClasses', 'selectClass', 'copyClassCode', 'sendEmail', 'archiveClass', 'deleteClass', 'viewClassDetails', 'restoreClass'])
 
 const showInstrumentDropdown = ref(false)
+const openMenuClassCode = ref(null)
 
 const selectInstrument = (value) => {
   emit('update:newClass', { ...props.newClass, instrument: value })
@@ -307,5 +455,39 @@ const getSelectedInstrumentImage = () => {
 
 const getSelectedInstrumentName = () => {
   return getInstrumentName(props.newClass.instrument)
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown'
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date)
+  } catch (error) {
+    return 'Invalid date'
+  }
+}
+
+const toggleClassMenu = (classCode) => {
+  openMenuClassCode.value = openMenuClassCode.value === classCode ? null : classCode
+}
+
+const closeClassMenu = () => {
+  openMenuClassCode.value = null
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (!event.target.closest('.relative')) {
+    closeClassMenu()
+  }
+}
+
+// Add event listener for clicking outside
+if (typeof window !== 'undefined') {
+  window.addEventListener('click', handleClickOutside)
 }
 </script> 

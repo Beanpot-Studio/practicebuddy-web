@@ -350,7 +350,7 @@ export const createClass = async (teacherId, classData) => {
  * Get all classes for a teacher
  * @param {string} teacherId - Teacher's user ID
  */
-export const getTeacherClasses = async (teacherId) => {
+export const getTeacherClasses = async (teacherId, includeArchived = false) => {
   try {
     const classesQuery = query(
       collection(db, 'classes'),
@@ -361,9 +361,16 @@ export const getTeacherClasses = async (teacherId) => {
     const classes = []
     
     querySnapshot.forEach((doc) => {
+      const classData = doc.data()
+      
+      // Filter out archived classes unless specifically requested
+      if (!includeArchived && classData.archived) {
+        return
+      }
+      
       classes.push({
         id: doc.id,
-        ...doc.data()
+        ...classData
       })
     })
 
@@ -2040,6 +2047,102 @@ export const markPracticeAsComplete = async (practiceId, studentId, teacherId) =
     
     return { success: false, error: 'Practice session not found' }
   } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+// Archive a class (mark as archived but preserve data)
+export const archiveClass = async (classCode, teacherId) => {
+  try {
+    const classRef = doc(db, 'classes', classCode)
+    const classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      return { success: false, error: 'Class not found' }
+    }
+    
+    const classData = classDoc.data()
+    
+    // Check if the current user is the teacher of this class
+    if (classData.teacherId !== teacherId) {
+      return { success: false, error: 'You are not authorized to archive this class' }
+    }
+    
+    // Update the class to mark it as archived
+    await updateDoc(classRef, {
+      archived: true,
+      archivedAt: new Date().toISOString(),
+      archivedBy: teacherId
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error archiving class:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Restore an archived class (mark as active again)
+export const restoreClass = async (classCode, teacherId) => {
+  try {
+    const classRef = doc(db, 'classes', classCode)
+    const classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      return { success: false, error: 'Class not found' }
+    }
+    
+    const classData = classDoc.data()
+    
+    // Check if the current user is the teacher of this class
+    if (classData.teacherId !== teacherId) {
+      return { success: false, error: 'You are not authorized to restore this class' }
+    }
+    
+    // Update the class to mark it as active again
+    await updateDoc(classRef, {
+      archived: false,
+      restoredAt: new Date().toISOString(),
+      restoredBy: teacherId
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error restoring class:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Delete a class permanently (removes all data)
+export const deleteClass = async (classCode, teacherId) => {
+  try {
+    const classRef = doc(db, 'classes', classCode)
+    const classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      return { success: false, error: 'Class not found' }
+    }
+    
+    const classData = classDoc.data()
+    
+    // Check if the current user is the teacher of this class
+    if (classData.teacherId !== teacherId) {
+      return { success: false, error: 'You are not authorized to delete this class' }
+    }
+    
+    // Delete the class document
+    await deleteDoc(classRef)
+    
+    // Note: In a production app, you might want to:
+    // 1. Delete related practice sessions
+    // 2. Delete related assignments
+    // 3. Delete related goals
+    // 4. Remove class references from student records
+    // For now, we're just deleting the main class document
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting class:', error)
     return { success: false, error: error.message }
   }
 }

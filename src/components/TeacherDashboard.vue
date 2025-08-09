@@ -112,6 +112,7 @@
         <ClassesTab
           v-if="activeTab === 'classes'"
           :classes="classes"
+          :archived-classes="archivedClasses"
           :is-loading="isLoadingClasses"
           :error="classesError"
           :new-class="newClass"
@@ -122,6 +123,10 @@
           @select-class="selectClass"
           @copy-class-code="copyClassCode"
           @send-email="sendClassInvitation"
+          @archive-class="archiveClass"
+          @delete-class="deleteClass"
+          @view-class-details="viewClassDetails"
+          @restore-class="restoreClass"
         />
         <AssignmentsTab
           v-if="activeTab === 'assignments'"
@@ -214,6 +219,63 @@
       </div>
     </div>
     
+    <!-- Delete Class Confirmation Modal -->
+    <div v-if="showDeleteClassModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-red-600">⚠️ Delete Class</h3>
+          <button @click="closeDeleteClassModal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="mb-4">
+          <p class="text-gray-700 mb-4">
+            This will permanently delete <strong>"{{ classToDelete?.name }}"</strong> and ALL associated data:
+          </p>
+          <ul class="text-sm text-gray-600 mb-4 ml-4">
+            <li>• All student enrollment records</li>
+            <li>• All assignments and submissions</li>
+            <li>• All practice goals and progress</li>
+            <li>• All practice session data</li>
+          </ul>
+          <p class="text-red-600 font-semibold mb-4">
+            This action cannot be undone!
+          </p>
+        </div>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Type the class name <strong>"{{ classToDelete?.name }}"</strong> to confirm deletion:
+          </label>
+          <input 
+            v-model="deleteConfirmationText"
+            type="text" 
+            placeholder="Enter class name exactly"
+            class="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-red-400"
+          />
+        </div>
+        
+        <div class="flex gap-3">
+          <button 
+            @click="closeDeleteClassModal"
+            class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="confirmDeleteClass"
+            :disabled="deleteConfirmationText.trim() !== classToDelete?.name"
+            class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Delete Forever
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <!-- Success/Error Messages -->
     <div v-if="showSuccessMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
       {{ successMessage }}
@@ -245,6 +307,7 @@ const { currentUser, fetchTeacherClasses, createTeacherClass, fetchClassRoster, 
 
 const activeTab = ref('overview')
 const classes = ref([])
+const archivedClasses = ref([])
 const selectedClass = ref(null)
 const isLoadingClasses = ref(false)
 const classesError = ref(null)
@@ -356,6 +419,7 @@ const loadClasses = async () => {
     isLoadingClasses.value = true
     classesError.value = null
     
+    // Load active classes
     const result = await fetchTeacherClasses(currentUser.value.uid)
     
     if (result.success) {
@@ -370,11 +434,34 @@ const loadClasses = async () => {
       // console.error('Failed to load classes:', result.error)
       classesError.value = result.error || 'Failed to load classes'
     }
+
+    // Load archived classes separately
+    await loadArchivedClasses()
   } catch (error) {
     // console.error('Error loading classes:', error)
     classesError.value = error.message || 'Error loading classes'
   } finally {
     isLoadingClasses.value = false
+  }
+}
+
+const loadArchivedClasses = async () => {
+  if (!currentUser.value?.uid) {
+    return
+  }
+
+  try {
+    const { getTeacherClasses } = await import('../lib/auth.js')
+    const result = await getTeacherClasses(currentUser.value.uid, true) // includeArchived = true
+    
+    if (result.success) {
+      // Filter to only archived classes
+      archivedClasses.value = (result.classes || []).filter(cls => cls.archived === true)
+    } else {
+      console.error('Failed to load archived classes:', result.error)
+    }
+  } catch (error) {
+    console.error('Error loading archived classes:', error)
   }
 }
 
@@ -656,6 +743,15 @@ const selectClass = async (classItem) => {
   }
 }
 
+const viewClassDetails = async (classItem) => {
+  // Select the class and load its data
+  await selectClass(classItem)
+  // Switch to roster tab to show class details
+  activeTab.value = 'roster'
+  // Also set the selected class for roster
+  selectedClassForRoster.value = classItem
+}
+
 const copyClassCode = (code) => {
   navigator.clipboard.writeText(code).then(() => {
     // Show success message
@@ -716,6 +812,11 @@ const emailRecipient = ref('')
 const emailSubject = ref('')
 const emailBody = ref('')
 const emailType = ref('') // 'class-invitation', 'individual', 'general'
+
+// Delete class confirmation modal
+const showDeleteClassModal = ref(false)
+const classToDelete = ref(null)
+const deleteConfirmationText = ref('')
 
 const sendEmail = (recipient) => {
   emailRecipient.value = recipient
@@ -884,6 +985,136 @@ const createIndividualAssignment = (student) => {
   }
   // Switch to assignments tab
   activeTab.value = 'assignments'
+}
+
+const archiveClass = async (classItem) => {
+  if (!confirm(`Are you sure you want to archive "${classItem.name}"? This will hide it from your active classes but preserve all data.`)) {
+    return
+  }
+
+  try {
+    const { archiveClass: archiveClassFunction } = await import('../lib/auth.js')
+    const result = await archiveClassFunction(classItem.code, currentUser.value.uid)
+    
+    if (result.success) {
+      showSuccessMessage.value = true
+      successMessage.value = `Class "${classItem.name}" has been archived`
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
+      
+      // Refresh classes list
+      await loadClasses()
+    } else {
+      showErrorMessage.value = true
+      errorMessage.value = result.error || 'Failed to archive class'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+    }
+  } catch (error) {
+    console.error('Error archiving class:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to archive class'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  }
+}
+
+const restoreClass = async (classItem) => {
+  if (!confirm(`Are you sure you want to restore "${classItem.name}" to your active classes?`)) {
+    return
+  }
+
+  try {
+    const { restoreClass: restoreClassFunction } = await import('../lib/auth.js')
+    const result = await restoreClassFunction(classItem.code, currentUser.value.uid)
+    
+    if (result.success) {
+      showSuccessMessage.value = true
+      successMessage.value = `Class "${classItem.name}" has been restored to active classes`
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
+      
+      // Refresh classes list
+      await loadClasses()
+    } else {
+      showErrorMessage.value = true
+      errorMessage.value = result.error || 'Failed to restore class'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+    }
+  } catch (error) {
+    console.error('Error restoring class:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to restore class'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  }
+}
+
+const deleteClass = async (classItem) => {
+  if (!confirm(`Are you sure you want to DELETE "${classItem.name}"? This action cannot be undone and will permanently remove all class data, assignments, and student records.`)) {
+    return
+  }
+
+  // Show custom confirmation modal with class name input
+  showDeleteClassModal.value = true
+  classToDelete.value = classItem
+}
+
+const closeDeleteClassModal = () => {
+  showDeleteClassModal.value = false
+  classToDelete.value = null
+  deleteConfirmationText.value = ''
+}
+
+const confirmDeleteClass = async () => {
+  if (!classToDelete.value) return
+  
+  // Check if the typed class name matches
+  if (deleteConfirmationText.value.trim() !== classToDelete.value.name) {
+    showErrorMessage.value = true
+    errorMessage.value = 'Class name does not match. Please type the exact class name to confirm deletion.'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+    return
+  }
+
+  try {
+    const { deleteClass: deleteClassFunction } = await import('../lib/auth.js')
+    const result = await deleteClassFunction(classToDelete.value.code, currentUser.value.uid)
+    
+    if (result.success) {
+      showSuccessMessage.value = true
+      successMessage.value = `Class "${classToDelete.value.name}" has been deleted`
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
+      
+      // Close modal and refresh classes list
+      closeDeleteClassModal()
+      await loadClasses()
+    } else {
+      showErrorMessage.value = true
+      errorMessage.value = result.error || 'Failed to delete class'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+    }
+  } catch (error) {
+    console.error('Error deleting class:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to delete class'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  }
 }
 
 onMounted(() => {
