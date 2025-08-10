@@ -62,13 +62,38 @@
                 </button>
               </div>
             </div>
-            <button 
-              @click="$emit('deleteAssignment', assignment.id)"
-              class="p-2 text-red-500 hover:text-red-600 transition-colors"
-              title="Delete assignment"
-            >
-              <Trash2 class="w-5 h-5" />
-            </button>
+            
+            <!-- Three Dots Menu -->
+            <div class="relative">
+              <button 
+                @click="toggleAssignmentMenu(assignment.id)"
+                class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Assignment options"
+              >
+                <MoreVertical class="w-4 h-4" />
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div 
+                v-if="openMenuAssignmentId === assignment.id"
+                class="absolute right-0 top-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 min-w-40"
+              >
+                <button 
+                  @click="$emit('archiveAssignment', assignment); closeAssignmentMenu()"
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
+                >
+                  <Archive class="w-4 h-4" />
+                  Archive Assignment
+                </button>
+                <button 
+                  @click="$emit('deleteAssignment', assignment.id); closeAssignmentMenu()"
+                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-lg"
+                >
+                  <Trash2 class="w-4 h-4" />
+                  Delete Assignment
+                </button>
+              </div>
+            </div>
           </div>
           
           <!-- Assignment Details -->
@@ -169,7 +194,14 @@
         <!-- Student Selection (for individual assignments) -->
         <div v-if="newAssignment.type === 'individual'">
           <label class="block mb-2 font-semibold text-gray-700 text-base">Select Student</label>
+          <div v-if="!newAssignment.classCode" class="text-sm text-gray-500 italic">
+            Please select a class first to see available students
+          </div>
+          <div v-else-if="selectedClassStudents.length === 0" class="text-sm text-gray-500 italic">
+            No students found in this class
+          </div>
           <select 
+            v-else
             v-model="newAssignment.studentId"
             required
             class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-green-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(34,197,94,0.2)]"
@@ -240,11 +272,114 @@
       </form>
     </div>
 
+    <!-- Archived Assignments Section -->
+    <div v-if="archivedAssignments.length > 0" class="card card-gray mt-8">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-gray-600 bg-gradient-to-br from-gray-400 to-gray-500 relative">
+          <Archive class="w-6 h-6 text-white" />
+        </div>
+        <h3 class="text-xl text-gray-800 font-bold">Archived Assignments ({{ archivedAssignments.length }})</h3>
+      </div>
+      
+      <!-- Archived Assignments Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Assignment</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Class</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Duration</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Archived Date</th>
+              <th class="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr 
+              v-for="assignment in archivedAssignments" 
+              :key="assignment.id"
+              class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+            >
+              <!-- Assignment Name -->
+              <td class="py-4 px-4">
+                <div>
+                  <div class="font-semibold text-gray-800">{{ assignment.title || 'Untitled Assignment' }}</div>
+                  <div class="text-sm text-gray-500 truncate">{{ assignment.description || 'No description' }}</div>
+                </div>
+              </td>
+              
+              <!-- Type -->
+              <td class="py-4 px-4">
+                <span 
+                  :class="[
+                    'px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 w-fit',
+                    assignment.type === 'class' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-purple-100 text-purple-700'
+                  ]"
+                >
+                  <Users v-if="assignment.type === 'class'" class="w-3 h-3" />
+                  <User v-else class="w-3 h-3" />
+                  {{ assignment.type === 'class' ? 'Class' : 'Individual' }}
+                </span>
+              </td>
+              
+              <!-- Class -->
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-1 text-gray-600">
+                  <GraduationCap class="w-4 h-4" />
+                  <span>{{ getClassName(assignment.classCode) }}</span>
+                </div>
+              </td>
+              
+              <!-- Duration -->
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-1 text-green-600 font-semibold">
+                  <Clock class="w-4 h-4" />
+                  <span>{{ assignment.practiceMinutes }} min</span>
+                </div>
+              </td>
+              
+              <!-- Archived Date -->
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-1 text-gray-600">
+                  <Calendar class="w-4 h-4" />
+                  <span>{{ formatDate(new Date(assignment.archivedAt)) }}</span>
+                </div>
+              </td>
+              
+              <!-- Actions -->
+              <td class="py-4 px-4">
+                <div class="flex items-center justify-center gap-2">
+                  <button 
+                    @click="$emit('restoreAssignment', assignment)"
+                    class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-semibold hover:bg-green-200 transition-colors flex items-center gap-1"
+                    title="Restore assignment"
+                  >
+                    <RotateCcw class="w-4 h-4" />
+                    <span>Restore</span>
+                  </button>
+                  <button 
+                    @click="$emit('deleteAssignment', assignment.id)"
+                    class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200 transition-colors flex items-center gap-1"
+                    title="Delete permanently"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { 
   Plus, 
   BookOpen, 
@@ -254,7 +389,10 @@ import {
   Clock, 
   Calendar, 
   Trash2,
-  Copy
+  Copy,
+  MoreVertical,
+  Archive,
+  RotateCcw
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -263,6 +401,10 @@ const props = defineProps({
     default: () => []
   },
   classAssignments: {
+    type: Array,
+    default: () => []
+  },
+  archivedAssignments: {
     type: Array,
     default: () => []
   },
@@ -280,7 +422,10 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['createNewAssignment', 'update:newAssignment', 'deleteAssignment', 'editAssignment', 'copyAssignmentId'])
+const emit = defineEmits(['createNewAssignment', 'update:newAssignment', 'deleteAssignment', 'editAssignment', 'copyAssignmentId', 'archiveAssignment', 'restoreAssignment'])
+
+// Menu state
+const openMenuAssignmentId = ref(null)
 
 // Computed properties
 const allAssignments = computed(() => {
@@ -291,6 +436,8 @@ const selectedClassStudents = computed(() => {
   if (!props.newAssignment.classCode) return []
   
   const selectedClass = props.classes.find(c => c.code === props.newAssignment.classCode)
+  console.log('Selected class:', selectedClass)
+  console.log('Students in class:', selectedClass?.students)
   return selectedClass?.students || []
 })
 
@@ -330,5 +477,25 @@ const formatDate = (date) => {
 
 const editAssignment = (assignment) => {
   emit('editAssignment', assignment)
+}
+
+const toggleAssignmentMenu = (assignmentId) => {
+  openMenuAssignmentId.value = openMenuAssignmentId.value === assignmentId ? null : assignmentId
+}
+
+const closeAssignmentMenu = () => {
+  openMenuAssignmentId.value = null
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (!event.target.closest('.relative')) {
+    closeAssignmentMenu()
+  }
+}
+
+// Add event listener for clicking outside
+if (typeof window !== 'undefined') {
+  window.addEventListener('click', handleClickOutside)
 }
 </script> 

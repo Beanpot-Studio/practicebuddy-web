@@ -132,6 +132,7 @@
           v-if="activeTab === 'assignments'"
           :classes="classes"
           :class-assignments="classAssignments"
+          :archived-assignments="archivedAssignments"
           :is-loading="isLoadingClasses"
           :new-assignment="newAssignment"
           :is-creating-assignment="isCreatingAssignment"
@@ -140,6 +141,8 @@
           @delete-assignment="deleteAssignment"
           @edit-assignment="editAssignment"
           @copy-assignment-id="copyAssignmentId"
+          @archive-assignment="archiveAssignment"
+          @restore-assignment="restoreAssignment"
         />
         <GoalsTab
           v-if="activeTab === 'goals'"
@@ -404,6 +407,7 @@ const newAssignment = ref({
   studentId: ''
 })
 const classAssignments = ref([])
+const archivedAssignments = ref([])
 const isLoadingAssignments = ref(false)
 const isCreatingAssignment = ref(false)
 
@@ -425,6 +429,9 @@ const loadClasses = async () => {
     if (result.success) {
       classes.value = result.classes || []
       
+      // Load students for each class
+      await loadStudentsForClasses()
+      
       // Load all students from all classes
       await loadAllStudents()
       
@@ -445,6 +452,24 @@ const loadClasses = async () => {
   }
 }
 
+const loadStudentsForClasses = async () => {
+  if (classes.value.length === 0) return
+  
+  try {
+    const { getClassData } = await import('../lib/auth.js')
+    
+    // Load students for each class
+    for (const classItem of classes.value) {
+      const classResult = await getClassData(classItem.code)
+      if (classResult.success && classResult.class.students) {
+        classItem.students = classResult.class.students
+      }
+    }
+  } catch (error) {
+    console.error('Error loading students for classes:', error)
+  }
+}
+
 const loadArchivedClasses = async () => {
   if (!currentUser.value?.uid) {
     return
@@ -457,6 +482,15 @@ const loadArchivedClasses = async () => {
     if (result.success) {
       // Filter to only archived classes
       archivedClasses.value = (result.classes || []).filter(cls => cls.archived === true)
+      
+      // Load students for archived classes
+      for (const classItem of archivedClasses.value) {
+        const { getClassData } = await import('../lib/auth.js')
+        const classResult = await getClassData(classItem.code)
+        if (classResult.success && classResult.class.students) {
+          classItem.students = classResult.class.students
+        }
+      }
     } else {
       console.error('Failed to load archived classes:', result.error)
     }
@@ -577,13 +611,14 @@ const loadClassGoals = async () => {
 const loadAllAssignments = async () => {
   if (classes.value.length === 0) {
     classAssignments.value = []
+    archivedAssignments.value = []
     return
   }
 
   try {
     isLoadingAssignments.value = true
     const allAssignmentsList = []
-
+    const allArchivedAssignmentsList = []
 
     // Extract assignments from each class
     for (const classItem of classes.value) {
@@ -602,15 +637,31 @@ const loadAllAssignments = async () => {
         }
         
         // Process individual assignments
-        if (classItem.individualAssignments && classItem.individualAssignments.length > 0) {
-          const individualAssignmentsWithContext = classItem.individualAssignments.map(assignment => ({
+        if (classItem.individualAssignments) {
+          Object.entries(classItem.individualAssignments).forEach(([studentId, studentAssignments]) => {
+            if (studentAssignments && studentAssignments.length > 0) {
+              const individualAssignmentsWithContext = studentAssignments.map(assignment => ({
+                ...assignment,
+                type: 'individual',
+                className: classItem.name,
+                classCode: classItem.code,
+                classId: classItem.id,
+                studentId: studentId
+              }))
+              allAssignmentsList.push(...individualAssignmentsWithContext)
+            }
+          })
+        }
+
+        // Process archived assignments
+        if (classItem.archivedAssignments && classItem.archivedAssignments.length > 0) {
+          const archivedAssignmentsWithContext = classItem.archivedAssignments.map(assignment => ({
             ...assignment,
-            type: 'individual',
             className: classItem.name,
             classCode: classItem.code,
             classId: classItem.id
           }))
-          allAssignmentsList.push(...individualAssignmentsWithContext)
+          allArchivedAssignmentsList.push(...archivedAssignmentsWithContext)
         }
         
         if (!classItem.assignments?.length && !classItem.individualAssignments?.length) {
@@ -624,7 +675,12 @@ const loadAllAssignments = async () => {
       index === self.findIndex(a => a.id === assignment.id)
     )
 
+    const uniqueArchivedAssignments = allArchivedAssignmentsList.filter((assignment, index, self) =>
+      index === self.findIndex(a => a.id === assignment.id)
+    )
+
     classAssignments.value = uniqueAssignments
+    archivedAssignments.value = uniqueArchivedAssignments
     
     // Update student assignments count
     updateStudentAssignmentsCount()
@@ -893,6 +949,22 @@ const selectClassForAssignments = (classItem) => {
   // TODO: Load class roster and assignments for this class
 }
 
+// Helper function to get student name by ID
+const getStudentName = (studentId) => {
+  if (!studentId) return 'Unknown Student'
+  
+  // Search through all classes for the student
+  for (const classItem of classes.value) {
+    const student = classItem.students?.find(s => 
+      s.studentId === studentId || s.id === studentId
+    )
+    if (student) {
+      return student.studentName || student.name || 'Unknown Student'
+    }
+  }
+  return 'Unknown Student'
+}
+
 const createNewAssignment = async () => {
   if (!selectedClass.value) {
     console.error('No class selected for assignment creation')
@@ -912,6 +984,18 @@ const createNewAssignment = async () => {
     )
     
     if (result.success) {
+      // Show success message
+      const assignmentType = newAssignment.value.type === 'class' ? 'Class' : 'Individual'
+      const studentInfo = newAssignment.value.type === 'individual' && newAssignment.value.studentId 
+        ? ` for ${getStudentName(newAssignment.value.studentId)}` 
+        : ''
+      
+      showSuccessMessage.value = true
+      successMessage.value = `${assignmentType} assignment "${newAssignment.value.title}"${studentInfo} created successfully!`
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
+      
       // Reset form
       newAssignment.value = {
         type: 'class',
@@ -924,19 +1008,194 @@ const createNewAssignment = async () => {
       // Refresh classes and assignments data
       await loadClasses()
     } else {
+      console.error('Failed to create assignment:', result.error)
+      showErrorMessage.value = true
+      errorMessage.value = result.error || 'Failed to create assignment'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
     }
   } catch (error) {
+    console.error('Error creating assignment:', error)
+    showErrorMessage.value = true
+    errorMessage.value = error.message || 'An error occurred while creating the assignment'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
   } finally {
     isCreatingAssignment.value = false
   }
 }
 
 const deleteAssignment = async (assignmentId) => {
-  // TODO: Implement assignment deletion
+  // Find the assignment to get its details for confirmation
+  let assignmentToDelete = null
+  let assignmentLocation = ''
+  
+  // Search in active assignments
+  for (const classItem of classes.value) {
+    if (classItem.assignments) {
+      const found = classItem.assignments.find(a => a.id === assignmentId)
+      if (found) {
+        assignmentToDelete = found
+        assignmentLocation = 'active'
+        break
+      }
+    }
+    
+    if (classItem.individualAssignments) {
+      for (const [studentId, studentAssignments] of Object.entries(classItem.individualAssignments)) {
+        const found = studentAssignments.find(a => a.id === assignmentId)
+        if (found) {
+          assignmentToDelete = found
+          assignmentLocation = 'active'
+          break
+        }
+      }
+      if (assignmentToDelete) break
+    }
+  }
+  
+  // Search in archived assignments if not found in active
+  if (!assignmentToDelete) {
+    for (const classItem of classes.value) {
+      if (classItem.archivedAssignments) {
+        const found = classItem.archivedAssignments.find(a => a.id === assignmentId)
+        if (found) {
+          assignmentToDelete = found
+          assignmentLocation = 'archived'
+          break
+        }
+      }
+    }
+  }
+  
+  // Also search in the archivedAssignments array for safety
+  if (!assignmentToDelete && archivedAssignments.value.length > 0) {
+    const found = archivedAssignments.value.find(a => a.id === assignmentId)
+    if (found) {
+      assignmentToDelete = found
+      assignmentLocation = 'archived'
+    }
+  }
+  
+  if (!assignmentToDelete) {
+    showErrorMessage.value = true
+    errorMessage.value = 'Assignment not found'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+    return
+  }
+  
+  const locationText = assignmentLocation === 'archived' ? 'archived' : 'active'
+  
+  if (!confirm(`Are you sure you want to permanently delete the assignment "${assignmentToDelete.title}"? This action cannot be undone and will remove it from ${locationText} assignments.`)) {
+    return
+  }
+  
+  try {
+    const { deleteAssignment: deleteAssignmentFunction } = await import('../lib/auth.js')
+    const result = await deleteAssignmentFunction(assignmentId, assignmentToDelete.classCode, currentUser.value.uid)
+    
+    if (result.success) {
+      showSuccessMessage.value = true
+      successMessage.value = `Assignment "${assignmentToDelete.title}" has been permanently deleted`
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
+      
+      // Refresh classes and assignments list to ensure UI is updated
+      await loadClasses()
+    } else {
+      showErrorMessage.value = true
+      errorMessage.value = result.error || 'Failed to delete assignment'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+    }
+  } catch (error) {
+    console.error('Error deleting assignment:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to delete assignment'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  }
 }
 
 const editAssignment = (assignment) => {
   // TODO: Implement assignment editing
+}
+
+const archiveAssignment = async (assignment) => {
+  if (!confirm(`Are you sure you want to archive the assignment "${assignment.title}"? This will hide it from active assignments but preserve all data.`)) {
+    return
+  }
+
+  try {
+    const { archiveAssignment: archiveAssignmentFunction } = await import('../lib/auth.js')
+    const result = await archiveAssignmentFunction(assignment.id, assignment.classCode, currentUser.value.uid)
+    
+    if (result.success) {
+      showSuccessMessage.value = true
+      successMessage.value = `Assignment "${assignment.title}" has been archived`
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
+      
+      // Refresh classes and assignments list to ensure UI is updated
+      await loadClasses()
+    } else {
+      showErrorMessage.value = true
+      errorMessage.value = result.error || 'Failed to archive assignment'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+    }
+  } catch (error) {
+    console.error('Error archiving assignment:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to archive assignment'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  }
+}
+
+const restoreAssignment = async (assignment) => {
+  if (!confirm(`Are you sure you want to restore the assignment "${assignment.title}" to active assignments?`)) {
+    return
+  }
+
+  try {
+    const { restoreAssignment: restoreAssignmentFunction } = await import('../lib/auth.js')
+    const result = await restoreAssignmentFunction(assignment.id, assignment.classCode, currentUser.value.uid)
+    
+    if (result.success) {
+      showSuccessMessage.value = true
+      successMessage.value = `Assignment "${assignment.title}" has been restored to active assignments`
+      setTimeout(() => {
+        showSuccessMessage.value = false
+      }, 3000)
+      
+      // Refresh classes and assignments list to ensure UI is updated
+      await loadClasses()
+    } else {
+      showErrorMessage.value = true
+      errorMessage.value = result.error || 'Failed to restore assignment'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+    }
+  } catch (error) {
+    console.error('Error restoring assignment:', error)
+    showErrorMessage.value = true
+    errorMessage.value = 'Failed to restore assignment'
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 3000)
+  }
 }
 
 const selectClassForRoster = (classItem) => {

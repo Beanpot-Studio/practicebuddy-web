@@ -2113,6 +2113,240 @@ export const restoreClass = async (classCode, teacherId) => {
   }
 }
 
+// Archive an assignment (mark as archived but preserve data)
+export const archiveAssignment = async (assignmentId, classCode, teacherId) => {
+  try {
+    const classRef = doc(db, 'classes', classCode)
+    const classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      return { success: false, error: 'Class not found' }
+    }
+    
+    const classData = classDoc.data()
+    
+    // Check if the current user is the teacher of this class
+    if (classData.teacherId !== teacherId) {
+      return { success: false, error: 'You are not authorized to archive assignments in this class' }
+    }
+    
+    // Find the assignment in the class data
+    let assignmentFound = false
+    let updatedAssignments = []
+    let updatedIndividualAssignments = classData.individualAssignments || {}
+    let archivedAssignments = classData.archivedAssignments || []
+    
+    // Check class assignments
+    if (classData.assignments) {
+      classData.assignments.forEach(assignment => {
+        if (assignment.id === assignmentId) {
+          // Archive this assignment
+          archivedAssignments.push({
+            ...assignment,
+            archived: true,
+            archivedAt: new Date().toISOString(),
+            archivedBy: teacherId
+          })
+          assignmentFound = true
+        } else {
+          updatedAssignments.push(assignment)
+        }
+      })
+    }
+    
+    // Check individual assignments if not found in class assignments
+    if (!assignmentFound && classData.individualAssignments) {
+      Object.keys(classData.individualAssignments).forEach(studentId => {
+        const studentAssignments = classData.individualAssignments[studentId] || []
+        const filteredAssignments = []
+        
+        studentAssignments.forEach(assignment => {
+          if (assignment.id === assignmentId) {
+            // Archive this assignment
+            archivedAssignments.push({
+              ...assignment,
+              archived: true,
+              archivedAt: new Date().toISOString(),
+              archivedBy: teacherId
+            })
+            assignmentFound = true
+          } else {
+            filteredAssignments.push(assignment)
+          }
+        })
+        
+        updatedIndividualAssignments[studentId] = filteredAssignments
+      })
+    }
+    
+    if (!assignmentFound) {
+      return { success: false, error: 'Assignment not found' }
+    }
+    
+    // Update the class with the modified assignments
+    await updateDoc(classRef, {
+      assignments: updatedAssignments,
+      individualAssignments: updatedIndividualAssignments,
+      archivedAssignments: archivedAssignments
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error archiving assignment:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Delete an assignment permanently (from active or archived)
+export const deleteAssignment = async (assignmentId, classCode, teacherId) => {
+  try {
+    const classRef = doc(db, 'classes', classCode)
+    const classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      return { success: false, error: 'Class not found' }
+    }
+    
+    const classData = classDoc.data()
+    
+    // Check if the current user is the teacher of this class
+    if (classData.teacherId !== teacherId) {
+      return { success: false, error: 'You are not authorized to delete assignments in this class' }
+    }
+    
+    // Find and remove the assignment from wherever it exists
+    let assignmentFound = false
+    let updatedAssignments = classData.assignments || []
+    let updatedIndividualAssignments = classData.individualAssignments || {}
+    let updatedArchivedAssignments = classData.archivedAssignments || []
+    
+    // Check class assignments
+    updatedAssignments = updatedAssignments.filter(assignment => {
+      if (assignment.id === assignmentId) {
+        assignmentFound = true
+        return false // Remove this assignment
+      }
+      return true
+    })
+    
+    // Check individual assignments if not found in class assignments
+    if (!assignmentFound && classData.individualAssignments) {
+      Object.keys(classData.individualAssignments).forEach(studentId => {
+        const studentAssignments = classData.individualAssignments[studentId] || []
+        const filteredAssignments = studentAssignments.filter(assignment => {
+          if (assignment.id === assignmentId) {
+            assignmentFound = true
+            return false // Remove this assignment
+          }
+          return true
+        })
+        
+        if (filteredAssignments.length > 0) {
+          updatedIndividualAssignments[studentId] = filteredAssignments
+        } else {
+          delete updatedIndividualAssignments[studentId]
+        }
+      })
+    }
+    
+    // Check archived assignments if not found in active assignments
+    if (!assignmentFound && classData.archivedAssignments) {
+      updatedArchivedAssignments = updatedArchivedAssignments.filter(assignment => {
+        if (assignment.id === assignmentId) {
+          assignmentFound = true
+          return false // Remove this assignment
+        }
+        return true
+      })
+    }
+    
+    if (!assignmentFound) {
+      return { success: false, error: 'Assignment not found' }
+    }
+    
+    // Update the class with the modified assignments
+    await updateDoc(classRef, {
+      assignments: updatedAssignments,
+      individualAssignments: updatedIndividualAssignments,
+      archivedAssignments: updatedArchivedAssignments
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting assignment:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Restore an archived assignment (mark as active again)
+export const restoreAssignment = async (assignmentId, classCode, teacherId) => {
+  try {
+    const classRef = doc(db, 'classes', classCode)
+    const classDoc = await getDoc(classRef)
+    
+    if (!classDoc.exists()) {
+      return { success: false, error: 'Class not found' }
+    }
+    
+    const classData = classDoc.data()
+    
+    // Check if the current user is the teacher of this class
+    if (classData.teacherId !== teacherId) {
+      return { success: false, error: 'You are not authorized to restore assignments in this class' }
+    }
+    
+    const archivedAssignments = classData.archivedAssignments || []
+    let assignmentToRestore = null
+    let updatedArchivedAssignments = []
+    
+    // Find the assignment in archived assignments
+    archivedAssignments.forEach(assignment => {
+      if (assignment.id === assignmentId) {
+        assignmentToRestore = { ...assignment }
+        delete assignmentToRestore.archived
+        delete assignmentToRestore.archivedAt
+        delete assignmentToRestore.archivedBy
+        assignmentToRestore.restoredAt = new Date().toISOString()
+        assignmentToRestore.restoredBy = teacherId
+      } else {
+        updatedArchivedAssignments.push(assignment)
+      }
+    })
+    
+    if (!assignmentToRestore) {
+      return { success: false, error: 'Archived assignment not found' }
+    }
+    
+    // Determine where to restore the assignment (class or individual)
+    let updatedAssignments = classData.assignments || []
+    let updatedIndividualAssignments = classData.individualAssignments || {}
+    
+    if (assignmentToRestore.type === 'class') {
+      // Restore to class assignments
+      updatedAssignments.push(assignmentToRestore)
+    } else if (assignmentToRestore.type === 'individual' && assignmentToRestore.studentId) {
+      // Restore to individual assignments
+      const studentId = assignmentToRestore.studentId
+      if (!updatedIndividualAssignments[studentId]) {
+        updatedIndividualAssignments[studentId] = []
+      }
+      updatedIndividualAssignments[studentId].push(assignmentToRestore)
+    }
+    
+    // Update the class with the restored assignment
+    await updateDoc(classRef, {
+      assignments: updatedAssignments,
+      individualAssignments: updatedIndividualAssignments,
+      archivedAssignments: updatedArchivedAssignments
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Error restoring assignment:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 // Delete a class permanently (removes all data)
 export const deleteClass = async (classCode, teacherId) => {
   try {
