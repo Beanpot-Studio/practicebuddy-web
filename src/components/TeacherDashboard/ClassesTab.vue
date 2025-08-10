@@ -5,7 +5,7 @@
     <!-- Classes Display Section -->
     <div class="card">
       <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-blue-600 bg-gradient-to-br from-blue-400 to-blue-500 relative">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-pink-600 bg-gradient-to-br from-pink-400 to-pink-500 relative">
           <GraduationCap class="w-6 h-6 text-white" />
         </div>
         <h3 class="text-xl text-gray-800 font-bold">Classes</h3>
@@ -277,7 +277,7 @@
             type="text" 
             placeholder="e.g., Beginner Piano, Advanced Guitar, Music Theory"
             required
-            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
+            class="w-full mb-2 p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
           />
         </div>
         
@@ -288,7 +288,7 @@
             @input="$emit('update:newClass', { ...newClass, description: $event.target.value })"
             placeholder="Describe what students will learn in this class..."
             rows="3"
-            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] resize-none"
+            class="w-full mb-2 p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] resize-none"
           ></textarea>
         </div>
         
@@ -298,7 +298,7 @@
             <button 
               @click="showInstrumentDropdown = !showInstrumentDropdown"
               type="button"
-              class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] flex items-center justify-between"
+              class="w-full mb-2 p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)] flex items-center justify-between"
             >
               <div class="flex items-center gap-3">
                 <img 
@@ -342,7 +342,7 @@
             :value="newClass.level"
             @change="$emit('update:newClass', { ...newClass, level: $event.target.value })"
             required
-            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
+            class="w-full mb-2 p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
           >
             <option value="">Select skill level</option>
             <option value="beginner">Beginner</option>
@@ -359,11 +359,11 @@
             @input="$emit('update:newClass', { ...newClass, schedule: $event.target.value })"
             type="text" 
             placeholder="e.g., Mondays 4-5pm, Wednesdays 3-4pm"
-            class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
+            class="w-full mb-5 p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
           />
         </div>
         
-        <button type="submit" class="w-full btn btn-purple flex items-center justify-center gap-2" :disabled="isCreatingClass">
+        <button type="submit" class=" w-full btn btn-purple flex items-center justify-center gap-2" :disabled="isCreatingClass">
           <div v-if="isCreatingClass" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           <Music v-else class="w-5 h-5" />
           <span v-if="!isCreatingClass">Create Music Class</span>

@@ -24,23 +24,27 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="bg-white rounded-3xl p-2 mb-8 shadow-lg">
-        <div class="flex space-x-2">
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-3 mb-8 shadow-lg border-2 border-blue-100">
+        <div class="flex flex-wrap gap-3">
           <button
             @click="changeTab('overview')"
             :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'overview' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
+              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              activeTab === 'overview' 
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105' 
+                : 'bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 border-2 border-blue-200'
             ]"
           >
             <BarChart3 class="w-4 h-4" />
-            Overview
+             Recent Activity
           </button>
           <button
             @click="changeTab('classes')"
             :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'classes' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
+              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              activeTab === 'classes' 
+                ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg scale-105' 
+                : 'bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 border-2 border-pink-200'
             ]"
           >
             <GraduationCap class="w-4 h-4" />
@@ -49,33 +53,39 @@
           <button
             @click="changeTab('roster')"
             :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'roster' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
+              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              activeTab === 'roster' 
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105' 
+                : 'bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 border-2 border-orange-200'
             ]"
           >
             <Users class="w-4 h-4" />
-            Roster
+            All Students Roster
           </button>
          
           <button
             @click="changeTab('assignments')"
             :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'assignments' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
+              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              activeTab === 'assignments' 
+                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg scale-105' 
+                : 'bg-white text-green-600 hover:bg-green-50 hover:text-green-700 border-2 border-green-200'
             ]"
           >
             <BookOpen class="w-4 h-4" />
-            Assignments
+            Individual and Class Assignments
           </button>
           <button
             @click="changeTab('goals')"
             :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'goals' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
+              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              activeTab === 'goals' 
+                ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg scale-105' 
+                : 'bg-white text-purple-600 hover:bg-purple-50 hover:text-purple-700 border-2 border-purple-200'
             ]"
           >
             <Target class="w-4 h-4" />
-            Goals
+            Student Goals
           </button>
         </div>
       </div>

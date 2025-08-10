@@ -2,12 +2,59 @@
   <div class="animate-fadeIn">
     <!-- Roster Header -->
     <div class="card">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-orange-600 bg-gradient-to-br from-orange-400 to-orange-500 relative">
-          <Users class="w-6 h-6 text-white" />
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-orange-600 bg-gradient-to-br from-orange-400 to-orange-500 relative">
+            <Users class="w-6 h-6 text-white" />
+          </div>
+          <h3 class="text-xl text-gray-800 font-bold">Student Roster</h3>
         </div>
-        <h3 class="text-xl text-gray-800 font-bold">Student Roster</h3>
+        
+        <!-- Class Filter and Sort Controls -->
+        <div class="flex items-center gap-3">
+          <!-- Class Filter -->
+          <div class="flex items-center gap-2">
+            <select 
+              v-model="selectedClassFilter"
+              @change="updateFilteredStudents"
+              class="px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 hover:border-gray-300 transition-all duration-200 shadow-sm"
+            >
+              <option value="">All Classes</option>
+              <option 
+                v-for="classItem in classes" 
+                :key="classItem.id" 
+                :value="classItem.id"
+              >
+                {{ classItem.name }}
+              </option>
+            </select>
+          </div>
+          
+          <!-- Sort Options -->
+          <div class="flex items-center gap-2">
+            <select 
+              v-model="sortBy"
+              @change="updateFilteredStudents"
+              class="px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 hover:border-gray-300 transition-all duration-200 shadow-sm"
+            >
+              <option value="name">Name</option>
+              <option value="class">Class</option>
+              <option value="joinDate">Join Date</option>
+              <option value="assignments">Assignments</option>
+              <option value="goals">Goals</option>
+            </select>
+            <button 
+              @click="toggleSortOrder"
+              class="px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-gray-700 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all duration-200 shadow-sm"
+              :title="sortOrder === 'asc' ? 'Sort Ascending' : 'Sort Descending'"
+            >
+              <ArrowUpDown class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
+      
+
       
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-12">
@@ -31,22 +78,27 @@
       </div>
       
       <!-- Empty State -->
-      <div v-else-if="allStudents.length === 0" class="text-center py-12">
+      <div v-else-if="filteredStudents.length === 0" class="text-center py-12">
         <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Users class="w-8 h-8 text-gray-400" />
         </div>
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">No Students Yet</h3>
-        <p class="text-gray-600 mb-4">Students will appear here once they join your classes!</p>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">
+          {{ selectedClassFilter ? 'No Students in Selected Class' : 'No Students Yet' }}
+        </h3>
+        <p class="text-gray-600 mb-4">
+          {{ selectedClassFilter ? 'Try selecting a different class or view all students.' : 'Students will appear here once they join your classes!' }}
+        </p>
       </div>
       
       <!-- Student Roster Table -->
       <div v-else class="overflow-x-auto">
         <table class="w-full">
           <thead>
-            <tr class="border-b-2 border-gray-200">
+            <tr class="border-b-2 border-gray-200 bg-gray-50">
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Student Name</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Classes</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Join Date</th>
+              <th class="text-left py-4 px-6 font-semibold text-gray-700">Completed Practices</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Assignments</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Goals</th>
               <th class="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
@@ -54,7 +106,7 @@
           </thead>
           <tbody>
             <tr 
-              v-for="student in displayStudents" 
+              v-for="student in filteredStudents" 
               :key="student.studentId || student.id"
               class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
             >
@@ -69,15 +121,23 @@
                   </div>
                 </div>
               </td>
-              <!-- Classes -->
+              
+              <!-- All Classes -->
               <td class="py-4 px-6">
                 <div class="flex flex-wrap gap-1">
                   <span 
-                    v-for="className in getStudentClasses(student.studentId || student.id)" 
-                    :key="className"
-                    class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold"
+                    v-for="classInfo in getStudentClassDetails(student.studentId || student.id)" 
+                    :key="classInfo.id"
+                    class="px-2 py-1 bg-primary-100 text-gray-900 rounded-lg text-xs font-semibold flex items-center gap-1"
+                    :title="`${classInfo.name} - ${getInstrumentName(classInfo.instrument)} (${classInfo.level})`"
                   >
-                    {{ className }}
+                    <img 
+                      v-if="classInfo.instrument" 
+                      :src="`/instruments/${getInstrumentImage(classInfo.instrument)}`" 
+                      :alt="getInstrumentName(classInfo.instrument)"
+                      class="w-3 h-3 object-contain"
+                    />
+                    {{ classInfo.name }}
                   </span>
                 </div>
               </td>
@@ -87,17 +147,21 @@
                 {{ formatJoinDate(student.joinedAt) }}
               </td>
               
-                            <!-- Assignments -->
+              <!-- Completed Practices -->
               <td class="py-4 px-6">
-                <div class="flex items-center gap-2">
-                  <div class="text-center">
-                    <div class="text-lg font-bold text-green-600">{{ getStudentAssignmentCount(student.studentId || student.id) }}</div>
-                    <div class="text-xs text-gray-500">Total</div>
+                <div class="text-center">
+                  <div class="text-lg font-bold text-indigo-600">{{ getStudentCompletedPractices(student.studentId || student.id) }}</div>
+                  <div class="text-xs text-gray-500">Total</div>
+                </div>
+              </td>
+              
+              <!-- Assignments -->
+              <td class="py-4 px-6">
+                <div class="text-center">
+                  <div class="text-lg font-bold text-green-600">
+                    {{ getStudentCompletedAssignments(student.studentId || student.id) }}/{{ getStudentAssignmentCount(student.studentId || student.id) }}
                   </div>
-                  <div class="text-center">
-                    <div class="text-lg font-bold text-blue-600">{{ getStudentAssignmentProgress(student.studentId || student.id) }}%</div>
-                    <div class="text-xs text-gray-500">Progress</div>
-                  </div>
+                  <div class="text-xs text-gray-500">Completed/Total</div>
                 </div>
               </td>
               
@@ -120,22 +184,8 @@
                 <div class="flex flex-col gap-2">
                   <!-- Primary Actions Row -->
                   <div class="flex items-center gap-2">
-                    <button 
-                      @click="$emit('viewStudentDetails', student)"
-                      class="px-3 py-1 bg-primary-500 text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center gap-2"
-                      title="View student details"
-                    >
-                      <User class="w-4 h-4" />
-                      <span>View</span>
-                    </button>
-                    <button 
-                      @click="$emit('createIndividualAssignment', student)"
-                      class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors flex items-center gap-2"
-                      title="Create individual assignment"
-                    >
-                      <BookOpen class="w-4 h-4" />
-                      <span>Assignment</span>
-                    </button>
+                   
+                   
                   </div>
                   <!-- Secondary Actions Row -->
                   <div class="flex items-center gap-2">
@@ -159,15 +209,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { 
   Users, 
   AlertCircle, 
   Mail,
   Copy,
   User,
-  BookOpen
+  BookOpen,
+  ArrowUpDown
 } from 'lucide-vue-next'
+import { getInstrumentImage, getInstrumentName } from '../../lib/instruments'
 
 const props = defineProps({
   classes: {
@@ -194,6 +246,11 @@ const props = defineProps({
 
 const emit = defineEmits(['loadClasses', 'viewStudentDetails', 'createIndividualAssignment', 'sendEmail', 'copyStudentId'])
 
+// Reactive state for filtering and sorting
+const selectedClassFilter = ref('')
+const sortBy = ref('name')
+const sortOrder = ref('asc')
+
 // Computed properties
 const allStudents = computed(() => {
   const students = new Map()
@@ -205,10 +262,17 @@ const allStudents = computed(() => {
         if (!students.has(studentId)) {
           students.set(studentId, {
             ...student,
-            classes: []
+            classes: [],
+            primaryClass: null
           })
         }
-        students.get(studentId).classes.push(classItem.name)
+        const studentData = students.get(studentId)
+        studentData.classes.push(classItem.name)
+        
+        // Set primary class (first class they joined, or most recent if multiple)
+        if (!studentData.primaryClass || studentData.joinedAt < student.joinedAt) {
+          studentData.primaryClass = classItem
+        }
       })
     }
   })
@@ -216,13 +280,88 @@ const allStudents = computed(() => {
   return Array.from(students.values())
 })
 
-const displayStudents = computed(() => {
-  return allStudents.value.sort((a, b) => {
-    const nameA = (a.studentName || a.name || '').toLowerCase()
-    const nameB = (b.studentName || b.name || '').toLowerCase()
-    return nameA.localeCompare(nameB)
+const filteredStudents = computed(() => {
+  let students = [...allStudents.value]
+  
+  // Apply class filter
+  if (selectedClassFilter.value) {
+    students = students.filter(student => 
+      student.classes.some(className => 
+        props.classes.find(c => c.id === selectedClassFilter.value)?.name === className
+      )
+    )
+  }
+  
+  // Apply sorting
+  students.sort((a, b) => {
+    let comparison = 0
+    
+    switch (sortBy.value) {
+      case 'name':
+        const nameA = (a.studentName || a.name || '').toLowerCase()
+        const nameB = (b.studentName || b.name || '').toLowerCase()
+        comparison = nameA.localeCompare(nameB)
+        break
+      case 'class':
+        const classA = (a.primaryClass?.name || '').toLowerCase()
+        const classB = (b.primaryClass?.name || '').toLowerCase()
+        comparison = classA.localeCompare(classB)
+        break
+      case 'joinDate':
+        const dateA = new Date(a.joinedAt || 0)
+        const dateB = new Date(b.joinedAt || 0)
+        comparison = dateA - dateB
+        break
+      case 'assignments':
+        const assignA = getStudentAssignmentCount(a.studentId || a.id)
+        const assignB = getStudentAssignmentCount(b.studentId || b.id)
+        comparison = assignA - assignB
+        break
+      case 'goals':
+        const goalsA = getStudentGoalsCount(a.studentId || a.id)
+        const goalsB = getStudentGoalsCount(b.studentId || b.id)
+        comparison = goalsA - goalsB
+        break
+    }
+    
+    return sortOrder.value === 'asc' ? comparison : -comparison
   })
+  
+  return students
 })
+
+// Stats computed properties
+const totalAssignments = computed(() => {
+  let total = 0
+  props.classes.forEach(classItem => {
+    if (classItem.assignments) total += classItem.assignments.length
+    if (classItem.individualAssignments) {
+      Object.values(classItem.individualAssignments).forEach(assignments => {
+        total += assignments.length
+      })
+    }
+  })
+  return total
+})
+
+const totalGoals = computed(() => {
+  if (!props.studentGoals) return 0
+  return Object.values(props.studentGoals).reduce((total, studentGoals) => {
+    if (Array.isArray(studentGoals)) {
+      return total + studentGoals.filter(goal => goal.status !== 'completed' && goal.status !== 'cancelled').length
+    }
+    return total
+  }, 0)
+})
+
+// Methods
+const updateFilteredStudents = () => {
+  // This will trigger the computed property to recalculate
+}
+
+const toggleSortOrder = () => {
+  sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+}
 
 // Helper functions
 const getInitials = (name) => {
@@ -233,6 +372,15 @@ const getInitials = (name) => {
 const getStudentClasses = (studentId) => {
   const student = allStudents.value.find(s => (s.studentId || s.id) === studentId)
   return student?.classes || []
+}
+
+const getStudentClassDetails = (studentId) => {
+  const student = allStudents.value.find(s => (s.studentId || s.id) === studentId)
+  if (!student) return []
+  
+  return props.classes.filter(classItem => 
+    classItem.students && classItem.students.some(s => (s.studentId || s.id) === studentId)
+  )
 }
 
 const formatJoinDate = (date) => {
@@ -319,5 +467,59 @@ const getStudentGoalsProgress = (studentId) => {
   }, 0)
   
   return Math.round(totalProgress / activeGoals.length)
+}
+
+const getStudentCompletedPractices = (studentId) => {
+  let totalPractices = 0
+  
+  // Count completed practices from goals
+  if (props.studentGoals && props.studentGoals[studentId]) {
+    const studentGoals = props.studentGoals[studentId]
+    if (Array.isArray(studentGoals)) {
+      totalPractices += studentGoals.reduce((sum, goal) => {
+        return sum + (goal.completedSessions || 0)
+      }, 0)
+    }
+  }
+  
+  // Count completed practices from assignments (if available)
+  props.classes.forEach(classItem => {
+    if (classItem.students && classItem.students.some(s => (s.studentId || s.id) === studentId)) {
+      // Count completed class assignments
+      if (classItem.assignments && Array.isArray(classItem.assignments)) {
+        totalPractices += classItem.assignments.filter(assignment => assignment.isComplete).length
+      }
+      
+      // Count completed individual assignments for this student
+      if (classItem.individualAssignments && classItem.individualAssignments[studentId]) {
+        const individualAssignments = classItem.individualAssignments[studentId]
+        totalPractices += individualAssignments.filter(assignment => assignment.isComplete).length
+      }
+    }
+  })
+  
+  return totalPractices
+}
+
+const getStudentCompletedAssignments = (studentId) => {
+  let completedAssignments = 0
+  
+  // Count completed assignments for classes this student is in
+  props.classes.forEach(classItem => {
+    if (classItem.students && classItem.students.some(s => (s.studentId || s.id) === studentId)) {
+      // Count completed class-wide assignments
+      if (classItem.assignments && Array.isArray(classItem.assignments)) {
+        completedAssignments += classItem.assignments.filter(assignment => assignment.isComplete).length
+      }
+      
+      // Count completed individual assignments for this student
+      if (classItem.individualAssignments && classItem.individualAssignments[studentId]) {
+        const individualAssignments = classItem.individualAssignments[studentId]
+        completedAssignments += individualAssignments.filter(assignment => assignment.isComplete).length
+      }
+    }
+  })
+  
+  return completedAssignments
 }
 </script> 
