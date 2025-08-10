@@ -41,27 +41,40 @@
         <p class="text-gray-600 mb-4">Create your first music class to get started!</p>
       </div>
       
-      <!-- Classes Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Classes List -->
+      <div v-else class="space-y-4">
         <div 
           v-for="classItem in classes" 
           :key="classItem.id"
-          class="bg-white rounded-2xl border-2 border-gray-200 shadow-[0_4px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_0_rgba(0,0,0,0.15)] transition-all duration-200 hover:-translate-y-1 flex flex-col h-96"
+          class="bg-white rounded-2xl border-2 border-gray-200 shadow-[0_4px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_0_rgba(0,0,0,0.15)] transition-all duration-200 hover:-translate-y-1 flex flex-col"
         >
           <!-- Class Header with Three Dots -->
-          <div class="flex items-start justify-between p-6 pb-0">
-            <div class="flex items-center gap-3 flex-1">
-              <img 
-                v-if="classItem.instrument" 
-                :src="`/instruments/${getInstrumentImage(classItem.instrument)}`" 
-                :alt="getInstrumentName(classItem.instrument)"
-                class="w-8 h-8 object-contain"
-              />
-              <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-gray-800 text-lg truncate">{{ classItem.name }}</h4>
-                <p class="text-sm text-gray-500">{{ getInstrumentName(classItem.instrument) }}</p>
+          <div class="flex items-start justify-between p-4 pb-0">
+                          <div class="flex items-center gap-3 flex-1">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                  <img 
+                    v-if="classItem.instrument" 
+                    :src="`/instruments/${getInstrumentImage(classItem.instrument)}`" 
+                    :alt="getInstrumentName(classItem.instrument)"
+                    class="w-5 h-5 object-contain"
+                  />
+                  <img 
+                    v-else
+                    src="/instruments/any.png"
+                    alt="Any instrument"
+                    class="w-5 h-5 object-contain"
+                  />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h4 class="font-bold text-gray-800 text-lg truncate">{{ classItem.name }}</h4>
+                    <span class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold">
+                      {{ classItem.level }}
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-500">{{ getInstrumentName(classItem.instrument) }}</p>
+                </div>
               </div>
-            </div>
             
             <!-- Three Dots Menu (Top Right) -->
             <div class="relative ml-2">
@@ -97,88 +110,69 @@
           </div>
           
           <!-- Card Content -->
-          <div class="px-6 flex-1 flex flex-col overflow-hidden">
-            <!-- Scrollable Content Area -->
-            <div class="flex-1 overflow-y-auto pr-2">
-            <!-- Level Badge -->
-            <div class="flex justify-start mb-3">
-              <span class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold">
-                {{ classItem.level }}
-              </span>
+          <div class="px-4 py-3">
+            <!-- Top Row: Stats -->
+            <div class="flex items-center justify-end mb-3">
+              <div class="flex items-center gap-4 text-xs">
+                <div class="flex items-center gap-1 text-blue-600">
+                  <Users class="w-3 h-3" />
+                  <span class="font-semibold">{{ classItem.students?.length || 0 }} students</span>
+                </div>
+                <div class="flex items-center gap-1 text-green-600">
+                  <BookOpen class="w-3 h-3" />
+                  <span class="font-semibold">{{ classItem.assignments?.length || 0 }} assignments</span>
+                </div>
+              </div>
             </div>
             
             <!-- Class Description -->
-            <p v-if="classItem.description" class="text-gray-600 text-sm mb-4 line-clamp-2">
+            <p v-if="classItem.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
               {{ classItem.description }}
             </p>
             
-            <!-- Class Stats -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-              <div class="text-center p-3 bg-gray-50 rounded-xl">
-                <div class="text-lg font-bold text-blue-600">{{ classItem.students?.length || 0 }}</div>
-                <div class="text-xs text-gray-500">Students</div>
+            <!-- Info Row: Schedule + Class Code -->
+            <div class="flex items-center gap-4 mb-3 text-xs">
+              <div v-if="classItem.schedule" class="flex items-center gap-1 text-gray-600">
+                <Clock class="w-3 h-3" />
+                <span class="truncate max-w-24">{{ classItem.schedule }}</span>
               </div>
-              <div class="text-center p-3 bg-gray-50 rounded-xl">
-                <div class="text-lg font-bold text-green-600">{{ classItem.assignments?.length || 0 }}</div>
-                <div class="text-xs text-gray-500">Assignments</div>
-              </div>
-            </div>
-            
-            <!-- Class Schedule -->
-            <div v-if="classItem.schedule" class="mb-4">
-              <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                <Clock class="w-4 h-4" />
-                <span class="font-medium">Schedule</span>
-              </div>
-              <p class="text-sm text-gray-500 truncate">{{ classItem.schedule }}</p>
-            </div>
-            
-            <!-- Class Code & Email Button -->
-            <div class="mb-4">
-              <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                <Hash class="w-4 h-4" />
-                <span class="font-medium">Class Code</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <!-- Copy Code Area (Half Width) -->
-                <div class="flex items-center gap-2 flex-1">
-                  <code class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-mono text-gray-700 flex-1 truncate">
-                    {{ classItem.code }}
-                  </code>
-                  <button 
-                    @click="$emit('copyClassCode', classItem.code)"
-                    class="p-1 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-                    title="Copy class code"
-                  >
-                    <Copy class="w-4 h-4" />
-                  </button>
-                </div>
-                
-                <!-- Email Button (Half Width) -->
+              <div class="flex items-center gap-1 text-gray-600">
+                <Hash class="w-3 h-3" />
+                <code class="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono text-gray-700">
+                  {{ classItem.code }}
+                </code>
                 <button 
-                  @click="$emit('sendEmail', classItem)"
-                  class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2 flex-1 justify-center"
-                  title="Send email to class"
+                  @click="$emit('copyClassCode', classItem.code)"
+                  class="p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Copy class code"
                 >
-                  <Mail class="w-4 h-4" />
-                  <span>Email Class</span>
+                  <Copy class="w-3 h-3" />
                 </button>
               </div>
             </div>
+            
+            <!-- Action Buttons Row -->
+            <div class="flex items-center gap-2">
+              <button 
+                @click="$emit('sendEmail', classItem)"
+                class="flex-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center gap-1"
+                title="Send email to class"
+              >
+                <Mail class="w-3 h-3" />
+                <span>Email Class</span>
+              </button>
+              <button 
+                @click="$emit('viewClassDetails', classItem)"
+                class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                title="View class details"
+              >
+                <Eye class="w-3 h-3" />
+                <span>View Details</span>
+              </button>
             </div>
           </div>
           
-          <!-- Bottom Actions -->
-          <div class="p-6 pt-0 flex items-center justify-center">
-            <!-- View Details Button -->
-            <button 
-              @click="$emit('viewClassDetails', classItem)"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <Eye class="w-4 h-4" />
-              <span>View Details</span>
-            </button>
-          </div>
+
         </div>
       </div>
     </div>
@@ -409,7 +403,8 @@ import {
   Trash2,
   RotateCcw,
   Calendar,
-  Users
+  Users,
+  BookOpen
 } from 'lucide-vue-next'
 
 const props = defineProps({
