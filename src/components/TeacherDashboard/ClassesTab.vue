@@ -50,70 +50,36 @@
         >
           <!-- Class Header with Three Dots -->
           <div class="flex items-start justify-between p-4 pb-0">
-                          <div class="flex items-center gap-3 flex-1">
-                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  <img 
-                    v-if="classItem.instrument" 
-                    :src="`/instruments/${getInstrumentImage(classItem.instrument)}`" 
-                    :alt="getInstrumentName(classItem.instrument)"
-                    class="w-5 h-5 object-contain"
-                  />
-                  <img 
-                    v-else
-                    src="/instruments/any.png"
-                    alt="Any instrument"
-                    class="w-5 h-5 object-contain"
-                  />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-1">
-                    <h4 class="font-bold text-gray-800 text-lg truncate">{{ classItem.name || 'Unnamed Class' }}</h4>
-                    <span v-if="classItem.level" class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold">
-                      {{ classItem.level }}
-                    </span>
-                  </div>
-                  <p v-if="classItem.instrument" class="text-sm text-gray-500">{{ getInstrumentName(classItem.instrument) }}</p>
-                </div>
+            <div class="flex items-center gap-3 flex-1">
+              <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <img 
+                  v-if="classItem.instrument" 
+                  :src="`/instruments/${getInstrumentImage(classItem.instrument)}`" 
+                  :alt="getInstrumentName(classItem.instrument)"
+                  class="w-5 h-5 object-contain"
+                />
+                <img 
+                  v-else
+                  src="/instruments/any.png"
+                  alt="Any instrument"
+                  class="w-5 h-5 object-contain"
+                />
               </div>
-            
-            <!-- Three Dots Menu (Top Right) -->
-            <div class="relative ml-2">
-              <button 
-                @click="toggleClassMenu(classItem.code)"
-                class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Class options"
-              >
-                <MoreVertical class="w-4 h-4" />
-              </button>
-              
-              <!-- Dropdown Menu -->
-              <div 
-                v-if="openMenuClassCode === classItem.code"
-                class="absolute right-0 top-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 min-w-40"
-              >
-                <button 
-                  @click="$emit('archiveClass', classItem); closeClassMenu()"
-                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
-                >
-                  <Archive class="w-4 h-4" />
-                  Archive Class
-                </button>
-                <button 
-                  @click="$emit('deleteClass', classItem); closeClassMenu()"
-                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-lg"
-                >
-                  <Trash2 class="w-4 h-4" />
-                  Delete Class
-                </button>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <h4 class="font-bold text-gray-800 text-lg truncate">{{ classItem.name || 'Unnamed Class' }}</h4>
+                  <span v-if="classItem.level" class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold">
+                    {{ classItem.level }}
+                  </span>
+                </div>
+                <p v-if="classItem.instrument" class="text-sm text-gray-500">{{ getInstrumentName(classItem.instrument) }}</p>
               </div>
             </div>
-          </div>
-          
-          <!-- Card Content -->
-          <div class="px-4 py-3">
-            <!-- Top Row: Stats -->
-            <div class="flex items-center justify-end mb-3">
-              <div class="flex items-center gap-4 text-xs">
+            
+            <!-- Stats and Three Dots Menu (Top Right) -->
+            <div class="flex items-center gap-3">
+              <!-- Stats -->
+              <div class="flex items-center gap-3 text-xs">
                 <div class="flex items-center gap-1 text-blue-600">
                   <Users class="w-3 h-3" />
                   <span class="font-semibold">{{ classItem.students?.length || 0 }} students</span>
@@ -123,7 +89,43 @@
                   <span class="font-semibold">{{ classItem.assignments?.length || 0 }} assignments</span>
                 </div>
               </div>
+              
+              <!-- Three Dots Menu -->
+              <div class="relative">
+                <button 
+                  @click="toggleClassMenu(classItem.code)"
+                  class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Class options"
+                >
+                  <MoreVertical class="w-4 h-4" />
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div 
+                  v-if="openMenuClassCode === classItem.code"
+                  class="absolute right-0 top-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 min-w-40"
+                >
+                  <button 
+                    @click="$emit('archiveClass', classItem); closeClassMenu()"
+                    class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
+                  >
+                    <Archive class="w-4 h-4" />
+                    Archive Class
+                  </button>
+                  <button 
+                    @click="$emit('deleteClass', classItem); closeClassMenu()"
+                    class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-lg"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                    Delete Class
+                  </button>
+                </div>
+              </div>
             </div>
+          </div>
+          
+          <!-- Card Content -->
+          <div class="px-4 py-3">
             
             <!-- Class Description -->
             <p v-if="classItem.description" class="text-gray-600 text-sm mb-3 line-clamp-2">
