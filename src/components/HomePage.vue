@@ -139,6 +139,20 @@
                             <div v-if="isStudentLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             {{ hasError ? 'Fix Errors First' : isStudentLoginLoading ? 'Signing In...' : 'Make Some Music!' }}
                           </button>
+
+                          <div class="relative my-4 text-center">
+                            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                              <div class="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div class="relative flex justify-center">
+                              <span class="bg-white px-3 text-sm text-gray-500">or</span>
+                            </div>
+                          </div>
+
+                          <button type="button" @click="loginStudentWithGoogle" class="btn btn-secondary btn-full bg-white text-musical-graphite border-2 border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2">
+                            <img alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" />
+                            Continue with Google
+                          </button>
                         </form>
                         
                         <div class="flex justify-center items-center py-6">
@@ -346,6 +360,20 @@
                             <BookOpen v-if="!isTeacherLoginLoading" class="w-4 h-4" />
                             <div v-if="isTeacherLoginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             {{ hasError ? 'Fix Errors First' : isTeacherLoginLoading ? 'Validating...' : 'Access Teacher Hub' }}
+                          </button>
+
+                          <div class="relative my-4 text-center">
+                            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                              <div class="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div class="relative flex justify-center">
+                              <span class="bg-white px-3 text-sm text-gray-500">or</span>
+                            </div>
+                          </div>
+
+                          <button type="button" @click="loginTeacherWithGoogle" class="btn btn-secondary btn-full bg-white text-musical-graphite border-2 border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2">
+                            <img alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" />
+                            Continue with Google
                           </button>
                         </form>
                         
@@ -700,7 +728,9 @@ const {
   loginStudentAccount, 
   registerTeacherAccount,
   registerStudentAccount,
-  resetUserPassword
+  resetUserPassword,
+  loginTeacherWithGoogleAccount,
+  loginStudentWithGoogleAccount
 } = useAuth()
 
 const { 
@@ -881,6 +911,25 @@ const loginStudent = async () => {
   })
 }
 
+const loginStudentWithGoogle = async () => {
+  await executeWithErrorHandling(async () => {
+    isStudentLoginLoading.value = true
+    clearError()
+    const result = await loginStudentWithGoogleAccount(studentForm.value.classCode || null)
+    if (result.success) {
+      emit('login', {
+        user: result.user,
+        userData: result.userData,
+        role: 'student'
+      })
+    } else {
+      handleError(result.error || 'Google login failed')
+    }
+  }).finally(() => {
+    isStudentLoginLoading.value = false
+  })
+}
+
 const registerStudent = async () => {
   await executeWithErrorHandling(async () => {
     isStudentRegistrationLoading.value = true
@@ -938,6 +987,25 @@ const loginTeacher = async () => {
       })
     } else {
       handleError(result.error || 'Login failed')
+    }
+  }).finally(() => {
+    isTeacherLoginLoading.value = false
+  })
+}
+
+const loginTeacherWithGoogle = async () => {
+  await executeWithErrorHandling(async () => {
+    isTeacherLoginLoading.value = true
+    clearError()
+    const result = await loginTeacherWithGoogleAccount()
+    if (result.success) {
+      emit('login', {
+        user: result.user,
+        userData: result.userData,
+        role: 'teacher'
+      })
+    } else {
+      handleError(result.error || 'Google login failed')
     }
   }).finally(() => {
     isTeacherLoginLoading.value = false

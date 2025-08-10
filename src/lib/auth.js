@@ -1,6 +1,8 @@
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
+  GoogleAuthProvider,
+  signInWithPopup,
   signOut, 
   updateProfile,
   sendPasswordResetEmail
@@ -255,6 +257,115 @@ export const loginStudent = async (email, password, classCode = null) => {
     logError(error, 'student-login')
     const errorInfo = handleFirebaseError(error, 'student-login')
     return createErrorResponse(errorInfo.message, errorInfo.code, 'student-login')
+  }
+}
+
+
+/**
+ * Login a teacher with Google
+ */
+export const loginTeacherWithGoogle = async () => {
+  try {
+    const provider = new GoogleAuthProvider()
+    const result = await signInWithPopup(auth, provider)
+    const user = result.user
+
+    // Try to get existing user data
+    let userData = await getUserData(user.uid)
+
+    // If no user data exists, create a teacher profile
+    if (!userData) {
+      const teacherDoc = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || user.email?.split('@')[0] || 'Teacher',
+        role: USER_ROLES.TEACHER,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      await setDoc(doc(db, 'users', user.uid), teacherDoc)
+      userData = teacherDoc
+    }
+
+    if (userData.role !== USER_ROLES.TEACHER) {
+      throw new Error('This account is not registered as a teacher')
+    }
+
+    return {
+      success: true,
+      user,
+      userData
+    }
+  } catch (error) {
+    logError(error, 'teacher-google-login')
+    const errorInfo = handleFirebaseError(error, 'teacher-google-login')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'teacher-google-login')
+  }
+}
+
+/**
+ * Login a student with Google (with optional class code)
+ * @param {string|null} classCode
+ */
+export const loginStudentWithGoogle = async (classCode = null) => {
+  try {
+    const provider = new GoogleAuthProvider()
+    const result = await signInWithPopup(auth, provider)
+    const user = result.user
+
+    // Try to get existing user data
+    let userData = await getUserData(user.uid)
+
+    // If no user data exists, create a student profile
+    if (!userData) {
+      const studentDoc = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || user.email?.split('@')[0] || 'Student',
+        role: USER_ROLES.STUDENT,
+        instrument: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      await setDoc(doc(db, 'users', user.uid), studentDoc)
+      userData = studentDoc
+    }
+
+    if (userData.role !== USER_ROLES.STUDENT) {
+      throw new Error('This account is not registered as a student')
+    }
+
+    // Optionally join class if a code was provided
+    if (classCode) {
+      try {
+        const classRef = doc(db, 'classes', classCode)
+        const classDoc = await getDoc(classRef)
+
+        if (classDoc.exists()) {
+          const classData = classDoc.data()
+          await updateDoc(doc(db, 'users', user.uid), {
+            classCode: classCode,
+            teacherId: classData.teacherId,
+            updatedAt: new Date().toISOString()
+          })
+          await addStudentToClassRoster(classCode, user.uid, userData.displayName, userData.instrument || '')
+          userData.classCode = classCode
+          userData.teacherId = classData.teacherId
+        }
+      } catch (classError) {
+        console.warn('Could not join class:', classError)
+      }
+    }
+
+    return {
+      success: true,
+      user,
+      userData
+    }
+  } catch (error) {
+    logError(error, 'student-google-login')
+    const errorInfo = handleFirebaseError(error, 'student-google-login')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'student-google-login')
   }
 }
 

@@ -22,7 +22,9 @@ import {
   updateStudentPracticeActivity,
   createStandalonePractice,
   updateUserPracticeStats,
-  getUserPracticeStats
+  getUserPracticeStats,
+  loginTeacherWithGoogle,
+  loginStudentWithGoogle
 } from '../lib/auth'
 
 // Global auth state
@@ -101,6 +103,16 @@ const loginStudentAccount = async (email, password, classCode = null) => {
   // Don't call handleAuthError here - let the component handle the error
   // This allows for better error display control
   
+  return result
+}
+
+const loginTeacherWithGoogleAccount = async () => {
+  const result = await loginTeacherWithGoogle()
+  return result
+}
+
+const loginStudentWithGoogleAccount = async (classCode = null) => {
+  const result = await loginStudentWithGoogle(classCode)
   return result
 }
 
@@ -281,6 +293,8 @@ export function useAuth() {
     registerStudentAccount,
     loginTeacherAccount,
     loginStudentAccount,
+    loginTeacherWithGoogleAccount,
+    loginStudentWithGoogleAccount,
     logoutUser,
     resetUserPassword,
     createTeacherClass,
