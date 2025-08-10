@@ -18,11 +18,7 @@
         <!-- Authenticated UI -->
         <div v-if="isAuthenticated" class="flex items-center gap-3">
           <a href="/" class="text-gray-800 no-underline font-semibold text-base px-4 py-2 rounded-lg transition-all duration-300 hover:bg-primary-50 hover:text-blue hover:transform hover:-translate-y-0.5">Dashboard</a>
-          <span
-            class="px-3 py-1 rounded-full text-sm font-semibold"
-            :class="roleBadgeClass"
-          >{{ userRole === 'teacher' ? 'Teacher' : 'Student' }}</span>
-          <span class="text-gray-700 font-semibold">{{ displayName }}</span>
+          
           <button 
             @click="handleLogout" 
             :disabled="localIsLoading" 
