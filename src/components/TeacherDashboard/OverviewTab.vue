@@ -115,7 +115,7 @@
               <!-- Student Info -->
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold">
+                  <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold bg-blue-500">
                     {{ activity.studentName?.charAt(0) || 'S' }}
                   </div>
                   <div>
@@ -211,14 +211,14 @@
               <div class="mt-3 flex gap-2">
                 <button 
                   @click="openStickerModal(activity)"
-                  class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-medium hover:bg-yellow-200 transition-colors flex items-center gap-1"
+                  class="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-xl text-sm font-semibold hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                   <Trophy class="w-4 h-4" />
                   Give Sticker
                 </button>
                 <button 
                   @click="openCommentModal(activity)"
-                  class="px-3 py-1 bg-primary-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-primary-200 transition-colors flex items-center gap-1"
+                  class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                   <MessageCircle class="w-4 h-4" />
                   Add Comment
@@ -226,10 +226,10 @@
                 <button 
                   @click="markAsComplete(activity)"
                   :class="[
-                    'px-3 py-1 rounded-lg text-sm font-medium transition-colors flex items-center gap-1',
+                    'px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
                     activity.isComplete 
-                      ? 'bg-green-100 text-green-700 cursor-default' 
-                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      ? 'bg-gradient-to-r from-green-400 to-green-500 text-white cursor-default shadow-lg' 
+                      : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
                   ]"
                   :disabled="activity.isComplete"
                 >
