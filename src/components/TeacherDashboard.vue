@@ -37,6 +37,16 @@
             Overview
           </button>
           <button
+            @click="changeTab('classes')"
+            :class="[
+              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+              activeTab === 'classes' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
+            ]"
+          >
+            <GraduationCap class="w-4 h-4" />
+            Group Classes and Private Lessons
+          </button>
+          <button
             @click="changeTab('roster')"
             :class="[
               'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
@@ -46,16 +56,7 @@
             <Users class="w-4 h-4" />
             Roster
           </button>
-          <button
-            @click="changeTab('classes')"
-            :class="[
-              'px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
-              activeTab === 'classes' ? 'bg-white text-blue shadow-sm' : 'text-gray-600 hover:text-blue'
-            ]"
-          >
-            <GraduationCap class="w-4 h-4" />
-            Classes
-          </button>
+         
           <button
             @click="changeTab('assignments')"
             :class="[
@@ -127,6 +128,8 @@
           @delete-class="deleteClass"
           @view-class-details="viewClassDetails"
           @restore-class="restoreClass"
+          @navigate-to-roster="navigateToRoster"
+          @navigate-to-assignments="navigateToAssignments"
         />
         <AssignmentsTab
           v-if="activeTab === 'assignments'"
@@ -290,7 +293,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { getInstrumentName } from '../lib/instruments'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
@@ -732,6 +735,8 @@ const createClass = async () => {
     const result = await createTeacherClass(currentUser.value.uid, newClass.value)
     
     if (result.success) {
+      console.log('Class created successfully:', result.class)
+      
       // Reset form
       newClass.value = {
         name: '',
@@ -740,9 +745,41 @@ const createClass = async () => {
         level: '',
         schedule: ''
       }
-      // Refresh classes and switch to classes & assignments tab
-      await loadClasses()
-      activeTab.value = 'classes-assignments'
+      
+      // Add the new class to the existing classes array instead of reloading everything
+      const newClassWithData = {
+        ...result.class,
+        id: result.class.code, // Ensure id field exists for consistency
+        students: [],
+        assignments: [],
+        individualAssignments: {},
+        archived: false, // Ensure archived field exists
+        studentCount: 0, // Ensure studentCount field exists
+        level: result.class.level || 'Beginner', // Ensure level has a default value
+        description: result.class.description || '', // Ensure description has a default value
+        instrument: result.class.instrument || '', // Ensure instrument has a default value
+        schedule: result.class.schedule || '', // Ensure schedule has a default value
+        createdAt: result.class.createdAt || new Date().toISOString(), // Ensure createdAt exists
+        updatedAt: result.class.updatedAt || new Date().toISOString() // Ensure updatedAt exists
+      }
+      
+      console.log('New class data to add:', newClassWithData)
+      
+      try {
+        classes.value.unshift(newClassWithData)
+        console.log('Classes array after adding:', classes.value)
+        
+        // Wait for DOM to update
+        await nextTick()
+        console.log('DOM updated, classes count:', classes.value.length)
+      } catch (error) {
+        console.error('Error adding class to array:', error)
+        // Fallback: reload classes if there's an error
+        await loadClasses()
+      }
+      
+      // Switch to classes tab
+      activeTab.value = 'classes'
       
       // Show success message
       successMessage.value = `Class "${result.class.name}" created successfully!`
@@ -772,7 +809,7 @@ const createClass = async () => {
 
 const onClassCreated = () => {
   loadClasses()
-  activeTab.value = 'classes-assignments'
+  activeTab.value = 'classes'
 }
 
 const changeTab = (tab) => {
@@ -1207,6 +1244,16 @@ const selectClassForRoster = (classItem) => {
     // Show all students
     classRoster.value = allStudents.value
   }
+}
+
+const navigateToRoster = (classItem) => {
+  selectedClassForRoster.value = classItem
+  activeTab.value = 'roster'
+}
+
+const navigateToAssignments = (classItem) => {
+  selectedClassForAssignments.value = classItem
+  activeTab.value = 'assignments'
 }
 
 const loadClassRoster = async (classCode) => {

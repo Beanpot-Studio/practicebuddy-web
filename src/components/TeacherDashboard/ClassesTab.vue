@@ -67,12 +67,12 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
-                    <h4 class="font-bold text-gray-800 text-lg truncate">{{ classItem.name }}</h4>
-                    <span class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold">
+                    <h4 class="font-bold text-gray-800 text-lg truncate">{{ classItem.name || 'Unnamed Class' }}</h4>
+                    <span v-if="classItem.level" class="px-2 py-1 bg-primary-100 text-blue-700 rounded-lg text-xs font-semibold">
                       {{ classItem.level }}
                     </span>
                   </div>
-                  <p class="text-sm text-gray-500">{{ getInstrumentName(classItem.instrument) }}</p>
+                  <p v-if="classItem.instrument" class="text-sm text-gray-500">{{ getInstrumentName(classItem.instrument) }}</p>
                 </div>
               </div>
             
@@ -130,7 +130,7 @@
               {{ classItem.description }}
             </p>
             
-            <!-- Info Row: Schedule + Class Code -->
+            <!-- Info Row: Schedule + Class Code + Email -->
             <div class="flex items-center gap-4 mb-3 text-xs">
               <div v-if="classItem.schedule" class="flex items-center gap-1 text-gray-600">
                 <Clock class="w-3 h-3" />
@@ -148,27 +148,106 @@
                 >
                   <Copy class="w-3 h-3" />
                 </button>
+                <button 
+                  @click="$emit('sendEmail', classItem)"
+                  class="p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Email students"
+                >
+                  <Mail class="w-3 h-3" />
+                </button>
               </div>
             </div>
             
-            <!-- Action Buttons Row -->
-            <div class="flex items-center gap-2">
+            <!-- Student Roster Snapshot -->
+            <div v-if="classItem.students && classItem.students.length > 0" class="mb-3">
               <button 
-                @click="$emit('sendEmail', classItem)"
-                class="flex-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center gap-1"
-                title="Send email to class"
+                @click="$emit('selectClass', classItem); $emit('navigateToRoster')"
+                class="w-full text-left bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-lg p-3 transition-all duration-200 group shadow-sm hover:shadow-md"
               >
-                <Mail class="w-3 h-3" />
-                <span>Email Class</span>
+                <h5 class="text-xs font-semibold text-blue-700 mb-2 flex items-center gap-1 group-hover:text-blue-800">
+                  <Users class="w-3 h-3" />
+                  Students ({{ classItem.students.length }})
+                  <span class="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">View Roster →</span>
+                </h5>
+                <div class="flex flex-wrap gap-1">
+                  <span 
+                    v-for="student in classItem.students.slice(0, 4)" 
+                    :key="student.studentId || student.id"
+                    class="px-2 py-1 bg-white text-blue-700 text-xs rounded-md truncate max-w-24 border border-blue-200"
+                    :title="student.studentName || student.name"
+                  >
+                    {{ student.studentName || student.name }}
+                  </span>
+                  <span 
+                    v-if="classItem.students.length > 4" 
+                    class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-md border border-blue-200"
+                  >
+                    +{{ classItem.students.length - 4 }} more
+                  </span>
+                </div>
               </button>
+            </div>
+            
+            <!-- Assignments Snapshot -->
+            <div v-if="classItem.assignments && classItem.assignments.length > 0" class="mb-3">
               <button 
-                @click="$emit('viewClassDetails', classItem)"
-                class="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                title="View class details"
+                @click="$emit('selectClass', classItem); $emit('navigateToAssignments')"
+                class="w-full text-left bg-green-50 hover:bg-green-100 border border-green-200 hover:border-green-300 rounded-lg p-3 transition-all duration-200 group shadow-sm hover:shadow-md"
               >
-                <Eye class="w-3 h-3" />
-                <span>View Details</span>
+                <h5 class="text-xs font-semibold text-green-700 mb-2 flex items-center gap-1 group-hover:text-green-800">
+                  <BookOpen class="w-3 h-3" />
+                  Recent Assignments ({{ classItem.assignments.length }})
+                  <span class="text-green-600 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">View Assignments →</span>
+                </h5>
+                <div class="space-y-1">
+                  <div 
+                    v-for="assignment in classItem.assignments.slice(0, 3)" 
+                    :key="assignment.id"
+                    class="flex items-center justify-between text-xs"
+                  >
+                    <span class="text-green-700 truncate max-w-32" :title="assignment.title">
+                      {{ assignment.title }}
+                    </span>
+                    <span class="text-green-600 text-xs font-medium">
+                      {{ assignment.practiceMinutes }}min
+                    </span>
+                  </div>
+                  <div 
+                    v-if="classItem.assignments.length > 3" 
+                    class="text-xs text-green-600 italic"
+                  >
+                    +{{ classItem.assignments.length - 3 }} more assignments
+                  </div>
+                </div>
               </button>
+            </div>
+            
+            <!-- Individual Assignments Snapshot -->
+            <div v-if="classItem.individualAssignments && Object.keys(classItem.individualAssignments).length > 0" class="mb-3">
+              <h5 class="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                <GraduationCap class="w-3 h-3" />
+                Individual Assignments
+              </h5>
+              <div class="space-y-1">
+                <div 
+                  v-for="(studentAssignments, studentId) in Object.entries(classItem.individualAssignments).slice(0, 3)" 
+                  :key="studentId"
+                  class="text-xs text-gray-600"
+                >
+                  <span class="font-medium">
+                    {{ getStudentNameById(studentId) }}:
+                  </span>
+                  <span class="text-gray-500">
+                    {{ studentAssignments[1].length }} assignments
+                  </span>
+                </div>
+                <div 
+                  v-if="Object.keys(classItem.individualAssignments).length > 3" 
+                  class="text-xs text-gray-500 italic"
+                >
+                  +{{ Object.keys(classItem.individualAssignments).length - 3 }} more students
+                </div>
+              </div>
             </div>
           </div>
           
@@ -187,7 +266,7 @@
         <h3 class="text-lg text-gray-800 font-bold">Create New Class</h3>
       </div>
       
-      <form @submit.prevent="$emit('createClass')" class="space-y-4">
+      <form @submit.prevent="$emit('createClass')" >
         <div>
           <label class="block mb-2 font-semibold text-gray-700 text-base">Class Name</label>
           <input 
@@ -434,7 +513,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['createClass', 'update:newClass', 'loadClasses', 'selectClass', 'copyClassCode', 'sendEmail', 'archiveClass', 'deleteClass', 'viewClassDetails', 'restoreClass'])
+const emit = defineEmits(['createClass', 'update:newClass', 'loadClasses', 'selectClass', 'copyClassCode', 'sendEmail', 'archiveClass', 'deleteClass', 'viewClassDetails', 'restoreClass', 'navigateToRoster', 'navigateToAssignments'])
 
 const showInstrumentDropdown = ref(false)
 const openMenuClassCode = ref(null)
@@ -464,6 +543,16 @@ const formatDate = (dateString) => {
   } catch (error) {
     return 'Invalid date'
   }
+}
+
+const getStudentNameById = (studentId) => {
+  // Find the student in the current class
+  const currentClass = props.classes.find(c => c.students?.some(s => (s.studentId || s.id) === studentId))
+  if (currentClass) {
+    const student = currentClass.students.find(s => (s.studentId || s.id) === studentId)
+    return student ? (student.studentName || student.name) : 'Unknown Student'
+  }
+  return 'Unknown Student'
 }
 
 const toggleClassMenu = (classCode) => {
