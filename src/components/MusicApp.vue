@@ -6,7 +6,6 @@
     <!-- Main app when not in pre-launch mode -->
     <AuthGuard v-else @login="handleLogin">
       <template #default="{ user, userRole }">
-        <Header />
         <div class="app-content">
           <main class="main-content">
             <StudentDashboard 
@@ -26,7 +25,6 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import Header from './Header.vue'
 import Footer from './Footer.vue'
 import StudentDashboard from './StudentDashboard.vue'
 import TeacherDashboard from './TeacherDashboard.vue'

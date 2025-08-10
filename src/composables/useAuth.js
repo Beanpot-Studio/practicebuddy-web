@@ -108,14 +108,21 @@ const logoutUser = async () => {
   isLoading.value = true
   clearError()
   
-  const result = await logout()
-  
-  if (!result.success) {
-    handleAuthError(result.error)
+  try {
+    const result = await logout()
+    
+    if (!result.success) {
+      handleAuthError(result.error)
+    }
+    
+    return result
+  } catch (error) {
+    console.error('Logout error in composable:', error)
+    return { success: false, error: error.message }
+  } finally {
+    // Ensure loading state is always reset
+    isLoading.value = false
   }
-  
-  isLoading.value = false
-  return result
 }
 
 const resetUserPassword = async (email) => {
