@@ -7,8 +7,9 @@
       <!-- Stats Card - Full Width -->
       <StatsCard 
         :total-practice-minutes="totalPracticeMinutes"
-        :current-streak="currentStreak"
-        :sticker-count="stickerCount"
+        :assignments-completed="assignmentsCompleted"
+        :assignments-pending="assignmentsPending"
+        :next-assignment-due-date="nextAssignmentDueDate"
         :current-goal="currentGoal"
       />
 
@@ -62,6 +63,11 @@
         />
       </div>
 
+      <!-- Practice History Chart -->
+      <div class="mb-8">
+        <PracticeHistoryChart :user-id="currentUser?.uid" />
+      </div>
+
 
 
 
@@ -113,6 +119,7 @@ import { instruments } from '../lib/instruments'
 // Import child components
 import StudentHeader from './StudentDashboard/StudentHeader.vue'
 import StatsCard from './StudentDashboard/StatsCard.vue'
+import PracticeHistoryChart from './StudentDashboard/PracticeHistoryChart.vue'
 import PracticeSessionCard from './StudentDashboard/PracticeSessionCard.vue'
 import PracticeTimer from './StudentDashboard/PracticeTimer.vue'
 import MusicalCreationsCard from './StudentDashboard/MusicalCreationsCard.vue'
@@ -141,7 +148,10 @@ const {
 } = useAuth()
 
 const totalPracticeMinutes = ref(0)
-const currentStreak = ref(0)
+// Replaced streak with assignment metrics
+const assignmentsCompleted = ref(0)
+const assignmentsPending = ref(0)
+const nextAssignmentDueDate = ref(null)
 const stickerCount = ref(0)
 const currentGoal = ref(null)
 
@@ -573,30 +583,41 @@ const joinClass = async (classCode) => {
 
 const handleAssignmentCompletion = async (completionData) => {
   try {
-    
-    // TODO: Implement backend functionality to mark assignment as complete
-    // For now, we'll just show a success message
-    
+    // Optimistically update the UI: mark the assignment as complete locally
+    const updated = assignments.value.map((a) => {
+      if (a.id === completionData.assignmentId) {
+        return {
+          ...a,
+          isComplete: true,
+          completedAt: completionData.completedAt,
+          completionNotes: completionData.notes
+        }
+      }
+      return a
+    })
+    assignments.value = updated
+    // Update metrics after completion
+    assignmentsCompleted.value = updated.filter(a => a.isComplete).length
+    assignmentsPending.value = updated.filter(a => !a.isComplete).length
+    const pendingWithDue = updated
+      .filter(a => !a.isComplete && !!a.dueDate)
+      .map(a => new Date(a.dueDate))
+      .filter(d => !isNaN(d.getTime()))
+      .sort((a, b) => a - b)
+    nextAssignmentDueDate.value = pendingWithDue.length > 0 ? pendingWithDue[0].toISOString() : null
+
     // Show success toast
     showSuccessToast.value = true
     successToastTitle.value = 'Assignment Completed!'
     successToastMessage.value = `"${completionData.assignment.title}" has been marked as complete.`
-    
     setTimeout(() => {
       showSuccessToast.value = false
     }, 3000)
-    
-    // TODO: Update the assignment in the assignments array to show as completed
-    // This would require updating the assignment data structure and re-rendering
-    
   } catch (error) {
     console.error('Error completing assignment:', error)
-    
-    // Show error toast
     showSuccessToast.value = true
     successToastTitle.value = 'Error'
     successToastMessage.value = 'Failed to mark assignment as complete. Please try again.'
-    
     setTimeout(() => {
       showSuccessToast.value = false
     }, 3000)
@@ -661,6 +682,16 @@ const loadAssignments = async () => {
     }
     
     assignments.value = allAssignments
+    // Update assignment metrics for stats
+    assignmentsCompleted.value = allAssignments.filter(a => a.isComplete).length
+    assignmentsPending.value = allAssignments.filter(a => !a.isComplete).length
+    // Compute next due date among pending items
+    const pendingWithDue = allAssignments
+      .filter(a => !a.isComplete && !!a.dueDate)
+      .map(a => new Date(a.dueDate))
+      .filter(d => !isNaN(d.getTime()))
+      .sort((a, b) => a - b)
+    nextAssignmentDueDate.value = pendingWithDue.length > 0 ? pendingWithDue[0].toISOString() : null
   } catch (error) {
     console.error('Error loading assignments:', error)
   } finally {

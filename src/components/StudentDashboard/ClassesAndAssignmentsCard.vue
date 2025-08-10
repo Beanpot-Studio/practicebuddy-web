@@ -343,6 +343,20 @@ const submitAssignmentCompletion = async () => {
   isSubmitting.value = true
   
   try {
+    // Persist completion to Firestore
+    try {
+      const { markAssignmentComplete } = await import('../../lib/auth.js')
+      await markAssignmentComplete({
+        assignmentId: selectedAssignment.value.id,
+        assignmentType: selectedAssignment.value.type,
+        classCode: selectedAssignment.value.classCode || selectedAssignment.value.classId || null,
+        studentId: selectedAssignment.value.studentId || null,
+        notes: completionNotes.value.trim()
+      })
+    } catch (persistError) {
+      // Non-blocking: still reflect completion in UI even if persistence fails
+      console.warn('Failed to persist assignment completion:', persistError)
+    }
     // Emit the completion event to parent component
     await emit('assignment-completed', {
       assignmentId: selectedAssignment.value.id,

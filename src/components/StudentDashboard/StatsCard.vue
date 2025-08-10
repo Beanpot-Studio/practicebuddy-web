@@ -16,12 +16,17 @@
       <div class="card card-green">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-green-600 bg-gradient-to-br from-green-400 to-green-500 relative">
-            <Flame class="w-5 h-5 text-white" />
+            <BookOpen class="w-5 h-5 text-white" />
           </div>
-          <h3 class="text-lg text-gray-800 font-bold">Current Streak</h3>
+          <h3 class="text-lg text-gray-800 font-bold">Assignments</h3>
         </div>
-        <div class="text-3xl font-bold text-green-600 mb-2">{{ currentStreak }}</div>
-        <p class="text-gray-600 text-sm">Days in a row</p>
+        <div class="text-3xl font-bold text-green-600 mb-1">{{ assignmentsCompleted }}</div>
+        <p class="text-gray-600 text-sm mb-2">Completed</p>
+        <div class="text-sm text-gray-700">Pending: <span class="font-semibold">{{ assignmentsPending }}</span></div>
+        <div class="text-xs text-gray-500 mt-1">
+          <span>Next due: </span>
+          <span class="font-medium">{{ nextDueDisplay }}</span>
+        </div>
       </div>
 
       <div class="card card-yellow">
@@ -79,16 +84,24 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Clock, Flame, Star, Target } from 'lucide-vue-next'
+import { Clock, BookOpen, Star, Target } from 'lucide-vue-next'
 
 const props = defineProps({
   totalPracticeMinutes: {
     type: Number,
     default: 0
   },
-  currentStreak: {
+  assignmentsCompleted: {
     type: Number,
     default: 0
+  },
+  assignmentsPending: {
+    type: Number,
+    default: 0
+  },
+  nextAssignmentDueDate: {
+    type: String,
+    default: null
   },
   stickerCount: {
     type: Number,
@@ -114,5 +127,12 @@ const remainingPractices = computed(() => {
   const completedSessions = props.currentGoal.completedSessions || 0
   const target = props.currentGoal.targetPracticeSessions
   return Math.max(0, target - completedSessions)
+})
+
+const nextDueDisplay = computed(() => {
+  if (!props.nextAssignmentDueDate) return '—'
+  const d = new Date(props.nextAssignmentDueDate)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString()
 })
 </script> 

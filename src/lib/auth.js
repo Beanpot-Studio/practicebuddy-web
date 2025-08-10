@@ -911,6 +911,96 @@ export const getStudentStandaloneAssignments = async (studentId) => {
   }
 }
 
+/**
+ * Mark an assignment as complete and persist to Firestore
+ * @param {Object} params
+ * @param {string} params.assignmentId - Assignment ID
+ * @param {string} params.assignmentType - 'class' | 'individual' | 'standalone'
+ * @param {string|null} params.classCode - Class code for class/individual assignments
+ * @param {string|null} params.studentId - Student ID (required for individual and standalone)
+ * @param {string} [params.notes] - Optional completion notes
+ */
+export const markAssignmentComplete = async ({ assignmentId, assignmentType, classCode = null, studentId = null, notes = '' }) => {
+  try {
+    const completedAt = new Date().toISOString()
+
+    if (assignmentType === 'standalone') {
+      if (!studentId) {
+        throw new Error('Student ID is required for standalone assignments')
+      }
+      const studentRef = doc(db, 'users', studentId)
+      const studentDoc = await getDoc(studentRef)
+      if (!studentDoc.exists()) {
+        throw new Error('Student not found')
+      }
+      const studentData = studentDoc.data()
+      const assignments = (studentData.assignments || []).map((a) => {
+        if (a.id === assignmentId) {
+          return { ...a, isComplete: true, completedAt, completionNotes: notes }
+        }
+        return a
+      })
+      await updateDoc(studentRef, { assignments, updatedAt: new Date().toISOString() })
+      return { success: true }
+    }
+
+    // Class-based assignments
+    if (!classCode) {
+      throw new Error('Class code is required for class-based assignments')
+    }
+
+    // Locate class doc by ID or by code
+    let classRef = doc(db, 'classes', classCode)
+    let classDoc = await getDoc(classRef)
+    if (!classDoc.exists()) {
+      const classesQuery = query(collection(db, 'classes'), where('code', '==', classCode))
+      const querySnapshot = await getDocs(classesQuery)
+      if (querySnapshot.empty) {
+        throw new Error('Class not found')
+      }
+      const foundDoc = querySnapshot.docs[0]
+      classRef = foundDoc.ref
+      classDoc = foundDoc
+    }
+
+    const classData = classDoc.data()
+
+    if (assignmentType === 'class') {
+      const updatedAssignments = (classData.assignments || []).map((a) => {
+        if (a.id === assignmentId) {
+          return { ...a, isComplete: true, completedAt, completionNotes: notes }
+        }
+        return a
+      })
+      await updateDoc(classRef, { assignments: updatedAssignments, updatedAt: new Date().toISOString() })
+      return { success: true }
+    }
+
+    if (assignmentType === 'individual') {
+      if (!studentId) {
+        throw new Error('Student ID is required for individual assignments')
+      }
+      const individualAssignments = classData.individualAssignments || {}
+      const studentAssignments = individualAssignments[studentId] || []
+      const updatedStudentAssignments = studentAssignments.map((a) => {
+        if (a.id === assignmentId) {
+          return { ...a, isComplete: true, completedAt, completionNotes: notes }
+        }
+        return a
+      })
+      individualAssignments[studentId] = updatedStudentAssignments
+      await updateDoc(classRef, { individualAssignments, updatedAt: new Date().toISOString() })
+      return { success: true }
+    }
+
+    return { success: false, error: 'Unknown assignment type' }
+  } catch (error) {
+    logError(error, 'mark-assignment-complete')
+    const errorInfo = handleFirebaseError(error, 'mark-assignment-complete')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'mark-assignment-complete')
+  }
+}
+
 
 
 /**
