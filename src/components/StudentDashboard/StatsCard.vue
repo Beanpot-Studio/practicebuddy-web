@@ -71,7 +71,6 @@
         </div>
         <div v-else class="mb-2">
           <div class="text-lg font-bold text-purple-600 mb-2">No active goal</div>
-          <p class="text-gray-600 text-sm">Set a goal to track your progress!</p>
         </div>
       </div>
     </div>

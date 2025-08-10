@@ -29,7 +29,7 @@
           @click="joinClass" 
           :disabled="!classCodeToJoin || isJoiningClass"
           :class="[
-            'btn w-full p-4 text-base font-bold flex items-center gap-2',
+            'btn w-full p-4 text-base font-bold flex items-center gap-2 bg-musical-purple',
             !classCodeToJoin || isJoiningClass ? 'opacity-50 cursor-not-allowed' : 'btn-purple'
           ]"
         >

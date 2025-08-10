@@ -434,29 +434,12 @@ const loadGoalProgress = async () => {
         currentGoal.value = null
       }
     } else {
-      // For testing - create a mock goal if no real goals exist
-      currentGoal.value = {
-        id: 'mock_goal_1',
-        title: 'Practice Piano Scales',
-        targetPracticeSessions: 10,
-        completedSessions: 4,
-        status: 'active',
-        type: 'individual',
-        reward: '🎹 Piano Master Badge'
-      }
+      // No active goals found
+      currentGoal.value = null
     }
   } catch (error) {
     console.error('Error loading goal progress:', error)
-    // For testing - create a mock goal even on error
-    currentGoal.value = {
-      id: 'mock_goal_1',
-      title: 'Practice Piano Scales',
-      targetPracticeSessions: 10,
-      completedSessions: 4,
-      status: 'active',
-      type: 'individual',
-      reward: '🎹 Piano Master Badge'
-    }
+    currentGoal.value = null
   }
 }
 
