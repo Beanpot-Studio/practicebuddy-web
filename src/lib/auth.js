@@ -1500,7 +1500,8 @@ export const createPracticeGoal = async (goalData) => {
       createdAt: new Date().toISOString(),
       status: 'active',
       progress: 0,
-      completedSessions: 0
+      completedSessions: 0,
+      minutesPerSession: Number(goalData.minutesPerSession) || 0
     }
     
     
@@ -1600,7 +1601,7 @@ export const getStudentPracticeGoals = async (studentId) => {
  * @param {string} classCode - Class code (for class goals)
  * @returns {Object} Success/error response
  */
-export const updatePracticeGoalProgress = async (studentId, goalId, goalType, classCode = null) => {
+export const updatePracticeGoalProgress = async (studentId, goalId, goalType, classCode = null, practicedMinutes = 0) => {
   try {
     
     // Find the goal in the practices collection
@@ -1630,6 +1631,12 @@ export const updatePracticeGoalProgress = async (studentId, goalId, goalType, cl
     }
     
     const goalData = goalDoc.data()
+    // Enforce minutes per session if configured
+    const requiredMinutes = Number(goalData.minutesPerSession) || 0
+    if (requiredMinutes > 0 && Number(practicedMinutes) < requiredMinutes) {
+      return { success: false, error: `Practice session must be at least ${requiredMinutes} minutes to count toward this goal.` }
+    }
+
     const updatedCompletedSessions = (goalData.completedSessions || 0) + 1
     const updatedProgress = Math.min(100, (updatedCompletedSessions / goalData.targetPracticeSessions) * 100)
     
@@ -2579,5 +2586,82 @@ export const deleteClass = async (classCode, teacherId) => {
   } catch (error) {
     console.error('Error deleting class:', error)
     return { success: false, error: error.message }
+  }
+}
+
+// Archive a practice goal (student or class scope)
+export const archivePracticeGoal = async (goalId, scope, ownerId, teacherId) => {
+  try {
+    const goalRef = doc(db, 'practices', ownerId, 'goals', goalId)
+    const goalSnap = await getDoc(goalRef)
+    if (!goalSnap.exists()) {
+      return { success: false, error: 'Goal not found' }
+    }
+    const goalData = goalSnap.data()
+    // Basic authorization: ensure same teacher who created the goal
+    if (goalData.createdBy && goalData.createdBy !== teacherId) {
+      return { success: false, error: 'You are not authorized to archive this goal' }
+    }
+    await updateDoc(goalRef, {
+      archived: true,
+      archivedAt: new Date().toISOString(),
+      archivedBy: teacherId,
+      status: 'archived',
+      updatedAt: new Date().toISOString()
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('Error archiving practice goal:', error)
+    logError(error, 'archive-practice-goal')
+    const errorInfo = handleFirebaseError(error, 'archive-practice-goal')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'archive-practice-goal')
+  }
+}
+
+// Restore an archived practice goal
+export const restorePracticeGoal = async (goalId, scope, ownerId, teacherId) => {
+  try {
+    const goalRef = doc(db, 'practices', ownerId, 'goals', goalId)
+    const goalSnap = await getDoc(goalRef)
+    if (!goalSnap.exists()) {
+      return { success: false, error: 'Goal not found' }
+    }
+    const goalData = goalSnap.data()
+    if (goalData.createdBy && goalData.createdBy !== teacherId) {
+      return { success: false, error: 'You are not authorized to restore this goal' }
+    }
+    await updateDoc(goalRef, {
+      archived: false,
+      status: 'active',
+      updatedAt: new Date().toISOString()
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('Error restoring practice goal:', error)
+    logError(error, 'restore-practice-goal')
+    const errorInfo = handleFirebaseError(error, 'restore-practice-goal')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'restore-practice-goal')
+  }
+}
+
+// Delete a practice goal permanently
+export const deletePracticeGoal = async (goalId, scope, ownerId, teacherId) => {
+  try {
+    const goalRef = doc(db, 'practices', ownerId, 'goals', goalId)
+    const goalSnap = await getDoc(goalRef)
+    if (!goalSnap.exists()) {
+      return { success: false, error: 'Goal not found' }
+    }
+    const goalData = goalSnap.data()
+    if (goalData.createdBy && goalData.createdBy !== teacherId) {
+      return { success: false, error: 'You are not authorized to delete this goal' }
+    }
+    await deleteDoc(goalRef)
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting practice goal:', error)
+    logError(error, 'delete-practice-goal')
+    const errorInfo = handleFirebaseError(error, 'delete-practice-goal')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'delete-practice-goal')
   }
 }

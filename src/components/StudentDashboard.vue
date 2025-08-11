@@ -466,7 +466,8 @@ const updateGoalProgressAndCheckCompletion = async (practiceData) => {
       currentUser.value.uid,
       currentGoal.value.id,
       currentGoal.value.type,
-      practiceData.classCode
+      practiceData.classCode,
+      Math.ceil(practiceData.actualDuration || practiceData.practiceMinutes || 0)
     )
     
     if (result.success) {
@@ -482,6 +483,9 @@ const updateGoalProgressAndCheckCompletion = async (practiceData) => {
         
         return { completed: true, goal: completedGoal }
       }
+    } else if (result.error) {
+      // Inform the student when the session didn't meet required minutes
+      showSuccessNotification('Goal Not Updated', result.error)
     }
     
     return { completed: false, goal: null }

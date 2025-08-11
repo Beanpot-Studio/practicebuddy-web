@@ -109,6 +109,20 @@
         />
       </div>
 
+      <!-- Minutes Required Per Session -->
+      <div>
+        <label class="block mb-2 font-semibold text-gray-700 text-base">Minutes Required Per Session</label>
+        <input 
+          v-model="minutesPerSession"
+          type="number"
+          min="1"
+          max="300"
+          placeholder="30"
+          class="w-full p-3.5 px-4 border-4 border-gray-200 rounded-2xl text-base font-medium shadow-[0_4px_0_rgba(0,0,0,0.1)] transition-all duration-200 focus:outline-none focus:border-purple-400 focus:shadow-[0_4px_0_rgba(0,0,0,0.1),0_0_0_4px_rgba(147,51,234,0.2)]"
+        />
+        <p class="text-xs text-gray-500 mt-1">A session only counts if the student practices at least this many minutes.</p>
+      </div>
+
       <!-- Reward -->
       <div>
         <label class="block mb-2 font-semibold text-gray-700 text-base">Reward</label>
@@ -181,6 +195,7 @@ const selectedClassCode = ref('')
 const goalTitle = ref('')
 const goalDescription = ref('')
 const targetSessions = ref(5)
+const minutesPerSession = ref(30)
 const reward = ref('')
 const dueDate = ref('')
 
@@ -198,9 +213,9 @@ const isLoadingStudents = ref(false)
 
 const isFormValid = computed(() => {
   if (goalType.value === 'individual') {
-    return selectedStudentId.value && goalTitle.value && targetSessions.value > 0 && reward.value
+    return selectedStudentId.value && goalTitle.value && targetSessions.value > 0 && minutesPerSession.value > 0 && reward.value
   } else {
-    return selectedClassCode.value && goalTitle.value && targetSessions.value > 0 && reward.value
+    return selectedClassCode.value && goalTitle.value && targetSessions.value > 0 && minutesPerSession.value > 0 && reward.value
   }
 })
 
@@ -278,6 +293,7 @@ const createGoal = async () => {
       title: goalTitle.value,
       description: goalDescription.value,
       targetPracticeSessions: parseInt(targetSessions.value),
+      minutesPerSession: parseInt(minutesPerSession.value),
       reward: reward.value,
       type: goalType.value,
       studentId: goalType.value === 'individual' ? selectedStudentId.value : null,
@@ -300,6 +316,7 @@ const createGoal = async () => {
       goalTitle.value = ''
       goalDescription.value = ''
       targetSessions.value = 5
+      minutesPerSession.value = 30
       reward.value = ''
       dueDate.value = ''
       

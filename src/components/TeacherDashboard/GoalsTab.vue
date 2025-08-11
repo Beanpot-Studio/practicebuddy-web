@@ -80,6 +80,35 @@
               >
                 Class Goal
               </span>
+              <!-- Three Dots Menu -->
+              <div class="relative">
+                <button 
+                  @click="toggleGoalMenu(goal.id)"
+                  class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Goal options"
+                >
+                  <MoreVertical class="w-4 h-4" />
+                </button>
+                <div 
+                  v-if="openMenuGoalId === goal.id"
+                  class="absolute right-0 top-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-10 min-w-40"
+                >
+                  <button 
+                    @click="archiveGoal(goal); closeGoalMenu()"
+                    class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
+                  >
+                    <Archive class="w-4 h-4" />
+                    Archive Goal
+                  </button>
+                  <button 
+                    @click="deleteGoal(goal); closeGoalMenu()"
+                    class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-lg"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                    Delete Goal
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -103,6 +132,10 @@
             <div>
               <span class="text-gray-500">Reward:</span>
               <p class="font-medium text-gray-800">{{ goal.reward }}</p>
+            </div>
+            <div v-if="goal.minutesPerSession">
+              <span class="text-gray-500">Minutes per Session:</span>
+              <p class="font-medium text-gray-800">{{ goal.minutesPerSession }} min</p>
             </div>
             <div v-if="goal.dueDate">
               <span class="text-gray-500">Due:</span>
@@ -195,12 +228,98 @@
         </div>
       </div>
     </div>
+
+    <!-- Archived Goals Section -->
+    <div v-if="archivedGoals.length > 0" class="card card-gray mt-8">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-gray-600 bg-gradient-to-br from-gray-400 to-gray-500 relative">
+          <Archive class="w-6 h-6 text-white" />
+        </div>
+        <h3 class="text-xl text-gray-800 font-bold">Archived Goals ({{ archivedGoals.length }})</h3>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Goal</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Owner</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Min/Session</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Archived Date</th>
+              <th class="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr 
+              v-for="goal in archivedGoals" 
+              :key="goal.id"
+              class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+            >
+              <td class="py-4 px-4">
+                <div>
+                  <div class="font-semibold text-gray-800">{{ goal.title }}</div>
+                  <div class="text-sm text-gray-500 truncate">{{ goal.description }}</div>
+                </div>
+              </td>
+              <td class="py-4 px-4">
+                <span 
+                  :class="[
+                    'px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 w-fit',
+                    goal.type === 'class' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-purple-100 text-purple-700'
+                  ]"
+                >
+                  <Users v-if="goal.type === 'class'" class="w-3 h-3" />
+                  <User v-else class="w-3 h-3" />
+                  {{ goal.type === 'class' ? 'Class' : 'Individual' }}
+                </span>
+              </td>
+              <td class="py-4 px-4">
+                <div class="text-gray-700">
+                  <span v-if="goal.type === 'class'">{{ goal.className || goal.classCode }}</span>
+                  <span v-else>{{ goal.studentName || goal.studentId }}</span>
+                </div>
+              </td>
+              <td class="py-4 px-4">{{ goal.minutesPerSession || '-' }}</td>
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-1 text-gray-600">
+                  <Calendar class="w-4 h-4" />
+                  <span>{{ formatDate(goal.archivedAt) }}</span>
+                </div>
+              </td>
+              <td class="py-4 px-4">
+                <div class="flex items-center justify-center gap-2">
+                  <button 
+                    @click="restoreGoal(goal)"
+                    class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-semibold hover:bg-green-200 transition-colors flex items-center gap-1"
+                    title="Restore goal"
+                  >
+                    <RotateCcw class="w-4 h-4" />
+                    <span>Restore</span>
+                  </button>
+                  <button 
+                    @click="deleteGoal(goal)"
+                    class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200 transition-colors flex items-center gap-1"
+                    title="Delete permanently"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Target, CheckCircle } from 'lucide-vue-next'
+import { Target, CheckCircle, MoreVertical, Archive, Trash2, RotateCcw, Users, User, Calendar } from 'lucide-vue-next'
 import CreatePracticeGoal from './CreatePracticeGoal.vue'
 
 const props = defineProps({
@@ -216,6 +335,8 @@ const activeGoals = ref([])
 const completedGoals = ref([])
 const isLoadingGoals = ref(false)
 const showCompletedGoals = ref(false)
+const archivedGoals = ref([])
+const openMenuGoalId = ref(null)
 
 const onGoalCreated = () => {
   // Refresh goals list
@@ -231,12 +352,10 @@ const loadGoals = async () => {
     
     if (result.success) {
       // Separate active and completed goals
-      activeGoals.value = result.goals.filter(goal => 
-        goal.status !== 'completed' && goal.status !== 'cancelled'
-      )
-      completedGoals.value = result.goals.filter(goal => 
-        goal.status === 'completed'
-      )
+      const goals = result.goals || []
+      activeGoals.value = goals.filter(goal => goal.status !== 'completed' && goal.status !== 'cancelled' && !goal.archived)
+      completedGoals.value = goals.filter(goal => goal.status === 'completed' && !goal.archived)
+      archivedGoals.value = goals.filter(goal => goal.archived || goal.status === 'archived')
     } else {
       console.error('Failed to load goals:', result.error)
       activeGoals.value = []
@@ -260,7 +379,66 @@ const formatDate = (dateString) => {
   })
 }
 
+const archiveGoal = async (goal) => {
+  try {
+    if (!confirm(`Are you sure you want to archive the goal "${goal.title}"? This will hide it from active goals but preserve all data.`)) {
+      return
+    }
+    const { archivePracticeGoal } = await import('../../lib/auth.js')
+    const scope = goal.type === 'class' ? 'class' : 'student'
+    const ownerId = scope === 'class' ? goal.classCode : goal.studentId
+    const result = await archivePracticeGoal(goal.id, scope, ownerId, props.currentUser.uid)
+    if (result.success) {
+      await loadGoals()
+    }
+  } catch (e) {
+    console.error('Failed to archive goal', e)
+  }
+}
+
+const restoreGoal = async (goal) => {
+  try {
+    if (!confirm(`Are you sure you want to restore the goal "${goal.title}" to active goals?`)) {
+      return
+    }
+    const { restorePracticeGoal } = await import('../../lib/auth.js')
+    const scope = goal.type === 'class' ? 'class' : 'student'
+    const ownerId = scope === 'class' ? goal.classCode : goal.studentId
+    const result = await restorePracticeGoal(goal.id, scope, ownerId, props.currentUser.uid)
+    if (result.success) {
+      await loadGoals()
+    }
+  } catch (e) {
+    console.error('Failed to restore goal', e)
+  }
+}
+
+const deleteGoal = async (goal) => {
+  try {
+    if (!confirm(`Are you sure you want to permanently delete the goal "${goal.title}"? This action cannot be undone.`)) {
+      return
+    }
+    const { deletePracticeGoal } = await import('../../lib/auth.js')
+    const scope = goal.type === 'class' ? 'class' : 'student'
+    const ownerId = scope === 'class' ? goal.classCode : goal.studentId
+    const result = await deletePracticeGoal(goal.id, scope, ownerId, props.currentUser.uid)
+    if (result.success) {
+      await loadGoals()
+    }
+  } catch (e) {
+    console.error('Failed to delete goal', e)
+  }
+}
+
 onMounted(() => {
   loadGoals()
 })
+
+const toggleGoalMenu = (goalId) => {
+  openMenuGoalId.value = openMenuGoalId.value === goalId ? null : goalId
+}
+
+const closeGoalMenu = () => {
+  openMenuGoalId.value = null
+}
 </script> 

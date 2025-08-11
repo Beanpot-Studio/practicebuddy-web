@@ -1,0 +1,44 @@
+---
+export interface Props {
+  title: string;
+  subtitle: string;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
+  fullWidth?: boolean;
+}
+
+const {
+  title,
+  subtitle,
+  primaryHref,
+  primaryLabel,
+  secondaryHref = "/contact",
+  secondaryLabel = "Contact Us",
+  fullWidth = false,
+} = Astro.props as Props;
+const wrapperClass = fullWidth
+  ? "w-full px-4 sm:px-6 text-center mx-auto"
+  : "container max-w-4xl mx-auto text-center";
+---
+
+<div class="py-16 bg-gradient-to-r bg-musical-purple">
+  <div class={wrapperClass}>
+    <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">{title}</h2>
+    <p class="text-xl text-white/90 mb-8">{subtitle}</p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href={primaryHref} class="btn btn-primary">{primaryLabel}</a>
+      {
+        secondaryHref && secondaryLabel && (
+          <a
+            href={secondaryHref}
+            class="btn btn-outline bg-musical-coral text-white border-0 hover:bg-white hover:text-musical-primary"
+          >
+            {secondaryLabel}
+          </a>
+        )
+      }
+    </div>
+  </div>
+</div>
