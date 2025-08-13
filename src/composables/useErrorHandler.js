@@ -21,7 +21,7 @@ export function useErrorHandler() {
 
   // Computed properties
   const hasError = computed(() => currentError.value !== null)
-  const errorMessage = computed(() => currentError.value?.message || '')
+  const errorMessage = computed(() => currentError.value?.message ?? currentError.value?.error ?? '')
   const errorCode = computed(() => currentError.value?.code || '')
   const errorContext = computed(() => currentError.value?.context || '')
   const isNetworkErrorState = computed(() => 
@@ -44,14 +44,34 @@ export function useErrorHandler() {
     // Log error for debugging
     logError(error, context)
     
-    // Process error through Firebase error handler
-    const errorInfo = handleFirebaseError(error, context)
+    let errorObject
     
-    // Create error object with additional metadata
-    const errorObject = {
-      ...errorInfo,
-      timestamp: new Date().toISOString(),
-      options
+    // If a raw message string was passed, surface it directly
+    if (typeof error === 'string') {
+      errorObject = {
+        ...createErrorResponse(error, null, context),
+        originalError: error,
+        timestamp: new Date().toISOString(),
+        options
+      }
+    } else if (error && error.success === false && typeof error.error === 'string') {
+      // If a standardized error response was passed through
+      errorObject = {
+        ...createErrorResponse(error.error, error.code, error.context || context),
+        originalError: error,
+        timestamp: new Date().toISOString(),
+        options
+      }
+    } else {
+      // Process error through Firebase error handler
+      const errorInfo = handleFirebaseError(error, context)
+      
+      // Create error object with additional metadata
+      errorObject = {
+        ...errorInfo,
+        timestamp: new Date().toISOString(),
+        options
+      }
     }
     
     // Set current error
@@ -65,7 +85,7 @@ export function useErrorHandler() {
     
     // Auto-clear error after specified time (default: 5 seconds)
     // Don't auto-clear authentication errors - let user fix them
-    const autoClearTime = options.autoClearTime || (errorInfo.code?.startsWith('auth/') ? 0 : 5000)
+    const autoClearTime = options.autoClearTime || (errorObject.code?.startsWith('auth/') ? 0 : 5000)
     if (autoClearTime > 0) {
       setTimeout(() => {
         clearError()
@@ -127,9 +147,9 @@ export function useErrorHandler() {
       const result = await asyncFn()
       return result
     } catch (error) {
-      handleError(error, context, options)
-      // Don't re-throw the error to prevent page refresh
-      return { success: false, error: error.message }
+      const handled = handleError(error, context, options)
+      // Return the handled error for callers that want to inspect it
+      return handled
     }
   }
 

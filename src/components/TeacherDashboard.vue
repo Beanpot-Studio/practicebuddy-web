@@ -744,8 +744,7 @@ const createClass = async () => {
     
     const result = await createTeacherClass(currentUser.value.uid, newClass.value)
     
-    if (result.success) {
-      console.log('Class created successfully:', result.class)
+      if (result.success) {
       
       // Reset form
       newClass.value = {
@@ -773,15 +772,13 @@ const createClass = async () => {
         updatedAt: result.class.updatedAt || new Date().toISOString() // Ensure updatedAt exists
       }
       
-      console.log('New class data to add:', newClassWithData)
+      
       
       try {
         classes.value.unshift(newClassWithData)
-        console.log('Classes array after adding:', classes.value)
         
         // Wait for DOM to update
         await nextTick()
-        console.log('DOM updated, classes count:', classes.value.length)
       } catch (error) {
         console.error('Error adding class to array:', error)
         // Fallback: reload classes if there's an error

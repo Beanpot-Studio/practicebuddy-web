@@ -181,7 +181,11 @@ export const loginTeacher = async (email, password) => {
     }
 
     if (userData.role !== USER_ROLES.TEACHER) {
-      throw new Error('This account is not registered as a teacher')
+      const role = userData.role || 'student'
+      const message = role === USER_ROLES.STUDENT
+        ? 'You are registered as a student. Please use the Student Login tab.'
+        : 'This account is not registered as a teacher.'
+      throw Object.assign(new Error(message), { code: 'auth/wrong-role' })
     }
 
     return { 
@@ -191,7 +195,12 @@ export const loginTeacher = async (email, password) => {
     }
   } catch (error) {
     logError(error, 'teacher-login')
-    const errorInfo = handleFirebaseError(error, 'teacher-login')
+    // Enhance message for provider mismatch and role mismatch guidance
+    let errorInfo = handleFirebaseError(error, 'teacher-login')
+    if (error?.code === 'auth/account-exists-with-different-credential') {
+      errorInfo.message = 'This email is linked to Google sign-in. Please use “Continue with Google” to log in as a teacher.'
+      errorInfo.code = 'auth/use-google'
+    }
     return createErrorResponse(errorInfo.message, errorInfo.code, 'teacher-login')
   }
 }
@@ -217,7 +226,11 @@ export const loginStudent = async (email, password, classCode = null) => {
     }
 
     if (userData.role !== USER_ROLES.STUDENT) {
-      throw new Error('This account is not registered as a student')
+      const role = userData.role || 'teacher'
+      const message = role === USER_ROLES.TEACHER
+        ? 'You are registered as a teacher. Please use the Teacher Login tab.'
+        : 'This account is not registered as a student.'
+      throw Object.assign(new Error(message), { code: 'auth/wrong-role' })
     }
 
     // If class code is provided, attempt to join the class
@@ -255,7 +268,11 @@ export const loginStudent = async (email, password, classCode = null) => {
     }
   } catch (error) {
     logError(error, 'student-login')
-    const errorInfo = handleFirebaseError(error, 'student-login')
+    let errorInfo = handleFirebaseError(error, 'student-login')
+    if (error?.code === 'auth/account-exists-with-different-credential') {
+      errorInfo.message = 'This email is linked to Google sign-in. Please use “Continue with Google” to log in as a student.'
+      errorInfo.code = 'auth/use-google'
+    }
     return createErrorResponse(errorInfo.message, errorInfo.code, 'student-login')
   }
 }

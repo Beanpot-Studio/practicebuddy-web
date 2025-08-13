@@ -18,6 +18,9 @@ const AUTH_ERROR_MESSAGES = {
   'auth/invalid-credential': 'Invalid email or password. Please check your credentials.',
   'auth/user-disabled': 'This account has been disabled. Please contact support.',
   'auth/account-exists-with-different-credential': 'An account already exists with the same email address but different sign-in credentials.',
+  // Friendly guidance for provider-specific sign-in
+  'auth/use-google': 'This account uses Google sign-in. Please click “Continue with Google” to log in.',
+  'auth/use-password': 'This account uses email and password. Please sign in with your email address and password.',
   
   // Password reset errors
   'auth/invalid-action-code': 'The password reset link is invalid or has expired.',
@@ -35,6 +38,7 @@ const AUTH_ERROR_MESSAGES = {
   
   // Default error
   'auth/unknown': 'An unexpected error occurred. Please try again.',
+  'auth/wrong-role': 'You attempted to log in with the wrong role. Please switch to the correct login tab and try again.',
   
   // Tab switching errors
   'tab-switch': 'Please resolve form errors before switching tabs.'
@@ -100,7 +104,6 @@ export const getFirestoreErrorMessage = (errorCode, fallbackMessage = 'A databas
  * @returns {Object} Error object with user-friendly message
  */
 export const handleFirebaseError = (error, context = 'general') => {
-  console.error(`Firebase error in ${context}:`, error)
   
   let errorCode = null
   let userMessage = 'An unexpected error occurred. Please try again.'
@@ -120,6 +123,10 @@ export const handleFirebaseError = (error, context = 'general') => {
   if (errorCode) {
     if (errorCode.startsWith('auth/')) {
       userMessage = getAuthErrorMessage(errorCode)
+      // Context-specific refinements to avoid overly generic guidance across the app
+      if ((context.includes('login') || context.includes('signin')) && errorCode === 'auth/account-exists-with-different-credential') {
+        userMessage = 'This email is linked to Google sign-in. Please click “Continue with Google” to log in.'
+      }
     } else if (errorCode.startsWith('firestore/') || errorCode in FIRESTORE_ERROR_MESSAGES) {
       userMessage = getFirestoreErrorMessage(errorCode)
     } else {

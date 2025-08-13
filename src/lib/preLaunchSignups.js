@@ -44,7 +44,6 @@ export const submitPreLaunchSignup = async (signupData) => {
     }
     
   } catch (error) {
-    console.error('Error submitting pre-launch signup:', error)
     
     // Handle specific Firebase errors
     if (error.code === 'permission-denied') {
@@ -73,7 +72,6 @@ export const getPreLaunchStats = async () => {
       students: 1000
     }
   } catch (error) {
-    console.error('Error getting pre-launch stats:', error)
     return {
       totalSignups: 0,
       musicSchools: 0,

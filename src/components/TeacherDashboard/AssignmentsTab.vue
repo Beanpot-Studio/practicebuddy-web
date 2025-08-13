@@ -436,8 +436,7 @@ const selectedClassStudents = computed(() => {
   if (!props.newAssignment.classCode) return []
   
   const selectedClass = props.classes.find(c => c.code === props.newAssignment.classCode)
-  console.log('Selected class:', selectedClass)
-  console.log('Students in class:', selectedClass?.students)
+  
   return selectedClass?.students || []
 })
 
