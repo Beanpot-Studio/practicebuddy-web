@@ -1010,8 +1010,13 @@ const getStudentName = (studentId) => {
 }
 
 const createNewAssignment = async () => {
-  if (!selectedClass.value) {
+  // Prefer class selected in the form; fall back to globally selected class
+  const classCodeToUse = newAssignment.value.classCode || selectedClass.value?.code
+  if (!classCodeToUse) {
     console.error('No class selected for assignment creation')
+    showErrorMessage.value = true
+    errorMessage.value = 'Please select a class for this assignment.'
+    setTimeout(() => { showErrorMessage.value = false }, 3000)
     return
   }
 
@@ -1020,7 +1025,7 @@ const createNewAssignment = async () => {
     
     const { createAssignment } = await import('../lib/auth.js')
     const result = await createAssignment(
-      selectedClass.value.code, 
+      classCodeToUse, 
       newAssignment.value,
       newAssignment.value.type || 'class',
       newAssignment.value.studentId || null,
@@ -1047,7 +1052,8 @@ const createNewAssignment = async () => {
         description: '',
         practiceMinutes: '',
         dueDate: '',
-        studentId: ''
+        studentId: '',
+        classCode: ''
       }
       // Refresh classes and assignments data
       await loadClasses()
