@@ -58,9 +58,9 @@
         />
 
         <!-- Class Enrollment Section - Always show to allow joining additional classes -->
-        <ClassEnrollmentCard
-          @join-class="joinClass"
-        />
+<ClassEnrollmentCard
+  @join-class="(code, done) => joinClass(code, done)"
+/>
       </div>
 
       <!-- Practice History Chart -->
@@ -111,7 +111,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { CheckCircle } from 'lucide-vue-next'
 import { instruments } from '../lib/instruments'
@@ -346,8 +346,8 @@ const loadEnrolledClasses = async () => {
     const querySnapshot = await getDocs(classesQuery)
     const enrolledClassesList = []
     
-    querySnapshot.forEach((doc) => {
-      const classData = doc.data()
+    querySnapshot.forEach((classDoc) => {
+      const classData = classDoc.data()
       // Check if this student is in the students array
       const studentData = classData.students?.find(s => 
         s.studentId === currentUser.value.uid || 
@@ -357,8 +357,8 @@ const loadEnrolledClasses = async () => {
       
       if (studentData) {
         enrolledClassesList.push({
-          id: doc.id,
-          code: classData.code,
+          id: classDoc.id,
+          code: classData.code || classDoc.id,
           name: classData.name,
           teacherName: classData.teacherName || 'Music Teacher',
           instrument: studentData?.instrument || classData.instrument,
@@ -369,6 +369,29 @@ const loadEnrolledClasses = async () => {
       }
     })
     
+    // Fallback: if nothing found but user has a classCode, fetch that class directly
+    if (enrolledClassesList.length === 0 && currentUser.value?.classCode) {
+      try {
+        const classRef = doc(db, 'classes', currentUser.value.classCode)
+        const classSnap = await getDoc(classRef)
+        if (classSnap.exists()) {
+          const classData = classSnap.data()
+          enrolledClassesList.push({
+            id: classSnap.id,
+            code: classData.code || classSnap.id,
+            name: classData.name,
+            teacherName: classData.teacherName || 'Music Teacher',
+            instrument: classData.instrument,
+            level: classData.level,
+            schedule: classData.schedule,
+            studentData: { studentId: currentUser.value.uid }
+          })
+        }
+      } catch (e) {
+        // Ignore fallback errors
+      }
+    }
+
     enrolledClasses.value = enrolledClassesList
     
     // Don't create fallback classes - let the user join properly
@@ -389,8 +412,6 @@ const loadUserPracticeStats = async () => {
       // Update the display values
       totalPracticeMinutes.value = result.practiceStats.totalPracticeMinutes || 0
       
-      // Use the calculated streak from the practice stats
-      currentStreak.value = result.practiceStats.currentStreak || 0
       
       // Calculate sticker count from practice sessions
       await calculateStickerCount()
@@ -563,7 +584,7 @@ const trackLoginActivity = async () => {
 
 // Recording functionality is now handled in PracticeTimer component
 
-const joinClass = async (classCode) => {
+const joinClass = async (classCode, done) => {
   try {
     const result = await joinClassAsStudent(
       classCode,
@@ -573,15 +594,20 @@ const joinClass = async (classCode) => {
     )
     
     if (result && result.success) {
-      // Reload the page to update the user data and show assignments
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
+      // Refresh local state instead of reloading
+      await loadEnrolledClasses()
+      await loadAssignments()
+      if (typeof done === 'function') done({ success: true })
+      return { success: true }
     } else {
-      throw new Error(result.error || 'Failed to join class. Please check your class code.')
+      const message = result?.error || 'Failed to join class. Please check your class code.'
+      if (typeof done === 'function') done({ success: false, error: message })
+      return { success: false, error: message }
     }
   } catch (error) {
-    throw error
+    const message = error?.message || 'An error occurred while joining the class.'
+    if (typeof done === 'function') done({ success: false, error: message })
+    return { success: false, error: message }
   }
 }
 

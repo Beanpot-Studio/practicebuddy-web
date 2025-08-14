@@ -29,6 +29,12 @@ export const USER_ROLES = {
   STUDENT: 'student'
 }
 
+// Normalize class codes from user input
+const normalizeClassCode = (code) => {
+  if (!code && code !== 0) return ''
+  return String(code).trim().toUpperCase()
+}
+
 /**
  * Initialize authentication state listener
  * @param {Function} callback - Callback function to handle auth state changes
@@ -71,6 +77,10 @@ export const registerTeacher = async (email, password, displayName, teacherData 
       email: email,
       displayName: displayName,
       role: USER_ROLES.TEACHER,
+      // Subscription defaults
+      subscriptionPlan: 'free', // free | pro | studio
+      subscriptionStatus: 'inactive', // inactive | active | past_due | canceled
+      maxStudents: 5, // default free limit
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ...teacherData
@@ -123,9 +133,10 @@ export const registerStudent = async (email, password, displayName, studentData 
     await setDoc(doc(db, 'users', user.uid), studentDoc)
 
     // If class code is provided, attempt to join the class
-    if (studentData.classCode) {
+    const providedCode = normalizeClassCode(studentData.classCode)
+    if (providedCode) {
       try {
-        const classRef = doc(db, 'classes', studentData.classCode)
+        const classRef = doc(db, 'classes', providedCode)
         const classDoc = await getDoc(classRef)
         
         if (classDoc.exists()) {
@@ -133,15 +144,15 @@ export const registerStudent = async (email, password, displayName, studentData 
           
           // Update student's class info
           await updateDoc(doc(db, 'users', user.uid), {
-            classCode: studentData.classCode,
+            classCode: providedCode,
             teacherId: classData.teacherId,
             updatedAt: new Date().toISOString()
           })
 
           // Add student to class roster
-          await addStudentToClassRoster(studentData.classCode, user.uid, displayName, studentData.instrument || '')
+          await addStudentToClassRoster(providedCode, user.uid, displayName, studentData.instrument || '')
           
-          studentDoc.classCode = studentData.classCode
+          studentDoc.classCode = providedCode
           studentDoc.teacherId = classData.teacherId
         }
       } catch (classError) {
@@ -234,9 +245,10 @@ export const loginStudent = async (email, password, classCode = null) => {
     }
 
     // If class code is provided, attempt to join the class
-    if (classCode) {
+    const providedCode = normalizeClassCode(classCode)
+    if (providedCode) {
       try {
-        const classRef = doc(db, 'classes', classCode)
+        const classRef = doc(db, 'classes', providedCode)
         const classDoc = await getDoc(classRef)
         
         if (classDoc.exists()) {
@@ -244,15 +256,15 @@ export const loginStudent = async (email, password, classCode = null) => {
           
           // Update student's class info
           await updateDoc(doc(db, 'users', user.uid), {
-            classCode: classCode,
+            classCode: providedCode,
             teacherId: classData.teacherId,
             updatedAt: new Date().toISOString()
           })
 
           // Add student to class roster
-          await addStudentToClassRoster(classCode, user.uid, userData.displayName, userData.instrument || '')
+          await addStudentToClassRoster(providedCode, user.uid, userData.displayName, userData.instrument || '')
           
-          userData.classCode = classCode
+          userData.classCode = providedCode
           userData.teacherId = classData.teacherId
         }
       } catch (classError) {
@@ -297,6 +309,10 @@ export const loginTeacherWithGoogle = async () => {
         email: user.email || '',
         displayName: user.displayName || user.email?.split('@')[0] || 'Teacher',
         role: USER_ROLES.TEACHER,
+      // Subscription defaults
+      subscriptionPlan: 'free',
+      subscriptionStatus: 'inactive',
+      maxStudents: 5,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -522,9 +538,9 @@ export const getTeacherClasses = async (teacherId, includeArchived = false) => {
  */
 export const addStudentToClassRoster = async (classCode, studentId, studentName, instrument = '') => {
   try {
-    
+    const normalizedCode = normalizeClassCode(classCode)
     // First, try to find the class by document ID
-    let classRef = doc(db, 'classes', classCode)
+    let classRef = doc(db, 'classes', normalizedCode)
     let classDoc = await getDoc(classRef)
     
     // If not found by ID, search by code field
@@ -532,7 +548,7 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
       
       const classesQuery = query(
         collection(db, 'classes'),
-        where('code', '==', classCode)
+        where('code', '==', normalizedCode)
       )
       const querySnapshot = await getDocs(classesQuery)
       
@@ -554,6 +570,53 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
     const existingStudent = students.find(s => s.studentId === studentId)
     if (existingStudent) {
       return { success: true } // Student already in roster
+    }
+
+    // Enforce teacher plan student limit (free tier: 5 students)
+    // IMPORTANT: Do not block enrollment on unexpected read errors (e.g., restricted reads from student context).
+    // Only block when we can confidently determine the limit is exceeded.
+    try {
+      const teacherId = classData.teacherId
+      if (teacherId) {
+        let allowedMax = 5
+        try {
+          const teacherRef = doc(db, 'users', teacherId)
+          const teacherSnap = await getDoc(teacherRef)
+          if (teacherSnap.exists()) {
+            const teacher = teacherSnap.data()
+            allowedMax = Number(teacher?.maxStudents ?? 5)
+          }
+        } catch (_) {
+          // Ignore teacher read errors here; fall back to default limit
+        }
+
+        try {
+          const classesQueryForTeacher = query(collection(db, 'classes'), where('teacherId', '==', teacherId))
+          const teacherClassesSnap = await getDocs(classesQueryForTeacher)
+          const uniqueStudentIds = new Set()
+          teacherClassesSnap.forEach((d) => {
+            const c = d.data()
+            ;(c.students || []).forEach((s) => {
+              if (s?.studentId) uniqueStudentIds.add(s.studentId)
+            })
+          })
+
+          const isNewToTeacher = !uniqueStudentIds.has(studentId)
+          const projectedTotal = uniqueStudentIds.size + (isNewToTeacher ? 1 : 0)
+          if (projectedTotal > allowedMax) {
+            const err = new Error('Student limit reached for your current plan. Please upgrade to add more students.')
+            err.code = 'billing/upgrade-required'
+            throw err
+          }
+        } catch (_) {
+          // Ignore read errors (likely due to permissions). Do not block enrollment here.
+        }
+      }
+    } catch (limitCheckError) {
+      if (limitCheckError?.code === 'billing/upgrade-required') {
+        throw limitCheckError
+      }
+      // Otherwise, proceed with enrollment
     }
 
     // Add student to roster

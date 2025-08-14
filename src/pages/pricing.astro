@@ -1,6 +1,9 @@
 ---
 import Layout from "../components/Layout.astro";
 import CtaSection from "../components/CtaSection.astro";
+// Stripe Pricing Table environment variables (must be prefixed with PUBLIC_ to be exposed to the client)
+const publishableKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const pricingTableId = import.meta.env.PUBLIC_STRIPE_PRICING_TABLE_ID;
 ---
 
 <Layout title="Pricing - Practice Buddy">
@@ -25,84 +28,32 @@ import CtaSection from "../components/CtaSection.astro";
       </div>
     </div>
 
-    <!-- Pricing Plans -->
+    <!-- Pricing Table (Stripe) -->
     <div class="py-16">
-      <div class="container max-w-7xl mx-auto">
-        <div class="grid lg:grid-cols-3 gap-8">
-          <!-- Free Plan -->
-          <div class="card text-center">
-            <div class="mb-6">
-              <h3 class="text-2xl font-bold text-musical-graphite mb-2">
-                Free
+      <div class="container max-w-7xl mx-auto px-4">
+        <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+        {
+          publishableKey && pricingTableId ? (
+            <stripe-pricing-table
+              pricing-table-id={pricingTableId}
+              publishable-key={publishableKey}
+            />
+          ) : (
+            <div class="card text-center">
+              <h3 class="text-2xl font-bold text-musical-graphite mb-3">
+                Subscriptions coming soon
               </h3>
-              <p class="text-musical-graphite/70">
-                For up to five students.Perfect for getting started
+              <p class="text-musical-graphite/70 mb-6">
+                The Stripe pricing table isn’t configured. Set{" "}
+                <code>PUBLIC_STRIPE_PUBLISHABLE_KEY</code> and{" "}
+                <code>PUBLIC_STRIPE_PRICING_TABLE_ID</code>.
               </p>
+              <a href="/" class="btn btn-outline w-full">
+                Get Started Free
+              </a>
             </div>
-
-            <div class="mb-8">
-              <div class="text-4xl font-bold text-musical-graphite mb-2">
-                $0
-              </div>
-              <p class="text-musical-graphite/70">Forever free</p>
-            </div>
-
-            <a href="/" class="btn btn-outline w-full">Get Started Free</a>
-          </div>
-
-          <!-- Pro Plan -->
-          <div
-            class="card text-center border-4 border-musical-primary relative"
-          >
-            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span
-                class="bg-musical-primary text-white px-4 py-2 rounded-full text-sm font-semibold"
-                >Most Popular</span
-              >
-            </div>
-
-            <div class="mb-6">
-              <h3 class="text-2xl font-bold text-musical-graphite mb-2">Pro</h3>
-              <p class="text-musical-graphite/70">
-                For up to 10 students. Perfect for growing studios
-              </p>
-            </div>
-
-            <div class="mb-8">
-              <div class="text-4xl font-bold text-musical-graphite mb-2">
-                $9.99
-              </div>
-              <p class="text-musical-graphite/70">per month or $100/year</p>
-            </div>
-
-            <a href="/" class="btn btn-primary w-full">Purchase Pro</a>
-          </div>
-
-          <!-- Studio Plan -->
-          <div class="card text-center">
-            <div class="mb-6">
-              <h3 class="text-2xl font-bold text-musical-graphite mb-2">
-                Studio
-              </h3>
-              <p class="text-musical-graphite/70">
-                For 10+ students. Great for larger music schools or programs.
-              </p>
-            </div>
-
-            <div class="mb-8">
-              <div class="text-4xl font-bold text-musical-graphite mb-2">
-                $24.99
-              </div>
-              <p class="text-musical-graphite/70">per month or $200/year</p>
-            </div>
-
-            <a
-              href="/"
-              class="btn bg-musical-coral text-white btn-outline w-full"
-              >Purchase Studio Plan</a
-            >
-          </div>
-        </div>
+          )
+        }
       </div>
     </div>
 
@@ -129,15 +80,7 @@ import CtaSection from "../components/CtaSection.astro";
             </p>
           </div>
 
-          <div class="card">
-            <h3 class="text-xl font-semibold text-musical-graphite mb-3">
-              Is there a setup fee?
-            </h3>
-            <p class="text-musical-graphite/70">
-              No setup fees! All plans include a 14-day free trial to get you
-              started.
-            </p>
-          </div>
+         
 
           <div class="card">
             <h3 class="text-xl font-semibold text-musical-graphite mb-3">

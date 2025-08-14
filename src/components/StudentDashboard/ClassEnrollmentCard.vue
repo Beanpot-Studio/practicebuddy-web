@@ -74,19 +74,17 @@ const joinClass = async () => {
   joinClassSuccess.value = ''
   
   try {
-    const result = await emit('join-class', classCodeToJoin.value.trim())
-    
-    if (result && result.success) {
-      joinClassSuccess.value = 'Successfully joined the class!'
-      classCodeToJoin.value = ''
-      
-      // Reload the page to update the user data and show assignments
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
-    } else {
-      joinClassError.value = result.error || 'Failed to join class. Please check your class code.'
-    }
+    // Use a callback so the parent can report actual success/failure
+    emit('join-class', classCodeToJoin.value.trim(), (result) => {
+      if (result && result.success) {
+        joinClassSuccess.value = 'Successfully joined the class!'
+        joinClassError.value = ''
+        classCodeToJoin.value = ''
+      } else {
+        joinClassSuccess.value = ''
+        joinClassError.value = result?.error || 'Failed to join class. Please check your class code.'
+      }
+    })
   } catch (error) {
     console.error('Error joining class:', error)
     joinClassError.value = 'An error occurred while joining the class. Please try again.'
