@@ -28,6 +28,11 @@
             {{ localIsLoading ? 'Logging out...' : 'Logout' }}
           </button>
         </div>
+        
+        <!-- Logged-out UI -->
+        <div v-else class="flex items-center gap-3">
+          <a href="/" class="btn btn-sm bg-musical-purple text-gray-200 border-yellow-600 hover:text-gray-800 hover:bg-yellow-50 hover:border-yellow-500">Login</a>
+        </div>
       </div>
     </div>
   </header>

@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-musical-primary py-5">
     <div class="container">
       <!-- Header Section -->
-      <StudentHeader :student-name="studentName" />
+      <StudentHeader :student-name="studentName" :instrument="currentUser?.instrument || ''" />
 
       <!-- Stats Card - Full Width -->
       <StatsCard 

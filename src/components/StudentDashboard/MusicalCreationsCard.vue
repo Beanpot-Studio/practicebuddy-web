@@ -72,9 +72,6 @@
             <div class="flex-1">
               <AudioWaveform 
                 :cloudinary-url="getRecordingUrl(session)"
-                @play="onWaveformPlay"
-                @pause="onWaveformPause"
-                @error="onWaveformError"
               />
             </div>
           </div>
@@ -239,6 +236,8 @@ const playRecording = (recording, sessionId) => {
     // Create new audio element and play
     const audio = new Audio(recording)
     audio.crossOrigin = 'anonymous' // Enable CORS for Cloudinary URLs
+    audio.preload = 'auto'
+    audio.setAttribute('playsinline', 'true')
     
     audio.addEventListener('error', (error) => {
       currentPlayingAudio.value = null
@@ -260,9 +259,11 @@ const playRecording = (recording, sessionId) => {
       // The timeupdate event will handle progress updates automatically
       
     }).catch((error) => {
+      console.error('Autoplay prevented or playback failed:', error)
     })
     
   } catch (error) {
+    console.error('Playback error:', error)
   }
 }
 

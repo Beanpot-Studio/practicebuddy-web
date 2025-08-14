@@ -1,15 +1,38 @@
 <template>
   <div class="text-center mb-10 text-white flex flex-col items-center gap-4">
-    <h2 class="text-3xl font-bold text-shadow-lg text-musical-graphite">Hey {{ studentName }}! Ready to make some music?</h2>
-    <p class="text-lg opacity-95 font-medium text-musical-graphite">Track your practice time and collect stickers!</p>
+    <div class="flex items-center gap-3">
+      <img 
+        v-if="instrument"
+        :src="`/instruments/${instrumentImage}`" 
+        :alt="instrumentName"
+        class="w-10 h-10 rounded-full bg-white p-1 border-2 border-gray-200 shadow-sm object-contain"
+      />
+      <h2 class="text-3xl font-bold text-shadow-lg text-musical-graphite">
+        Hey {{ studentName }}! Ready to make some music?
+      </h2>
+    </div>
+    <p class="text-lg opacity-95 font-medium text-musical-graphite">
+      Track your practice time and collect stickers!
+    </p>
   </div>
+  
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+import { getInstrumentImage, getInstrumentName } from '../../lib/instruments'
+
+const props = defineProps({
   studentName: {
     type: String,
     default: 'Student'
+  },
+  instrument: {
+    type: String,
+    default: ''
   }
 })
+
+const instrumentImage = computed(() => getInstrumentImage(props.instrument))
+const instrumentName = computed(() => getInstrumentName(props.instrument))
 </script> 
