@@ -266,6 +266,9 @@
           <Plus class="w-6 h-6 text-white" />
         </div>
         <h3 class="text-lg text-gray-800 font-bold">Create New Class</h3>
+        <div class="ml-auto text-sm text-gray-500">
+          {{ classes.length }} classes created
+        </div>
       </div>
       
       <form @submit.prevent="$emit('createClass')" >
@@ -467,8 +470,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { instruments, getInstrumentImage, getInstrumentName } from '../../lib/instruments'
+import { getPlanLimits, handleSubscriptionUpgrade } from '../../lib/stripe.js'
 import { 
   Plus, 
   Music, 
@@ -485,7 +489,8 @@ import {
   RotateCcw,
   Calendar,
   Users,
-  BookOpen
+  BookOpen,
+  AlertTriangle
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -512,10 +517,20 @@ const props = defineProps({
   isCreatingClass: {
     type: Boolean,
     default: false
+  },
+  currentUser: {
+    type: Object,
+    default: null
   }
 })
 
 const emit = defineEmits(['createClass', 'update:newClass', 'loadClasses', 'selectClass', 'copyClassCode', 'sendEmail', 'archiveClass', 'deleteClass', 'viewClassDetails', 'restoreClass', 'navigateToRoster', 'navigateToAssignments'])
+
+// Plan info for display purposes
+const currentPlan = computed(() => {
+  const subscriptionPlan = props.currentUser?.subscriptionPlan || 'free'
+  return getPlanLimits(subscriptionPlan)
+})
 
 const showInstrumentDropdown = ref(false)
 const openMenuClassCode = ref(null)

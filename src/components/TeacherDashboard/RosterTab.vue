@@ -1,14 +1,21 @@
 <template>
   <div class="animate-fadeIn">
-    <!-- Roster Header -->
-    <div class="card">
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-orange-600 bg-gradient-to-br from-orange-400 to-orange-500 relative">
-            <Users class="w-6 h-6 text-white" />
+          <!-- Roster Header -->
+      <div class="card">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-orange-600 bg-gradient-to-br from-orange-400 to-orange-500 relative">
+              <Users class="w-6 h-6 text-white" />
+            </div>
+                          <div>
+                <h3 class="text-xl text-gray-800 font-bold">Student Roster</h3>
+                <p v-if="currentUser" class="text-sm text-gray-600">
+                  {{ totalStudentCount }} students
+                  <span v-if="currentPlan.maxStudents !== null">({{ currentPlan.maxStudents }} limit)</span>
+                  <span v-else>(unlimited)</span>
+                </p>
+              </div>
           </div>
-          <h3 class="text-xl text-gray-800 font-bold">Student Roster</h3>
-        </div>
         
         <!-- Class Filter and Sort Controls -->
         <div class="flex items-center gap-3">
@@ -51,10 +58,10 @@
               <ArrowUpDown class="w-4 h-4" />
             </button>
           </div>
+                  </div>
         </div>
-      </div>
       
-
+      
       
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-12">
@@ -217,9 +224,11 @@ import {
   Copy,
   User,
   BookOpen,
-  ArrowUpDown
+  ArrowUpDown,
+  AlertTriangle
 } from 'lucide-vue-next'
 import { getInstrumentImage, getInstrumentName } from '../../lib/instruments'
+import { getPlanLimits } from '../../lib/stripe.js'
 
 const props = defineProps({
   classes: {
@@ -241,6 +250,10 @@ const props = defineProps({
   studentGoals: {
     type: Object,
     default: () => ({})
+  },
+  currentUser: {
+    type: Object,
+    default: null
   }
 })
 
@@ -522,4 +535,7 @@ const getStudentCompletedAssignments = (studentId) => {
   
   return completedAssignments
 }
+
+
+
 </script> 

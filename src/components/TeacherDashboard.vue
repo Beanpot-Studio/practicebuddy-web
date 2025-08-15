@@ -12,7 +12,27 @@
             <p class="text-black/80">Welcome back, {{ currentUser?.displayName || 'Teacher' }}!</p>
           </div>
         </div>
-      
+      </div>
+      <!-- Upgrade Alert Notice -->
+      <div v-if="showRosterUpgradeAlert" class="mb-6 p-4 bg-orange-100 border-2 border-orange-400 rounded-xl text-orange-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-orange-600 bg-gradient-to-br from-orange-400 to-orange-500 relative">
+            <span class="text-white font-bold">!</span>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-semibold mb-1 text-lg">Upgrade Required</h4>
+            <p class="text-orange-700">
+              You've exceeded your limit for your current plan. 
+              <strong>Upgrade now</strong> to continue adding students to your music program.
+            </p>
+          </div>
+                      <button 
+              @click="goToPricing"
+              class="px-6 py-3 bg-orange-600 text-white rounded-xl text-sm font-semibold hover:bg-orange-700 transition-colors whitespace-nowrap"
+            >
+              Upgrade Plan
+            </button>
+        </div>
       </div>
 
       <!-- Success/Error Messages -->
@@ -114,6 +134,7 @@
           :error="classesError"
           :class-assignments="classAssignments"
           :student-goals="studentGoals"
+          :current-user="currentUser"
           @load-classes="loadClasses"
           @view-student-details="viewStudentDetails"
           @create-individual-assignment="createIndividualAssignment"
@@ -128,6 +149,7 @@
           :error="classesError"
           :new-class="newClass"
           :is-creating-class="isCreatingClass"
+          :current-user="currentUser"
           @create-class="createClass"
           @update:new-class="newClass = $event"
           @load-classes="loadClasses"
@@ -303,7 +325,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { getInstrumentName } from '../lib/instruments'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
@@ -352,6 +374,50 @@ const showSuccessMessage = ref(false)
 const successMessage = ref('')
 const showErrorMessage = ref(false)
 const errorMessage = ref('')
+
+// Upgrade alert logic
+const showRosterUpgradeAlert = computed(() => {
+  console.log('Checking upgrade alert:', {
+    hasUser: !!currentUser.value,
+    userPlan: currentUser.value?.subscriptionPlan,
+    classesCount: classes.value.length,
+    classes: classes.value
+  })
+  
+  if (!currentUser.value || !classes.value.length) {
+    console.log('No user or classes, returning false')
+    return false
+  }
+  
+  // Count total enrollments across all classes (one student in multiple classes = multiple enrollments)
+  let totalEnrollments = 0
+  classes.value.forEach(classItem => {
+    console.log('Processing class:', classItem.name, 'students:', classItem.students)
+    if (classItem.students && Array.isArray(classItem.students)) {
+      totalEnrollments += classItem.students.length
+    }
+  })
+  
+  const totalStudents = totalEnrollments
+  const subscriptionPlan = currentUser.value.subscriptionPlan || 'free'
+  
+  console.log('Upgrade check:', {
+    totalEnrollments: totalStudents,
+    subscriptionPlan,
+    shouldShow: (subscriptionPlan === 'free' && totalStudents > 5) || (subscriptionPlan === 'pro' && totalStudents > 10)
+  })
+  
+  // Check if exceeded limit based on plan
+  if (subscriptionPlan === 'free' && totalStudents > 5) return true
+  if (subscriptionPlan === 'pro' && totalStudents > 10) return true
+  
+  return false
+})
+
+// Navigation function
+const goToPricing = () => {
+  window.location.href = '/pricing'
+}
 
 // Feedback functions
 const giveSticker = async (practiceId, studentId, stickerType, message = '') => {

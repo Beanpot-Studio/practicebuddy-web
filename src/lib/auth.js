@@ -81,6 +81,7 @@ export const registerTeacher = async (email, password, displayName, teacherData 
       subscriptionPlan: 'free', // free | pro | studio
       subscriptionStatus: 'inactive', // inactive | active | past_due | canceled
       maxStudents: 5, // default free limit
+      maxClasses: null, // unlimited classes for all plans
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ...teacherData

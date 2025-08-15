@@ -28,9 +28,206 @@ const pricingTableId = import.meta.env.PUBLIC_STRIPE_PRICING_TABLE_ID;
       </div>
     </div>
 
-    <!-- Pricing Table (Stripe) -->
+    <!-- Plan Comparison -->
     <div class="py-16">
-      <div class="container max-w-7xl mx-auto px-4">
+      <div class="container max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-musical-graphite mb-4">
+            Simple, Student-Based Pricing
+          </h2>
+          <p class="text-lg text-musical-graphite/80">
+            Pay only for the number of students you teach. Classes are unlimited
+            on all plans.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+          <!-- Free Plan -->
+          <div
+            class="bg-white rounded-3xl p-8 shadow-lg border-2 border-gray-200 text-center"
+          >
+            <div
+              class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <span class="text-2xl font-bold text-green-600">5</span>
+            </div>
+            <h3 class="text-xl font-bold text-musical-graphite mb-2">
+              Free Plan
+            </h3>
+            <p class="text-musical-graphite/70 mb-4">
+              Perfect for getting started
+            </p>
+            <div class="text-3xl font-bold text-musical-graphite mb-6">
+              $0<span class="text-lg font-normal text-musical-graphite/70"
+                >/month</span
+              >
+            </div>
+            <ul class="text-left space-y-3 mb-8">
+              <li class="flex items-center gap-2">
+                <span
+                  class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    class="w-3 h-3 text-green-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                Up to 5 students
+              </li>
+              <li class="flex items-center gap-2">
+                <span
+                  class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    class="w-3 h-3 text-green-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                Unlimited classes
+              </li>
+            </ul>
+          </div>
+
+          <!-- Pro Plan -->
+          <div
+            class="bg-white rounded-3xl p-8 shadow-lg border-2 border-blue-500 text-center relative"
+          >
+            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span
+                class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold"
+                >Most Popular</span
+              >
+            </div>
+            <div
+              class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <span class="text-2xl font-bold text-blue-600">10</span>
+            </div>
+            <h3 class="text-xl font-bold text-musical-graphite mb-2">
+              Pro Plan
+            </h3>
+            <p class="text-musical-graphite/70 mb-4">Growing music studios</p>
+            <div class="text-3xl font-bold text-musical-graphite mb-6">
+              $9.99<span class="text-lg font-normal text-musical-graphite/70"
+                >/month</span
+              >
+            </div>
+            <ul class="text-left space-y-3 mb-8">
+              <li class="flex items-center gap-2">
+                <span
+                  class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    class="w-3 h-3 text-blue-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                6-10 students
+              </li>
+              <li class="flex items-center gap-2">
+                <span
+                  class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    class="w-3 h-3 text-blue-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                Unlimited classes
+              </li>
+            </ul>
+          </div>
+
+          <!-- Studio Plan -->
+          <div
+            class="bg-white rounded-3xl p-8 shadow-lg border-2 border-purple-500 text-center"
+          >
+            <div
+              class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <span class="text-2xl font-bold text-purple-600">∞</span>
+            </div>
+            <h3 class="text-xl font-bold text-musical-graphite mb-2">
+              Studio Plan
+            </h3>
+            <p class="text-musical-graphite/70 mb-4">Large studios & schools</p>
+            <div class="text-3xl font-bold text-musical-graphite mb-6">
+              $24.99<span class="text-lg font-normal text-musical-graphite/70"
+                >/month</span
+              >
+            </div>
+            <ul class="text-left space-y-3 mb-8">
+              <li class="flex items-center gap-2">
+                <span
+                  class="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    class="w-3 h-3 text-purple-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                11+ students (unlimited)
+              </li>
+              <li class="flex items-center gap-2">
+                <span
+                  class="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center"
+                >
+                  <svg
+                    class="w-3 h-3 text-purple-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                Unlimited classes
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-musical-graphite mb-2">
+            Ready to upgrade?
+          </h3>
+          <p class="text-musical-graphite/70">
+            Use our secure checkout below to manage your subscription
+          </p>
+        </div>
+
         <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
         {
           publishableKey && pricingTableId ? (
@@ -79,9 +276,16 @@ const pricingTableId = import.meta.env.PUBLIC_STRIPE_PRICING_TABLE_ID;
               take effect immediately.
             </p>
           </div>
-
-         
-
+          <div class="card">
+            <h3 class="text-xl font-semibold text-musical-graphite mb-3">
+              How is student enrollment calculated?
+            </h3>
+            <p class="text-musical-graphite/70">
+              We calculate the number of students based on the number of
+              students you teach per class. If the same student is enrolled in
+              multiple classes, we count each enrollment as a student.
+            </p>
+          </div>
           <div class="card">
             <h3 class="text-xl font-semibold text-musical-graphite mb-3">
               What payment methods do you accept?
@@ -110,9 +314,7 @@ const pricingTableId = import.meta.env.PUBLIC_STRIPE_PRICING_TABLE_ID;
       title="Ready to Get Started?"
       subtitle="Join thousands of music teachers who are already using Practice Buddy."
       primaryHref="/"
-      primaryLabel="Sign Up for Free"
-      secondaryHref="/contact"
-      secondaryLabel="Contact Sales"
+      primaryLabel="Sign up for Free"
       fullWidth={true}
     />
   </div>
