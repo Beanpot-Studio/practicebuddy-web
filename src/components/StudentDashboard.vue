@@ -57,18 +57,19 @@
         
         <!-- Practice Timer Card (replaces practice card when active) -->
         <PracticeTimer
-          v-if="showTimer"
+          v-if="showTimer && currentUser?.uid"
           :practice-data="currentPracticeData"
           :total-time="practiceTime"
-          :user-id="currentUser?.uid"
+          :user-id="currentUser.uid"
           @session-complete="onSessionComplete"
           @session-cancelled="onSessionCancelled"
         />
 
         <!-- Your Practice Sessions Card -->
         <MusicalCreationsCard
+          v-if="currentUser?.uid"
           ref="musicalCreationsCard"
-          :user-id="currentUser?.uid"
+          :user-id="currentUser.uid"
         />
       </div>
 
@@ -92,8 +93,8 @@
       </div>
 
       <!-- Practice History Chart -->
-      <div class="mb-8">
-        <PracticeHistoryChart :user-id="currentUser?.uid" />
+      <div v-if="currentUser?.uid" class="mb-8">
+        <PracticeHistoryChart :user-id="currentUser.uid" />
       </div>
 
 
