@@ -4,6 +4,34 @@
       <!-- Header Section -->
       <StudentHeader :student-name="studentName" :instrument="currentUser?.instrument || ''" />
 
+      <!-- Billing Upgrade Required Alert -->
+      <div v-if="showBillingUpgradeAlert" class="mb-6 p-4 bg-orange-100 border-2 border-orange-400 rounded-xl text-orange-800 animate-fadeIn relative">
+        <button 
+          @click="clearBillingAlert"
+          class="absolute top-3 right-3 text-orange-600 hover:text-orange-800 transition-colors"
+          title="Close alert"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-[0_4px_0_rgba(0,0,0,0.2)] border-2 border-orange-600 bg-gradient-to-br from-orange-400 to-orange-500 relative">
+            <span class="text-white font-bold">!</span>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-semibold mb-1 text-lg">Class Full - Teacher Upgrade Required</h4>
+            <p class="text-orange-700">
+              The teacher you're trying to join has reached their student limit and needs to upgrade their plan. 
+              <strong>You can still create your account and practice independently</strong> while waiting for the teacher to upgrade.
+            </p>
+            <p class="text-orange-600 text-sm mt-2">
+              💡 <strong>What you can do:</strong> Contact the teacher to let them know they need to upgrade, or try joining a different class.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Stats Card - Full Width -->
       <StatsCard 
         :total-practice-minutes="totalPracticeMinutes"
@@ -146,6 +174,16 @@ const {
   getTeacherClasses,
   getClassData // Fixed: use getClassData instead of fetchClassData
 } = useAuth()
+
+// Billing upgrade alert state
+const showBillingUpgradeAlert = ref(false)
+const billingUpgradeMessage = ref('')
+
+// Function to clear billing alert
+const clearBillingAlert = () => {
+  showBillingUpgradeAlert.value = false
+  billingUpgradeMessage.value = ''
+}
 
 const totalPracticeMinutes = ref(0)
 // Replaced streak with assignment metrics
@@ -339,8 +377,6 @@ const loadEnrolledClasses = async () => {
   if (!currentUser.value?.uid) return
   
   try {
-
-    
     // Query all classes and filter for those containing this student
     const classesQuery = query(collection(db, 'classes'))
     const querySnapshot = await getDocs(classesQuery)
@@ -369,33 +405,10 @@ const loadEnrolledClasses = async () => {
       }
     })
     
-    // Fallback: if nothing found but user has a classCode, fetch that class directly
-    if (enrolledClassesList.length === 0 && currentUser.value?.classCode) {
-      try {
-        const classRef = doc(db, 'classes', currentUser.value.classCode)
-        const classSnap = await getDoc(classRef)
-        if (classSnap.exists()) {
-          const classData = classSnap.data()
-          enrolledClassesList.push({
-            id: classSnap.id,
-            code: classData.code || classSnap.id,
-            name: classData.name,
-            teacherName: classData.teacherName || 'Music Teacher',
-            instrument: classData.instrument,
-            level: classData.level,
-            schedule: classData.schedule,
-            studentData: { studentId: currentUser.value.uid }
-          })
-        }
-      } catch (e) {
-        // Ignore fallback errors
-      }
-    }
+    // Removed fallback mechanism - students should only see classes they're actually enrolled in
+    // If a student has a classCode but no enrolled classes, they need to properly join the class
 
     enrolledClasses.value = enrolledClassesList
-    
-    // Don't create fallback classes - let the user join properly
-    // If student has a classCode but no enrolled classes found, they need to join
   } catch (error) {
     console.error('Error loading enrolled classes:', error)
     enrolledClasses.value = []
@@ -594,17 +607,37 @@ const joinClass = async (classCode, done) => {
     )
     
     if (result && result.success) {
+      // Hide billing alert on success
+      showBillingUpgradeAlert.value = false
+      billingUpgradeMessage.value = ''
+      
       // Refresh local state instead of reloading
       await loadEnrolledClasses()
       await loadAssignments()
       if (typeof done === 'function') done({ success: true })
       return { success: true }
     } else {
+      // Check if this is a billing upgrade error
+      if (result?.code === 'billing/upgrade-required') {
+        showBillingUpgradeAlert.value = true
+        billingUpgradeMessage.value = result.error
+      } else {
+        showBillingUpgradeAlert.value = false
+      }
+      
       const message = result?.error || 'Failed to join class. Please check your class code.'
       if (typeof done === 'function') done({ success: false, error: message })
       return { success: false, error: message }
     }
   } catch (error) {
+    // Check if this is a billing upgrade error
+    if (error?.code === 'billing/upgrade-required') {
+      showBillingUpgradeAlert.value = true
+      billingUpgradeMessage.value = error.message
+    } else {
+      showBillingUpgradeAlert.value = false
+    }
+    
     const message = error?.message || 'An error occurred while joining the class.'
     if (typeof done === 'function') done({ success: false, error: message })
     return { success: false, error: message }
@@ -667,7 +700,7 @@ const loadAssignments = async () => {
     // Load assignments for each enrolled class
     for (const classItem of enrolledClasses.value) {
       // Get the class data which contains assignments arrays
-      const classResult = await getClassData(classItem.code)
+      const classResult = await getClassData(classItem.code, currentUser.value.uid)
       if (classResult.success && classResult.class) {
         const classData = classResult.class
         
@@ -735,5 +768,9 @@ onMounted(async () => {
   await trackLoginActivity()
   await loadUserPracticeStats() // Load practice stats on mount
   await loadGoalProgress() // Load goal progress on mount
+  
+  // Clear any billing alerts on mount
+  showBillingUpgradeAlert.value = false
+  billingUpgradeMessage.value = ''
 })
 </script>

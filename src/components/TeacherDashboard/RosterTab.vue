@@ -9,11 +9,7 @@
             </div>
                           <div>
                 <h3 class="text-xl text-gray-800 font-bold">Student Roster</h3>
-                <p v-if="currentUser" class="text-sm text-gray-600">
-                  {{ totalStudentCount }} students
-                  <span v-if="currentPlan.maxStudents !== null">({{ currentPlan.maxStudents }} limit)</span>
-                  <span v-else>(unlimited)</span>
-                </p>
+                
               </div>
           </div>
         

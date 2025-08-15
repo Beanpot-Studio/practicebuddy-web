@@ -894,9 +894,20 @@ const loginStudent = async () => {
     isStudentLoginLoading.value = true
     clearError()
     
-    const result = await loginStudentAccount(studentForm.value.email, studentForm.value.password, studentForm.value.classCode)
+    const result = await loginStudentAccount(
+      studentForm.value.email,
+      studentForm.value.password,
+      studentForm.value.classCode
+    )
     
     if (result.success) {
+      // Check if there was a class enrollment issue
+      if (result.classEnrollmentError) {
+        // Show success message for login but warn about class enrollment
+        handleError(`Login successful! However, ${result.classEnrollmentError}`)
+        return
+      }
+      
       // Emit login event to parent component
       emit('login', { 
         user: result.user, 
@@ -915,10 +926,20 @@ const loginStudentWithGoogle = async () => {
   await executeWithErrorHandling(async () => {
     isStudentLoginLoading.value = true
     clearError()
-    const result = await loginStudentWithGoogleAccount(studentForm.value.classCode || null)
+    
+    const result = await loginStudentWithGoogleAccount(studentForm.value.classCode)
+    
     if (result.success) {
-      emit('login', {
-        user: result.user,
+      // Check if there was a class enrollment issue
+      if (result.classEnrollmentError) {
+        // Show success message for login but warn about class enrollment
+        handleError(`Login successful! However, ${result.classEnrollmentError}`)
+        return
+      }
+      
+      // Emit login event to parent component
+      emit('login', { 
+        user: result.user, 
         userData: result.userData,
         role: 'student'
       })
@@ -954,6 +975,13 @@ const registerStudent = async () => {
     )
     
     if (result.success) {
+      // Check if there was a class enrollment issue
+      if (result.classEnrollmentError) {
+        // Show success message for account creation but warn about class enrollment
+        handleError(`Account created successfully! However, ${result.classEnrollmentError}`)
+        return
+      }
+      
       registrationSuccess.value = true
       studentRegisterForm.value = {
         email: '',

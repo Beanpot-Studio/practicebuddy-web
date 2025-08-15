@@ -539,7 +539,7 @@ const loadStudentsForClasses = async () => {
     
     // Load students for each class
     for (const classItem of classes.value) {
-      const classResult = await getClassData(classItem.code)
+      const classResult = await getClassData(classItem.code, currentUser.value.uid)
       if (classResult.success && classResult.class.students) {
         classItem.students = classResult.class.students
       }
@@ -565,7 +565,7 @@ const loadArchivedClasses = async () => {
       // Load students for archived classes
       for (const classItem of archivedClasses.value) {
         const { getClassData } = await import('../lib/auth.js')
-        const classResult = await getClassData(classItem.code)
+        const classResult = await getClassData(classItem.code, currentUser.value.uid)
         if (classResult.success && classResult.class.students) {
           classItem.students = classResult.class.students
         }

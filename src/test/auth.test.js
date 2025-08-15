@@ -161,15 +161,52 @@ describe('Authentication Service', () => {
       setDoc.mockResolvedValue()
 
       const result = await registerStudent(
+        'student@test.com',
+        'password123',
         'Test Student',
-        'CLASS123',
         { practiceMinutes: 0 }
       )
 
       expect(result.success).toBe(true)
       expect(result.user.role).toBe(USER_ROLES.STUDENT)
       expect(result.user.name).toBe('Test Student')
-      expect(result.user.classCode).toBe('CLASS123')
+    })
+
+    it('should handle class enrollment quota exceeded gracefully', async () => {
+      const mockClassDoc = {
+        exists: () => true,
+        data: () => ({
+          teacherId: 'teacher-123',
+          className: 'Test Class'
+        })
+      }
+
+      // Mock the addStudentToClassRoster to return quota exceeded error
+      const mockAddStudentToClassRoster = vi.fn().mockResolvedValue({
+        success: false,
+        error: 'This teacher has reached their student enrollment limit. They need to upgrade their plan before you can join their class.',
+        code: 'billing/upgrade-required'
+      })
+
+      // Mock the function
+      vi.doMock('../lib/auth.js', () => ({
+        ...vi.importActual('../lib/auth.js'),
+        addStudentToClassRoster: mockAddStudentToClassRoster
+      }))
+
+      getDoc.mockResolvedValue(mockClassDoc)
+      setDoc.mockResolvedValue()
+
+      const result = await registerStudent(
+        'student@test.com',
+        'password123',
+        'Test Student',
+        { classCode: 'CLASS123' }
+      )
+
+      expect(result.success).toBe(true)
+      expect(result.classEnrollmentError).toContain('enrollment limit')
+      expect(result.userData.classCode).toBeUndefined() // Should not be marked as enrolled
     })
 
     it('should handle invalid class code', async () => {
@@ -180,12 +217,14 @@ describe('Authentication Service', () => {
       getDoc.mockResolvedValue(mockClassDoc)
 
       const result = await registerStudent(
+        'student@test.com',
+        'password123',
         'Test Student',
-        'INVALID123'
+        { classCode: 'INVALID123' }
       )
 
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Invalid class code. Please check with your teacher.')
+      expect(result.success).toBe(true)
+      expect(result.userData.classCode).toBeUndefined() // Should not be marked as enrolled
     })
   })
 

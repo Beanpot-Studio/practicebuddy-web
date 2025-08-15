@@ -135,6 +135,8 @@ export const registerStudent = async (email, password, displayName, studentData 
 
     // If class code is provided, attempt to join the class
     const providedCode = normalizeClassCode(studentData.classCode)
+    let classEnrollmentError = null
+    
     if (providedCode) {
       try {
         const classRef = doc(db, 'classes', providedCode)
@@ -143,28 +145,39 @@ export const registerStudent = async (email, password, displayName, studentData 
         if (classDoc.exists()) {
           const classData = classDoc.data()
           
-          // Update student's class info
-          await updateDoc(doc(db, 'users', user.uid), {
-            classCode: providedCode,
-            teacherId: classData.teacherId,
-            updatedAt: new Date().toISOString()
-          })
-
-          // Add student to class roster
-          await addStudentToClassRoster(providedCode, user.uid, displayName, studentData.instrument || '')
+          // Add student to class roster first
+          const rosterResult = await addStudentToClassRoster(providedCode, user.uid, userData.displayName, userData.instrument || '')
           
-          studentDoc.classCode = providedCode
-          studentDoc.teacherId = classData.teacherId
+          // Check if roster addition was successful
+          if (rosterResult && rosterResult.success) {
+            // Only update student's class info if successfully added to roster
+            await updateDoc(doc(db, 'users', user.uid), {
+              classCode: providedCode,
+              teacherId: classData.teacherId,
+              updatedAt: new Date().toISOString()
+            })
+            
+            userData.classCode = providedCode
+            userData.teacherId = classData.teacherId
+          } else {
+            // Handle quota exceeded or other enrollment errors
+            console.warn('Could not join class due to:', rosterResult?.error || 'Unknown error')
+            classEnrollmentError = rosterResult?.error || 'Could not join the class. Please contact your teacher.'
+            // Don't mark student as enrolled if they can't join the roster
+          }
         }
       } catch (classError) {
-        // Registration still succeeds even if class joining fails
+        console.warn('Error during class enrollment:', classError)
+        classEnrollmentError = 'Could not join the class due to a system error. Please try again later.'
+        // Login still succeeds even if class joining fails
       }
     }
 
     return { 
       success: true, 
       user: user,
-      userData: studentDoc
+      userData: studentDoc,
+      classEnrollmentError: classEnrollmentError
     }
   } catch (error) {
     logError(error, 'student-registration')
@@ -210,7 +223,7 @@ export const loginTeacher = async (email, password) => {
     // Enhance message for provider mismatch and role mismatch guidance
     let errorInfo = handleFirebaseError(error, 'teacher-login')
     if (error?.code === 'auth/account-exists-with-different-credential') {
-      errorInfo.message = 'This email is linked to Google sign-in. Please use “Continue with Google” to log in as a teacher.'
+      errorInfo.message = 'This email is linked to Google sign-in. Please use "Continue with Google" to log in as a teacher.'
       errorInfo.code = 'auth/use-google'
     }
     return createErrorResponse(errorInfo.message, errorInfo.code, 'teacher-login')
@@ -245,45 +258,55 @@ export const loginStudent = async (email, password, classCode = null) => {
       throw Object.assign(new Error(message), { code: 'auth/wrong-role' })
     }
 
-    // If class code is provided, attempt to join the class
-    const providedCode = normalizeClassCode(classCode)
-    if (providedCode) {
+    // Optionally join class if a code was provided
+    let classEnrollmentError = null
+    
+    if (classCode) {
       try {
-        const classRef = doc(db, 'classes', providedCode)
+        const classRef = doc(db, 'classes', classCode)
         const classDoc = await getDoc(classRef)
-        
+
         if (classDoc.exists()) {
           const classData = classDoc.data()
           
-          // Update student's class info
-          await updateDoc(doc(db, 'users', user.uid), {
-            classCode: providedCode,
-            teacherId: classData.teacherId,
-            updatedAt: new Date().toISOString()
-          })
-
-          // Add student to class roster
-          await addStudentToClassRoster(providedCode, user.uid, userData.displayName, userData.instrument || '')
+          // Add student to class roster first
+          const rosterResult = await addStudentToClassRoster(classCode, user.uid, userData.displayName, userData.instrument || '')
           
-          userData.classCode = providedCode
-          userData.teacherId = classData.teacherId
+          // Check if roster addition was successful
+          if (rosterResult && rosterResult.success) {
+            // Only update student's class info if successfully added to roster
+            await updateDoc(doc(db, 'users', user.uid), {
+              classCode: classCode,
+              teacherId: classData.teacherId,
+              updatedAt: new Date().toISOString()
+            })
+            
+            userData.classCode = classCode
+            userData.teacherId = classData.teacherId
+          } else {
+            // Handle quota exceeded or other enrollment errors
+            console.warn('Could not join class due to:', rosterResult?.error || 'Unknown error')
+            classEnrollmentError = rosterResult?.error || 'Could not join the class. Please contact your teacher.'
+            // Don't mark student as enrolled if they can't join the roster
+          }
         }
       } catch (classError) {
-        console.warn('Could not join class:', classError)
-        // Login still succeeds even if class joining fails
+        console.warn('Error during class enrollment:', classError)
+        classEnrollmentError = 'Could not join the class due to a system error. Please try again later.'
       }
     }
 
-    return { 
-      success: true, 
-      user: user,
-      userData: userData
+    return {
+      success: true,
+      user,
+      userData,
+      classEnrollmentError: classEnrollmentError
     }
   } catch (error) {
     logError(error, 'student-login')
     let errorInfo = handleFirebaseError(error, 'student-login')
     if (error?.code === 'auth/account-exists-with-different-credential') {
-      errorInfo.message = 'This email is linked to Google sign-in. Please use “Continue with Google” to log in as a student.'
+      errorInfo.message = 'This email is linked to Google sign-in. Please use "Continue with Google" to log in as a student.'
       errorInfo.code = 'auth/use-google'
     }
     return createErrorResponse(errorInfo.message, errorInfo.code, 'student-login')
@@ -370,6 +393,8 @@ export const loginStudentWithGoogle = async (classCode = null) => {
     }
 
     // Optionally join class if a code was provided
+    let classEnrollmentError = null
+    
     if (classCode) {
       try {
         const classRef = doc(db, 'classes', classCode)
@@ -377,24 +402,39 @@ export const loginStudentWithGoogle = async (classCode = null) => {
 
         if (classDoc.exists()) {
           const classData = classDoc.data()
-          await updateDoc(doc(db, 'users', user.uid), {
-            classCode: classCode,
-            teacherId: classData.teacherId,
-            updatedAt: new Date().toISOString()
-          })
-          await addStudentToClassRoster(classCode, user.uid, userData.displayName, userData.instrument || '')
-          userData.classCode = classCode
-          userData.teacherId = classData.teacherId
+          
+          // Add student to class roster first
+          const rosterResult = await addStudentToClassRoster(classCode, user.uid, userData.displayName, userData.instrument || '')
+          
+          // Check if roster addition was successful
+          if (rosterResult && rosterResult.success) {
+            // Only update student's class info if successfully added to roster
+            await updateDoc(doc(db, 'users', user.uid), {
+              classCode: classCode,
+              teacherId: classData.teacherId,
+              updatedAt: new Date().toISOString()
+            })
+            
+            userData.classCode = classCode
+            userData.teacherId = classData.teacherId
+          } else {
+            // Handle quota exceeded or other enrollment errors
+            console.warn('Could not join class due to:', rosterResult?.error || 'Unknown error')
+            classEnrollmentError = rosterResult?.error || 'Could not join the class. Please contact your teacher.'
+            // Don't mark student as enrolled if they can't join the roster
+          }
         }
       } catch (classError) {
-        console.warn('Could not join class:', classError)
+        console.warn('Error during class enrollment:', classError)
+        classEnrollmentError = 'Could not join the class due to a system error. Please try again later.'
       }
     }
 
     return {
       success: true,
       user,
-      userData
+      userData,
+      classEnrollmentError: classEnrollmentError
     }
   } catch (error) {
     logError(error, 'student-google-login')
@@ -576,48 +616,78 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
     // Enforce teacher plan student limit (free tier: 5 students)
     // IMPORTANT: Do not block enrollment on unexpected read errors (e.g., restricted reads from student context).
     // Only block when we can confidently determine the limit is exceeded.
-    try {
-      const teacherId = classData.teacherId
-      if (teacherId) {
-        let allowedMax = 5
-        try {
-          const teacherRef = doc(db, 'users', teacherId)
-          const teacherSnap = await getDoc(teacherRef)
-          if (teacherSnap.exists()) {
-            const teacher = teacherSnap.data()
-            allowedMax = Number(teacher?.maxStudents ?? 5)
-          }
-        } catch (_) {
-          // Ignore teacher read errors here; fall back to default limit
-        }
-
-        try {
-          const classesQueryForTeacher = query(collection(db, 'classes'), where('teacherId', '==', teacherId))
-          const teacherClassesSnap = await getDocs(classesQueryForTeacher)
-          const uniqueStudentIds = new Set()
-          teacherClassesSnap.forEach((d) => {
-            const c = d.data()
-            ;(c.students || []).forEach((s) => {
-              if (s?.studentId) uniqueStudentIds.add(s.studentId)
+        // Check enrollment limits before adding student
+    const teacherId = classData.teacherId
+    if (teacherId) {
+      console.log(`[DEBUG] Checking limits for teacher ${teacherId}`)
+      let allowedMax = 5
+      try {
+        const teacherRef = doc(db, 'users', teacherId)
+        const teacherSnap = await getDoc(teacherRef)
+        if (teacherSnap.exists()) {
+          const teacher = teacherSnap.data()
+          // Ensure maxStudents field exists, default to 5 for free plan
+          if (!teacher.maxStudents) {
+            console.log(`[DEBUG] Teacher ${teacherId} missing maxStudents field, setting to 5`)
+            await updateDoc(doc(db, 'users', teacherId), {
+              maxStudents: 5,
+              subscriptionPlan: 'free',
+              subscriptionStatus: 'inactive'
             })
-          })
-
-          const isNewToTeacher = !uniqueStudentIds.has(studentId)
-          const projectedTotal = uniqueStudentIds.size + (isNewToTeacher ? 1 : 0)
-          if (projectedTotal > allowedMax) {
-            const err = new Error('Student limit reached for your current plan. Please upgrade to add more students.')
-            err.code = 'billing/upgrade-required'
-            throw err
           }
-        } catch (_) {
-          // Ignore read errors (likely due to permissions). Do not block enrollment here.
+          allowedMax = Number(teacher?.maxStudents ?? 5)
+          console.log(`[DEBUG] Teacher ${teacherId} plan: ${teacher?.subscriptionPlan}, maxStudents: ${teacher?.maxStudents}, allowedMax: ${allowedMax}`)
+        } else {
+          console.log(`[DEBUG] Teacher ${teacherId} not found in users collection`)
         }
+      } catch (error) {
+        console.error(`[DEBUG] Error reading teacher ${teacherId}:`, error)
+        // Ignore teacher read errors here; fall back to default limit
       }
-    } catch (limitCheckError) {
-      if (limitCheckError?.code === 'billing/upgrade-required') {
-        throw limitCheckError
+
+      try {
+        const classesQueryForTeacher = query(collection(db, 'classes'), where('teacherId', '==', teacherId))
+        const teacherClassesSnap = await getDocs(classesQueryForTeacher)
+        let totalEnrollments = 0
+        
+        console.log(`[DEBUG] Found ${teacherClassesSnap.size} classes for teacher ${teacherId}`)
+        
+        // Count total enrollments (one student in multiple classes = multiple enrollments)
+        teacherClassesSnap.forEach((d) => {
+          const c = d.data()
+          const studentCount = (c.students || []).length
+          totalEnrollments += studentCount
+          console.log(`[DEBUG] Class ${c.code || c.id}: ${studentCount} students`)
+        })
+
+        console.log(`[DEBUG] Teacher ${teacherId} has ${totalEnrollments} enrollments, limit is ${allowedMax}`)
+
+        // Check if student is already enrolled in this class
+        const isAlreadyEnrolled = students.some(s => s.studentId === studentId)
+        if (isAlreadyEnrolled) {
+          console.log(`[DEBUG] Student ${studentId} already enrolled in class ${classCode}`)
+          return { success: true } // Already enrolled, no need to add again
+        }
+
+        // Check if adding this student would exceed the limit
+        const projectedTotal = totalEnrollments + 1
+        if (projectedTotal > allowedMax) {
+          console.log(`[DEBUG] LIMIT EXCEEDED: ${projectedTotal} > ${allowedMax}, blocking enrollment`)
+          // Return error response directly instead of throwing
+          return createErrorResponse(
+            'This teacher has reached their student enrollment limit. They need to upgrade their plan before you can join their class. Please contact the teacher to upgrade, or try joining a different class.',
+            'billing/upgrade-required',
+            'add-student-to-roster'
+          )
+        }
+        
+        console.log(`[DEBUG] Enrollment allowed: ${projectedTotal} <= ${allowedMax}`)
+      } catch (error) {
+        console.error(`[DEBUG] Error querying classes for teacher ${teacherId}:`, error)
+        // Ignore read errors (likely due to permissions). Do not block enrollment here.
       }
-      // Otherwise, proceed with enrollment
+    } else {
+      console.log(`[DEBUG] No teacherId found in class data`)
     }
 
     // Add student to roster
@@ -702,10 +772,20 @@ export const joinClass = async (classCode, studentId, studentName, instrument = 
 
     const classData = classDoc.data()
     
-    // Add student to class roster
+    // Add student to class roster first
     const rosterResult = await addStudentToClassRoster(classCode, studentId, studentName, instrument)
     
-    // Update student's user document with class information
+    // Check if roster addition was successful
+    if (!rosterResult || !rosterResult.success) {
+      // Return the error from the roster addition
+      return rosterResult || createErrorResponse(
+        'Failed to join class. Please try again.',
+        'enrollment/failed',
+        'join-class'
+      )
+    }
+    
+    // Only update student's user document if successfully added to roster
     await updateDoc(doc(db, 'users', studentId), {
       classCode: classCode,
       teacherId: classData.teacherId,
@@ -1889,7 +1969,7 @@ export const getTeacherPracticeGoals = async (teacherId) => {
  * Get class data including assignments
  * @param {string} classCode - Class code
  */
-export const getClassData = async (classCode) => {
+export const getClassData = async (classCode, userId = null) => {
   try {
     // First, try to find the class by document ID
     let classRef = doc(db, 'classes', classCode)
@@ -1914,6 +1994,26 @@ export const getClassData = async (classCode) => {
     }
 
     const classData = classDoc.data()
+    
+    // Security check: if userId is provided, verify the user is enrolled in this class or is the teacher
+    if (userId) {
+      const students = classData.students || []
+      const isEnrolled = students.some(s => 
+        s.studentId === userId || 
+        s.id === userId || 
+        s.uid === userId
+      )
+      
+      const isTeacher = classData.teacherId === userId
+      
+      if (!isEnrolled && !isTeacher) {
+        return createErrorResponse(
+          'You are not enrolled in this class or the teacher of this class. Access denied.',
+          'auth/not-authorized',
+          'get-class-data'
+        )
+      }
+    }
     
     return { 
       success: true, 
