@@ -1,6 +1,6 @@
 import { loadStripe } from '@stripe/stripe-js';
 import app from './firebase.js'
-import { getFirestore, collection, getDocs, addDoc, onSnapshot } from 'firebase/firestore'
+import { getFirestore, collection, getDocs } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
 // Initialize Stripe
@@ -119,36 +119,7 @@ export async function handleSubscriptionUpgrade(priceId) {
       window.location.assign(`/` + `?` + params.toString())
       return
     }
-    // Primary: Firestore write/listen flow recommended by the extension
-    try {
-      const db = getFirestore(app)
-      const origin = window.location.origin
-      const sessionsCol = collection(db, 'users', user.uid, 'checkout_sessions')
-      const docRef = await addDoc(sessionsCol, {
-        price: priceId,
-        mode: 'subscription',
-        allow_promotion_codes: true,
-        success_url: `${origin}/billing/success?price=${encodeURIComponent(priceId)}`,
-        cancel_url: `${origin}/pricing?upgrade=cancelled`
-      })
-      const unsubscribe = onSnapshot(docRef, (snap) => {
-        const data = snap.data() || {}
-        if (data.error) {
-          console.error('Stripe checkout error:', data.error)
-          alert(`Unable to start checkout: ${data.error.message || 'Unknown error'}`)
-          unsubscribe()
-        }
-        if (data.url) {
-          unsubscribe()
-          window.location.assign(data.url)
-        }
-      })
-      return
-    } catch (extErr) {
-      console.warn('Firestore checkout_sessions flow failed, falling back to API route', extErr)
-    }
-
-    // Fallback to local API route
+    // Use local API route (non-extension flow)
     const response = await fetch('/api/stripe/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

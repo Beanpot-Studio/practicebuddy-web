@@ -312,5 +312,26 @@ const studioPriceId = import.meta.env.PUBLIC_STRIPE_STUDIO_PRICE_ID;
     />
   </div>
   <Footer client:load />
-  <script type="module" src="/src/scripts/pricing.js"></script>
+  <script type="module">
+    import { handleSubscriptionUpgrade } from "/src/lib/stripe.js";
+    function wire(btnId) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-price-id") || "";
+        console.log("Clicked:", btnId, "priceId:", id);
+        if (!id || !id.startsWith("price_")) {
+          alert("Plan is not available. Check PUBLIC_STRIPE_*_PRICE_ID.");
+          return;
+        }
+        try {
+          await handleSubscriptionUpgrade(id);
+        } catch (e) {
+          console.error("Upgrade failed", e);
+        }
+      });
+    }
+    wire("upgrade-pro");
+    wire("upgrade-studio");
+  </script>
 </Layout>

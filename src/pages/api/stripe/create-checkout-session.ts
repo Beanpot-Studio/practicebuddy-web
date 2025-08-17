@@ -1,5 +1,8 @@
 // src/pages/api/stripe/create-checkout-session.ts
 import type { APIRoute } from 'astro'
+
+export const prerender = false
+export const runtime = 'node'
 import Stripe from 'stripe'
 
 const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY

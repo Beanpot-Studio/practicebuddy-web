@@ -9,7 +9,24 @@
           </div>
           <div>
             <h1 class="text-2xl font-bold text-black">Teacher Dashboard</h1>
-            <p class="text-black/80">Welcome back, {{ currentUser?.displayName || 'Teacher' }}!</p>
+            <p class="text-black/80 flex items-center gap-2 flex-wrap">
+              <span>
+                Welcome back, {{ currentUser?.displayName || 'Teacher' }}!
+              </span>
+              <span
+                class="inline-flex items-center px-2 py-0.5 border rounded-full text-xs font-semibold"
+                :class="planBadgeClass"
+              >
+                {{ planLabel }}
+              </span>
+              <button
+                v-if="currentUser?.subscriptionPlan && currentUser.subscriptionPlan !== 'free'"
+                @click="openBillingPortal"
+                class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm"
+              >
+                Billing
+              </button>
+            </p>
           </div>
         </div>
       </div>
@@ -893,6 +910,25 @@ const changeTab = (tab) => {
   activeTab.value = tab
 }
 
+const openBillingPortal = async () => {
+  try {
+    if (!currentUser.value?.uid) return
+    const res = await fetch('/api/stripe/create-portal-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.value.uid })
+    })
+    const data = await res.json()
+    if (data?.url) {
+      window.location.assign(data.url)
+    } else if (data?.error) {
+      console.error('Portal error:', data.error)
+    }
+  } catch (e) {
+    console.error('Failed to open billing portal', e)
+  }
+}
+
 const selectClass = async (classItem) => {
   selectedClass.value = classItem
   // Load class roster for the selected class
@@ -1531,5 +1567,24 @@ onMounted(() => {
     }
   } catch {}
   loadClasses()
+})
+
+// Computed plan label and badge styles
+const planLabel = computed(() => {
+  const plan = (currentUser.value?.subscriptionPlan || 'free').toLowerCase()
+  if (plan === 'pro') return 'Pro'
+  if (plan === 'studio') return 'Studio'
+  return 'Free'
+})
+
+const planBadgeClass = computed(() => {
+  const plan = (currentUser.value?.subscriptionPlan || 'free').toLowerCase()
+  if (plan === 'pro') {
+    return 'border-blue-600 text-blue-700 bg-blue-50'
+  }
+  if (plan === 'studio') {
+    return 'border-purple-600 text-purple-700 bg-purple-50'
+  }
+  return 'border-gray-400 text-gray-700 bg-gray-100'
 })
 </script>

@@ -1,5 +1,8 @@
 // src/pages/api/stripe/webhook.ts
 import type { APIRoute } from 'astro'
+
+export const prerender = false
+export const runtime = 'node'
 import Stripe from 'stripe'
 import { initializeApp, getApps, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
@@ -88,14 +91,40 @@ export const POST: APIRoute = async ({ request }) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        const userId = (session.client_reference_id as string) || (session.metadata?.userId as string) || ''
+        let userId = (session.client_reference_id as string) || (session.metadata?.userId as string) || ''
+        // Attempt to recover user by email if userId not present
+        if (!userId) {
+          const email = (session.customer_details?.email as string) || (session.customer_email as string) || ''
+          if (email) {
+            try {
+              const db = getAdminDb()
+              const q = await db.collection('users').where('email', '==', email).limit(1).get()
+              if (!q.empty) userId = q.docs[0].id
+            } catch {}
+          }
+        }
         if (!userId) break
-        // Get purchased price
-        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 })
-        const item = lineItems.data[0]
-        const priceId = (item?.price as any)?.id || (item?.price as any) || ''
+        // Get purchased price (fallback to subscription retrieval if needed)
+        let priceId = ''
+        try {
+          const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 })
+          const item = lineItems.data[0]
+          priceId = (item?.price as any)?.id || (item?.price as any) || ''
+        } catch {}
+        if (!priceId && session.subscription) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(String(session.subscription))
+            priceId = sub.items?.data?.[0]?.price?.id || ''
+          } catch {}
+        }
         if (!priceId) break
         const plan = await mapPriceToPlan(priceId)
+        // Persist Stripe customer id for portal access
+        const stripeCustomerId = typeof session.customer === 'string' ? session.customer : (session.customer as any)?.id
+        const db = getAdminDb()
+        if (stripeCustomerId) {
+          await db.collection('users').doc(userId).set({ stripeCustomerId }, { merge: true })
+        }
         await updateUserPlan(userId, plan.code, 'active', plan.maxStudents)
         break
       }
@@ -104,10 +133,29 @@ export const POST: APIRoute = async ({ request }) => {
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription
         // Attempt to recover userId through latest_invoice -> customer_email or metadata on subscription
-        const userId = (sub.metadata?.userId as string) || ''
+        let userId = (sub.metadata?.userId as string) || ''
+        if (!userId) {
+          // Try to resolve via customer email from invoice
+          const customerEmail = (sub as any)?.customer_email as string | undefined
+          if (customerEmail) {
+            try {
+              const db = getAdminDb()
+              const q = await db.collection('users').where('email', '==', customerEmail).limit(1).get()
+              if (!q.empty) userId = q.docs[0].id
+            } catch {}
+          }
+        }
         // If userId missing, we rely on checkout.session.completed path for plan setting
         const status = String(sub.status || 'active')
         const priceId = (sub.items?.data?.[0]?.price?.id as string) || ''
+        if (userId) {
+          // Persist Stripe customer id
+          const db = getAdminDb()
+          const stripeCustomerId = typeof sub.customer === 'string' ? sub.customer : (sub.customer as any)?.id
+          if (stripeCustomerId) {
+            await db.collection('users').doc(userId).set({ stripeCustomerId }, { merge: true })
+          }
+        }
         if (userId && priceId) {
           const plan = await mapPriceToPlan(priceId)
           await updateUserPlan(userId, plan.code, status, plan.maxStudents)
