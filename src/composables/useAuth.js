@@ -1,4 +1,6 @@
 import { ref, computed, onMounted, onUnmounted, readonly } from 'vue'
+import { getFirestore, doc, collection, onSnapshot, updateDoc } from 'firebase/firestore'
+import { getPlanFromPriceId, getPlanLimits, getPlanLimitsAsync } from '../lib/stripe'
 import { 
   initAuthState, 
   cleanupAuth, 
@@ -45,6 +47,59 @@ const initializeAuth = () => {
     isAuthenticated.value = !!authState.user
     isLoading.value = false
     authError.value = null
+
+    // Start listener to Stripe extension subscription docs for teachers
+    if (authState.user && (authState.userData?.role === USER_ROLES.TEACHER)) {
+      try {
+        const db = getFirestore()
+        const uid = authState.user.uid
+        // With extension configured to mirror under `users`, subscriptions live at users/{uid}/subscriptions/{subId}
+        const subsCol = collection(db, 'users', uid, 'subscriptions')
+        const unsubscribe = onSnapshot(subsCol, async (querySnap) => {
+          try {
+            if (querySnap.empty) return
+            // Prefer an active or trialing sub
+            let picked = null
+            querySnap.forEach((d) => {
+              const st = (d.data()?.status || '').toLowerCase()
+              if (!picked && (st === 'active' || st === 'trialing')) picked = d
+            })
+            if (!picked) {
+              // fall back to first doc
+              picked = querySnap.docs[0]
+            }
+            const sub = picked.data() || {}
+            const status = (sub.status || '').toLowerCase()
+            // Attempt to get price id from items array or top-level fields
+            const priceId = sub.items?.[0]?.price?.id || sub.items?.[0]?.price || sub.price?.id || sub.price || sub.default_price || null
+
+            const plan = await getPlanFromPriceId(priceId)
+
+            // Avoid unnecessary writes if values are unchanged
+            const currentPlan = currentUser.value?.subscriptionPlan
+            const currentStatus = currentUser.value?.subscriptionStatus
+
+            if (plan && status && (plan !== currentPlan || status !== currentStatus)) {
+              const limits = await getPlanLimitsAsync(plan)
+              await updateDoc(doc(db, 'users', uid), {
+                subscriptionPlan: plan,
+                subscriptionStatus: status,
+                maxStudents: limits.maxStudents ?? null,
+                updatedAt: new Date().toISOString()
+              })
+              currentUser.value = { ...currentUser.value, subscriptionPlan: plan, subscriptionStatus: status, maxStudents: limits.maxStudents ?? null }
+            }
+          } catch (e) {
+            // ignore
+          }
+        })
+        // Store unsubscribe on window for cleanup
+        // eslint-disable-next-line no-undef
+        window.__stripeCustomerUnsub = unsubscribe
+      } catch (e) {
+        // ignore if Firestore not available
+      }
+    }
   })
 }
 
