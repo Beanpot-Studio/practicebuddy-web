@@ -187,8 +187,14 @@
                 <div class="flex flex-col gap-2">
                   <!-- Primary Actions Row -->
                   <div class="flex items-center gap-2">
-                   
-                   
+                    <button 
+                      @click="confirmUnenroll(student.studentId || student.id)"
+                      class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200 transition-colors flex items-center gap-2"
+                      title="Unenroll student from selected class"
+                    >
+                      <AlertTriangle class="w-4 h-4" />
+                      <span>Unenroll</span>
+                    </button>
                   </div>
                   <!-- Secondary Actions Row -->
                   <div class="flex items-center gap-2">
@@ -225,6 +231,7 @@ import {
 } from 'lucide-vue-next'
 import { getInstrumentImage, getInstrumentName } from '../../lib/instruments'
 import { getPlanLimits } from '../../lib/stripe.js'
+import { removeStudentFromClassRoster } from '../../lib/auth.js'
 
 const props = defineProps({
   classes: {
@@ -370,6 +377,32 @@ const updateFilteredStudents = () => {
 
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+}
+
+// Unenroll student from the currently selected class filter (if any), else from their primary class
+const confirmUnenroll = async (studentId) => {
+  try {
+    // Determine target class code: prefer selected filter, else the student's primary class
+    let targetClass = null
+    if (selectedClassFilter.value) {
+      targetClass = props.classes.find(c => c.id === selectedClassFilter.value)
+    }
+    if (!targetClass) {
+      // fallback: find any class where student exists
+      targetClass = props.classes.find(c => (c.students || []).some(s => (s.studentId || s.id) === studentId))
+    }
+    if (!targetClass) return
+
+    if (!confirm('Unenroll this student from ' + (targetClass.name || 'this class') + '?')) return
+    const res = await removeStudentFromClassRoster(targetClass.code, studentId, props.currentUser?.uid || '')
+    if (res && res.success) {
+      emit('loadClasses')
+    } else if (res && res.error) {
+      console.error('Failed to unenroll:', res.error)
+    }
+  } catch (e) {
+    console.error('Error unenrolling student', e)
+  }
 }
 
 // Helper functions
