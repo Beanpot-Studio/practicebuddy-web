@@ -1,6 +1,7 @@
 ---
 import Layout from "../components/Layout.astro";
 import CtaSection from "../components/CtaSection.astro";
+import Footer from "../components/Footer.vue";
 // Stripe Pricing Table environment variables (must be prefixed with PUBLIC_ to be exposed to the client)
 const publishableKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const pricingTableId = import.meta.env.PUBLIC_STRIPE_PRICING_TABLE_ID;
@@ -227,10 +228,10 @@ const studioPriceId = import.meta.env.PUBLIC_STRIPE_STUDIO_PRICE_ID;
         </div>
 
         <div class="grid md:grid-cols-2 gap-4 mb-12">
-          <button id="upgrade-pro" class="btn btn-primary w-full" disabled={!proPriceId}>
+          <button id="upgrade-pro" class="btn btn-primary w-full" disabled={!proPriceId} data-price-id={proPriceId}>
             Upgrade to Pro
           </button>
-          <button id="upgrade-studio" class="btn btn-purple w-full" disabled={!studioPriceId}>
+          <button id="upgrade-studio" class="btn btn-purple w-full" disabled={!studioPriceId} data-price-id={studioPriceId}>
             Upgrade to Studio
           </button>
         </div>
@@ -310,17 +311,6 @@ const studioPriceId = import.meta.env.PUBLIC_STRIPE_STUDIO_PRICE_ID;
       fullWidth={true}
     />
   </div>
-  <div id="footer"></div>
-  <script type="module">
-    import { createApp } from "vue";
-    import Footer from "../components/Footer.vue";
-    createApp(Footer).mount("#footer");
-  </script>
-  <script type="module">
-    import { handleSubscriptionUpgrade } from "../lib/stripe.js";
-    const PRO_PRICE_ID = "{proPriceId}".replace(/\{|\}/g,'')
-    const STUDIO_PRICE_ID = "{studioPriceId}".replace(/\{|\}/g,'')
-    document.getElementById('upgrade-pro')?.addEventListener('click', () => handleSubscriptionUpgrade(PRO_PRICE_ID))
-    document.getElementById('upgrade-studio')?.addEventListener('click', () => handleSubscriptionUpgrade(STUDIO_PRICE_ID))
-  </script>
+  <Footer client:load />
+  <script type="module" src="/src/scripts/pricing.js"></script>
 </Layout>

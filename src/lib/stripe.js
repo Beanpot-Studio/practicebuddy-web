@@ -1,6 +1,7 @@
 import { loadStripe } from '@stripe/stripe-js';
 import app from './firebase.js'
-import { getFirestore, collection, getDocs } from 'firebase/firestore'
+import { getFirestore, collection, getDocs, addDoc, onSnapshot } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
 
 // Initialize Stripe
 let stripe = null;
@@ -105,34 +106,59 @@ export function getPlanLimits(subscriptionPlan) {
 // Handle subscription upgrade
 export async function handleSubscriptionUpgrade(priceId) {
   try {
-    // Prefer Firebase Stripe Extension if configured
-    if (window?.firebase?.functions || (await import('firebase/functions').catch(() => null))) {
-      try {
-        const { getFunctions, httpsCallable } = await import('firebase/functions')
-        const functions = getFunctions(app)
-        const createCheckout = httpsCallable(functions, 'ext-firestore-stripe-payments-createCheckoutSession')
-        const origin = window.location.origin
-        const { data } = await createCheckout({
-          price: priceId,
-          success_url: `${origin}/billing/success`,
-          cancel_url: `${origin}/pricing?upgrade=cancelled`,
-          mode: 'subscription',
-          allow_promotion_codes: true
-        })
-        if (data?.url) {
-          window.location.assign(data.url)
-          return
+    // Validate Price ID format
+    if (!priceId || typeof priceId !== 'string' || !priceId.startsWith('price_')) {
+      alert('Invalid Price ID. Please configure a Stripe Price ID starting with "price_" for this plan.')
+      return
+    }
+    // Require an authenticated user so the extension can link the session to Firestore
+    const auth = getAuth(app)
+    const user = auth.currentUser
+    if (!user) {
+      const params = new URLSearchParams({ upgrade: '1', priceId })
+      window.location.assign(`/` + `?` + params.toString())
+      return
+    }
+    // Primary: Firestore write/listen flow recommended by the extension
+    try {
+      const db = getFirestore(app)
+      const origin = window.location.origin
+      const sessionsCol = collection(db, 'users', user.uid, 'checkout_sessions')
+      const docRef = await addDoc(sessionsCol, {
+        price: priceId,
+        mode: 'subscription',
+        allow_promotion_codes: true,
+        success_url: `${origin}/billing/success?price=${encodeURIComponent(priceId)}`,
+        cancel_url: `${origin}/pricing?upgrade=cancelled`
+      })
+      const unsubscribe = onSnapshot(docRef, (snap) => {
+        const data = snap.data() || {}
+        if (data.error) {
+          console.error('Stripe checkout error:', data.error)
+          alert(`Unable to start checkout: ${data.error.message || 'Unknown error'}`)
+          unsubscribe()
         }
-      } catch (e) {
-        console.warn('Stripe extension route failed, falling back to API route', e)
-      }
+        if (data.url) {
+          unsubscribe()
+          window.location.assign(data.url)
+        }
+      })
+      return
+    } catch (extErr) {
+      console.warn('Firestore checkout_sessions flow failed, falling back to API route', extErr)
     }
 
     // Fallback to local API route
     const response = await fetch('/api/stripe/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priceId, mode: 'subscription' })
+      body: JSON.stringify({
+        priceId,
+        mode: 'subscription',
+        userId: user.uid,
+        customerEmail: user.email || undefined,
+        successRedirect: `${window.location.origin}/billing/success?price=${encodeURIComponent(priceId)}`
+      })
     })
     const data = await response.json()
     if (data?.url) {

@@ -327,6 +327,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { getPlanFromPriceId, getPlanLimitsAsync } from '../lib/stripe'
 import { getInstrumentName } from '../lib/instruments'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
 import RosterTab from './TeacherDashboard/RosterTab.vue'
@@ -374,9 +375,12 @@ const showSuccessMessage = ref(false)
 const successMessage = ref('')
 const showErrorMessage = ref(false)
 const errorMessage = ref('')
+// Hide upgrade alert temporarily after successful upgrade redirect
+const suppressUpgradeAlert = ref(false)
 
 // Upgrade alert logic
 const showRosterUpgradeAlert = computed(() => {
+  if (suppressUpgradeAlert.value) return false
   console.log('Checking upgrade alert:', {
     hasUser: !!currentUser.value,
     userPlan: currentUser.value?.subscriptionPlan,
@@ -1503,6 +1507,29 @@ const confirmDeleteClass = async () => {
 }
 
 onMounted(() => {
+  // Show a one-time thank-you message if coming from billing success
+  try {
+    const shouldThank = sessionStorage.getItem('pb_show_thanks') === '1'
+    const provisionalPrice = sessionStorage.getItem('pb_checkout_price') || ''
+    if (shouldThank) {
+      successMessage.value = 'Thank you for subscribing! Your plan has been upgraded.'
+      showSuccessMessage.value = true
+      setTimeout(() => { showSuccessMessage.value = false }, 4000)
+      sessionStorage.removeItem('pb_show_thanks')
+      suppressUpgradeAlert.value = true
+      // Clear suppression after a short window, UI will still respect plan limits afterwards
+      setTimeout(() => { suppressUpgradeAlert.value = false }, 8000)
+    }
+    // If we have a provisional priceId and no plan yet, apply a temporary plan update client-side
+    if (provisionalPrice && (!currentUser.value?.subscriptionPlan || currentUser.value.subscriptionPlan === 'free')) {
+      ;(async () => {
+        const plan = await getPlanFromPriceId(provisionalPrice)
+        const limits = await getPlanLimitsAsync(plan)
+        currentUser.value = { ...currentUser.value, subscriptionPlan: plan, subscriptionStatus: 'active', maxStudents: limits.maxStudents ?? null }
+        sessionStorage.removeItem('pb_checkout_price')
+      })()
+    }
+  } catch {}
   loadClasses()
 })
 </script>

@@ -12,6 +12,16 @@ import Layout from "../../components/Layout.astro";
         <h1 class="text-3xl font-bold text-musical-graphite mb-2">Subscription Activated</h1>
         <p class="text-musical-graphite/70 mb-6">Thanks for upgrading! You can now add more students.</p>
         <a href="/dashboard" class="btn btn-primary w-full">Go to Dashboard</a>
+        <script type="module">
+          try {
+            const params = new URLSearchParams(location.search)
+            const priceId = params.get('price')
+            if (priceId) {
+              sessionStorage.setItem('pb_checkout_price', priceId)
+            }
+            sessionStorage.setItem('pb_show_thanks', '1')
+          } catch {}
+        </script>
       </div>
     </div>
   </div>

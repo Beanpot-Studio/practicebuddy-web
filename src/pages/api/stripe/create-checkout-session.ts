@@ -17,6 +17,9 @@ export const POST: APIRoute = async ({ request, site, url, locals }) => {
     const body = await request.json().catch(() => ({}))
     const priceId: string | undefined = body.priceId
     const mode: 'subscription' | 'payment' = body.mode === 'payment' ? 'payment' : 'subscription'
+    const successRedirect: string | undefined = body.successRedirect
+    const userId: string | undefined = body.userId
+    const customerEmail: string | undefined = body.customerEmail
 
     if (!priceId) {
       return new Response(JSON.stringify({ error: 'Missing priceId' }), { status: 400 })
@@ -27,9 +30,12 @@ export const POST: APIRoute = async ({ request, site, url, locals }) => {
     const session = await stripe.checkout.sessions.create({
       mode,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successRedirect || `${origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?upgrade=cancelled`,
       allow_promotion_codes: true,
+      client_reference_id: userId,
+      customer_email: customerEmail,
+      metadata: userId ? { userId } : undefined,
     })
 
     return new Response(JSON.stringify({ id: session.id, url: session.url }), {
