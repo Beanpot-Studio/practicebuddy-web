@@ -11,7 +11,7 @@
             <h1 class="text-2xl font-bold text-black">Teacher Dashboard</h1>
             <p class="text-black/80 flex items-center gap-2 flex-wrap">
               <span>
-                Welcome back, {{ currentUser?.displayName || 'Teacher' }}!
+                Hello, {{ currentUser?.displayName || 'Teacher' }}!
               </span>
               <span
                 class="inline-flex items-center px-2 py-0.5 border rounded-full text-xs font-semibold"

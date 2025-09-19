@@ -260,7 +260,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['loadClasses', 'viewStudentDetails', 'createIndividualAssignment', 'sendEmail', 'copyStudentId'])
+const emit = defineEmits(['loadClasses', 'viewStudentDetails', 'createIndividualAssignment', 'sendEmail', 'copyStudentId', 'student-unenrolled'])
 
 // Reactive state for filtering and sorting
 const selectedClassFilter = ref('')
@@ -397,6 +397,7 @@ const confirmUnenroll = async (studentId) => {
     const res = await removeStudentFromClassRoster(targetClass.code, studentId, props.currentUser?.uid || '')
     if (res && res.success) {
       emit('loadClasses')
+      emit('student-unenrolled', { studentId, className: targetClass.name || targetClass.code })
     } else if (res && res.error) {
       console.error('Failed to unenroll:', res.error)
     }
