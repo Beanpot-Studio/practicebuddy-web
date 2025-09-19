@@ -5,14 +5,13 @@
     
     <!-- Main app when not in pre-launch mode -->
     <AuthGuard v-else @login="handleLogin">
-      <template #default="{ user, userRole }">
+      <template #default="{ userRole }">
         <div class="app-content">
           <main class="main-content">
             <StudentDashboard 
               v-if="userRole === 'student'" 
-              :student-name="user?.displayName || user?.name" 
             />
-            <TeacherDashboard v-if="userRole === 'teacher'" :teacher-email="user?.email" />
+            <TeacherDashboard v-if="userRole === 'teacher'" />
           </main>
           <Footer @switch-mode="switchMode" @go-home="handleGoHome" />
         </div>

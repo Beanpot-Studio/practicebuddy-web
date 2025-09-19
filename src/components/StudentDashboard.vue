@@ -2,7 +2,11 @@
   <div class="min-h-screen bg-musical-primary py-5">
     <div class="container">
       <!-- Header Section -->
-      <StudentHeader :student-name="studentName" :instrument="currentUser?.instrument || ''" />
+      <StudentHeader 
+        :student-name="currentUser?.displayName || 'Student'" 
+        :instrument="currentUser?.instrument || ''" 
+        @edit-profile="showProfile = true"
+      />
 
       <!-- Billing Upgrade Required Alert -->
       <div v-if="showBillingUpgradeAlert" class="mb-6 p-4 bg-orange-100 border-2 border-orange-400 rounded-xl text-orange-800 animate-fadeIn relative">
@@ -32,6 +36,7 @@
         </div>
       </div>
 
+     
       <!-- Stats Card - Full Width -->
       <StatsCard 
         :total-practice-minutes="totalPracticeMinutes"
@@ -104,6 +109,9 @@
 
     <!-- Recording functionality is now integrated into PracticeTimer component -->
 
+    <!-- Profile Modal -->
+    <UserProfile v-if="showProfile" @close="showProfile = false" />
+
     <!-- Success Toast Notification -->
     <div 
       v-if="showSuccessToast"
@@ -154,6 +162,7 @@ import PracticeTimer from './StudentDashboard/PracticeTimer.vue'
 import MusicalCreationsCard from './StudentDashboard/MusicalCreationsCard.vue'
 import ClassEnrollmentCard from './StudentDashboard/ClassEnrollmentCard.vue'
 import ClassesAndAssignmentsCard from './StudentDashboard/ClassesAndAssignmentsCard.vue'
+import UserProfile from './UserProfile.vue'
 
 const props = defineProps({
   studentName: {
@@ -210,6 +219,7 @@ const userPracticeStats = ref(null)
 
 // Success toast notification
 const showSuccessToast = ref(false)
+const showProfile = ref(false)
 const successToastTitle = ref('')
 const successToastMessage = ref('')
 

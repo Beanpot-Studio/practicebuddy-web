@@ -8,11 +8,19 @@
         class="w-10 h-10 rounded-full bg-white p-1 border-2 border-gray-200 shadow-sm object-contain"
       />
       <h2 class="text-3xl font-bold text-shadow-lg text-musical-graphite">
-        Hey {{ studentName }}! Ready to make some music?
+        Hello,
+        <button 
+          type="button" 
+          class="underline decoration-dotted underline-offset-4 hover:text-musical-secondary"
+          @click="$emit('edit-profile')"
+        >
+          {{ studentName }}
+        </button>
+        ! Ready to make some music?
       </h2>
     </div>
     <p class="text-lg opacity-95 font-medium text-musical-graphite">
-      Track your practice time and collect stickers!
+      Track your practice time, get feedback, reach your goals, and collect stickers!
     </p>
   </div>
   
@@ -25,7 +33,7 @@ import { getInstrumentImage, getInstrumentName } from '../../lib/instruments'
 const props = defineProps({
   studentName: {
     type: String,
-    default: 'Student'
+    default: 'Music student'
   },
   instrument: {
     type: String,

@@ -11,7 +11,7 @@
             <h1 class="text-2xl font-bold text-black">Teacher Dashboard</h1>
             <p class="text-black/80 flex items-center gap-2 flex-wrap">
               <span>
-                Hello, {{ currentUser?.displayName || 'Teacher' }}!
+                Hello, {{ currentUser?.displayName || 'Music teacher' }}!
               </span>
               <span
                 class="inline-flex items-center px-2 py-0.5 border rounded-full text-xs font-semibold"
@@ -28,6 +28,9 @@
               </button>
             </p>
           </div>
+        </div>
+        <div>
+          <button @click="showProfile = true" class="px-4 py-2 border-2 border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-sm font-semibold">Edit Profile</button>
         </div>
       </div>
       <!-- Upgrade Alert Notice -->
@@ -338,6 +341,9 @@
     <div v-if="showErrorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
       {{ errorMessage }}
     </div>
+    
+    <!-- Profile Modal -->
+    <UserProfile v-if="showProfile" @close="showProfile = false" />
   </div>
 </template>
 
@@ -351,6 +357,7 @@ import RosterTab from './TeacherDashboard/RosterTab.vue'
 import ClassesTab from './TeacherDashboard/ClassesTab.vue'
 import AssignmentsTab from './TeacherDashboard/AssignmentsTab.vue'
 import GoalsTab from './TeacherDashboard/GoalsTab.vue'
+import UserProfile from './UserProfile.vue'
 import { 
   GraduationCap, 
   BarChart3, 
@@ -375,6 +382,7 @@ const newClass = ref({
   schedule: ''
 })
 const isCreatingClass = ref(false)
+const showProfile = ref(false)
 
 // OverviewTab props
 const allStudents = ref([])
