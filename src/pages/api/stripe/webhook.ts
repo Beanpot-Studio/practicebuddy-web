@@ -8,11 +8,23 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
 
 function loadServiceAccount(): any {
+  const projectId = process.env.PUBLIC_FIREBASE_PROJECT_ID
+  const clientEmail = process.env.PUBLIC_FIREBASE_CLIENT_EMAIL
+  let privateKey = process.env.PUBLIC_FIREBASE_PRIVATE_KEY
+
+  if (privateKey && privateKey.includes('\\n')) {
+    privateKey = privateKey.replace(/\\n/g, '\n')
+  }
+
+  if (projectId && clientEmail && privateKey) {
+    return { projectId, clientEmail, privateKey }
+  }
+
   const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64
   const json = process.env.FIREBASE_SERVICE_ACCOUNT
   if (b64) return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'))
   if (json) return JSON.parse(json)
-  throw new Error('Missing FIREBASE_SERVICE_ACCOUNT(_BASE64)')
+  throw new Error('Missing Firebase service account env')
 }
 
 function getAdminDb() {
