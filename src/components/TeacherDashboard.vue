@@ -1078,10 +1078,27 @@ const sendIndividualEmail = (student) => {
 
 const sendEmailMessage = async () => {
   try {
-    // For now, we'll use the browser's mailto functionality
-    // In a real app, you'd send this through your backend
+    // Validate email recipient
+    if (!emailRecipient.value || !emailRecipient.value.includes('@')) {
+      showErrorMessage.value = true
+      errorMessage.value = 'Please enter a valid email address'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+      return
+    }
+
+    // Create mailto link
     const mailtoLink = `mailto:${emailRecipient.value}?subject=${encodeURIComponent(emailSubject.value)}&body=${encodeURIComponent(emailBody.value)}`
-    window.open(mailtoLink, '_blank')
+    
+    // Create a temporary anchor element and click it programmatically
+    // This is more reliable than window.open() for mailto links
+    const link = document.createElement('a')
+    link.href = mailtoLink
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
     
     // Close modal
     showEmailModal.value = false
@@ -1095,7 +1112,7 @@ const sendEmailMessage = async () => {
   } catch (error) {
     console.error('Error sending email:', error)
     showErrorMessage.value = true
-    errorMessage.value = 'Failed to send email'
+    errorMessage.value = 'Failed to open email client. Please check that you have an email client configured.'
     setTimeout(() => {
       showErrorMessage.value = false
     }, 3000)
