@@ -257,7 +257,7 @@
             ></textarea>
           </div>
           
-          <!-- Action Buttons -->
+          <!-- Action Buttons - removing for now-->
           <div class="flex gap-3 pt-4">
             <button 
               type="button"

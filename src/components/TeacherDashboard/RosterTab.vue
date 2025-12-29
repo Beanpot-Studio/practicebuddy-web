@@ -196,8 +196,8 @@
                       <span>Unenroll</span>
                     </button>
                   </div>
-                  <!-- Secondary Actions Row -->
-                  <div class="flex items-center gap-2">
+                  <!-- Secondary Actions Row - remove for now -->
+                  <!--<div class="flex items-center gap-2">
                     <button 
                       @click="$emit('sendEmail', student)"
                       class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors flex items-center gap-2"
@@ -206,7 +206,7 @@
                       <Mail class="w-4 h-4" />
                       <span>Email</span>
                     </button>
-                  </div>
+                  </div>--->
                 </div>
               </td>
             </tr>
