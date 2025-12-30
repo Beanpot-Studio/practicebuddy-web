@@ -98,7 +98,7 @@
                   class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2"
                 >
                   <img 
-                    :src="`/src/assets/stickers/${sticker.stickerType}.png`" 
+                    :src="`/stickers/${sticker.stickerType}.png`" 
                     :alt="sticker.stickerType"
                     class="w-6 h-6 object-contain"
                   />
