@@ -201,6 +201,69 @@ import CtaSection from "../components/CtaSection.astro";
         </div>
       </div>
     </div>
+
+    <!-- Video Section -->
+    <div class="py-16 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-musical-graphite mb-4">
+            See Practice Buddy in Action
+          </h2>
+          <p class="text-lg text-musical-graphite/80 max-w-3xl mx-auto">
+            Watch how Practice Buddy helps students and teachers work together to achieve musical goals.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          <!-- Student Video -->
+          <div class="card">
+            <div class="mb-4">
+              <h3 class="text-2xl font-bold text-musical-graphite mb-2">
+                For Students
+              </h3>
+              <p class="text-musical-graphite/70 text-sm">
+                Learn how students track practice, complete assignments, and earn stickers from their teachers.
+              </p>
+            </div>
+            <div class="relative w-full rounded-lg overflow-hidden shadow-lg bg-black">
+              <video
+                class="w-full h-auto"
+                controls
+                preload="metadata"
+                poster=""
+              >
+                <source src="/pb-students.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+
+          <!-- Teacher Video -->
+          <div class="card">
+            <div class="mb-4">
+              <h3 class="text-2xl font-bold text-musical-graphite mb-2">
+                For Teachers
+              </h3>
+              <p class="text-musical-graphite/70 text-sm">
+                Discover how teachers create classes, assign goals, and provide feedback to students.
+              </p>
+            </div>
+            <div class="relative w-full rounded-lg overflow-hidden shadow-lg bg-black">
+              <video
+                class="w-full h-auto"
+                controls
+                preload="metadata"
+                poster=""
+              >
+                <source src="/pb-teachers.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- CTA Section -->
     <CtaSection
       title="Ready to Get Started?"
