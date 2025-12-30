@@ -43,6 +43,7 @@
         :assignments-completed="assignmentsCompleted"
         :assignments-pending="assignmentsPending"
         :next-assignment-due-date="nextAssignmentDueDate"
+        :sticker-count="stickerCount"
         :current-goal="currentGoal"
       />
 
@@ -146,7 +147,7 @@
 </style>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
@@ -263,6 +264,8 @@ const refreshPracticeSessions = async () => {
   if (musicalCreationsCard.value) {
     await musicalCreationsCard.value.loadPracticeSessions()
   }
+  // Recalculate sticker count when practice sessions are refreshed
+  await calculateStickerCount()
 }
 
 const handlePracticeSession = async (practiceData) => {
@@ -773,15 +776,31 @@ const loadAssignments = async () => {
   }
 }
 
+// Handle visibility change to refresh sticker count when user returns to page
+const handleVisibilityChange = async () => {
+  if (document.visibilityState === 'visible') {
+    // Refresh sticker count when page becomes visible
+    await calculateStickerCount()
+  }
+}
+
 onMounted(async () => {
   await loadEnrolledClasses() // Load enrolled classes first
   await loadAssignments() // Then load assignments for all enrolled classes
   await trackLoginActivity()
-  await loadUserPracticeStats() // Load practice stats on mount
+  await loadUserPracticeStats() // Load practice stats on mount (includes sticker count)
   await loadGoalProgress() // Load goal progress on mount
   
   // Clear any billing alerts on mount
   showBillingUpgradeAlert.value = false
   billingUpgradeMessage.value = ''
+  
+  // Listen for visibility changes to refresh sticker count
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+onUnmounted(() => {
+  // Clean up visibility change listener
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>

@@ -85,16 +85,16 @@
           <p>No recording for this session</p>
         </div>
         
-        <!-- Teacher Feedback Section (only shown when complete) -->
-        <div v-if="session.isComplete && session.feedback && session.feedback.length > 0" class="mt-3">
+        <!-- Teacher Feedback Section -->
+        <div v-if="session.feedback && session.feedback.length > 0" class="mt-3">
           <div class="border-t border-gray-200 pt-3">
             <div class="text-xs font-medium text-gray-600 mb-2">Teacher Feedback:</div>
             <div class="flex flex-wrap gap-3">
               <!-- Stickers -->
               <div v-if="getStickers(session).length > 0" class="flex flex-wrap gap-2">
                 <div 
-                  v-for="sticker in getStickers(session)" 
-                  :key="sticker.id"
+                  v-for="(sticker, index) in getStickers(session)" 
+                  :key="`sticker-${session.id}-${index}-${sticker.createdAt}`"
                   class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2"
                 >
                   <img 
