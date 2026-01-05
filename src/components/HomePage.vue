@@ -20,23 +20,23 @@
                       data-testid="student-tab"
                       @click="switchToStudentTab"
                       :class="[
-                        'flex-1 py-4 px-5 border-none rounded-xl font-semibold text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 font-inherit',
+                        'flex-1 py-3 px-3 sm:py-4 sm:px-5 border-none rounded-xl font-semibold text-xs sm:text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 font-inherit',
                         activeTab === 'student' ? 'bg-musical-success text-white shadow-md transform -translate-y-0.5 border-2 border-green-600' : 'hover:bg-white/80 hover:text-gray-700'
                       ]"
                     >
-                      <Users class="w-4.5 h-4.5" />
-                      Music Students
+                      <Users class="hidden sm:block w-4.5 h-4.5" />
+                      <span class="hidden sm:inline">Music </span>Students
                     </button>
                     <button 
                       data-testid="teacher-tab"
                       @click="switchToTeacherTab"
                       :class="[
-                        'flex-1 py-4 px-5 border-none rounded-xl font-semibold text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-2 font-inherit',
+                        'flex-1 py-3 px-3 sm:py-4 sm:px-5 border-none rounded-xl font-semibold text-xs sm:text-sm text-gray-500 cursor-pointer transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 font-inherit',
                         activeTab === 'teacher' ? 'bg-musical-coral text-white shadow-md transform -translate-y-0.5' : 'hover:bg-white/80 hover:text-gray-700'
                       ]"
                     >
-                      <GraduationCap class="w-4.5 h-4.5" />
-                      Music Teachers
+                      <GraduationCap class="hidden sm:block w-4.5 h-4.5" />
+                      <span class="hidden sm:inline">Music </span>Teachers
                     </button>
                   </div>
 
