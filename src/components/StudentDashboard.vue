@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-musical-primary py-5">
-    <div class="container">
+  <div class="min-h-screen bg-musical-primary py-3 md:py-5">
+    <div class="container px-3 md:px-4">
       <!-- Header Section -->
       <StudentHeader 
         :student-name="currentUser?.displayName || 'Student'" 
@@ -48,7 +48,7 @@
       />
 
       <!-- Other Cards - Half Width Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
         <!-- Start Practicing Card or Timer Card -->
         <PracticeSessionCard
           v-if="!showTimer"
@@ -82,7 +82,7 @@
 
 
       <!-- Class Enrollment/Assignments Section - Full Width -->
-      <div class="mb-8">
+      <div class="mb-6 md:mb-8">
         <!-- Class Enrollment Section -->
         <!-- Combined Classes and Assignments Section -->
         <ClassesAndAssignmentsCard
@@ -99,7 +99,7 @@
       </div>
 
       <!-- Practice History Chart -->
-      <div v-if="currentUser?.uid" class="mb-8">
+      <div v-if="currentUser?.uid" class="mb-6 md:mb-8">
         <PracticeHistoryChart :user-id="currentUser.uid" />
       </div>
 

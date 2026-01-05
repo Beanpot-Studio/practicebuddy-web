@@ -1,16 +1,16 @@
 <template>
   <div class="min-h-screen bg-musical-primary relative overflow-hidden">
-    <div class="py-20 relative z-10">
+    <div class="py-10 md:py-20 relative z-10">
       <div class="container max-w-7xl mx-auto px-4">
-        <div class="flex items-center justify-center lg:justify-start gap-4 mb-5">
-          <img src="/lyre.png" alt="Practice Buddy Lyre Logo" class="w-16 h-16 lg:w-20 lg:h-20" />
-          <h1 class="text-5xl font-bold text-musical-graphite">Welcome to Practice Buddy</h1>
+        <div class="flex items-center justify-center lg:justify-start gap-3 md:gap-4 mb-4 md:mb-5">
+          <img src="/lyre.png" alt="Practice Buddy Lyre Logo" class="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20" />
+          <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-musical-graphite text-center lg:text-left">Welcome to Practice Buddy</h1>
         </div>
-        <p class="text-xl text-musical-graphite font-medium mb-10">Your musical journey starts here!</p>
-        <div class="flex flex-col gap-20">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-15 items-start">
-            <div class="flex flex-col gap-10">
-              <div class="max-w-2xl mx-auto lg:mx-0">
+        <p class="text-base md:text-xl text-musical-graphite font-medium mb-6 md:mb-10 text-center lg:text-left">Your musical journey starts here!</p>
+        <div class="flex flex-col gap-10 md:gap-20">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-15 items-start">
+            <div class="flex flex-col gap-6 md:gap-10 order-1 lg:order-none">
+              <div class="w-full max-w-2xl mx-auto lg:mx-0">
                 <div class="card" :class="[
                   'transition-all duration-300',
                   activeTab === 'student' ? 'border-4 border-green-500' : 'border-4 border-musical-coral'
@@ -591,9 +591,9 @@
               </div>
             </div>
 
-            <div class="flex justify-center items-start">
+            <div class="hidden lg:flex justify-center items-start order-2 lg:order-none">
               <div class="relative max-w-sm text-center">
-                <div class="card-stack relative w-96 h-[35rem]">
+                <div class="card-stack relative w-80 xl:w-96 h-[30rem] xl:h-[35rem]">
                   <!-- Card 1 -->
                   <div 
                     class="card-item absolute w-full h-full rounded-3xl shadow-[0_12px_0_rgba(0,0,0,0.2),0_20px_40px_rgba(0,0,0,0.3)] border-4 border-white overflow-hidden cursor-pointer transition-all duration-500"
@@ -672,35 +672,35 @@
       </div>
     </div>
     
-    <div class="bg-musical-cream py-20 border-t-4 border-musical-primary">
+    <div class="bg-musical-cream py-12 md:py-20 border-t-4 border-musical-primary">
       <div class="container max-w-7xl mx-auto px-4">
-        <h2 class="text-center text-4xl font-bold text-musical-graphite mb-12">Let's Make Music Together! </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div class="p-8 rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-red-600 bg-musical-coral transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5 flex justify-center"><Music class="w-10 h-10 text-white" /></div>
-            <h3 class="text-2xl font-bold mb-4">Practice Made Fun</h3>
-            <p class="opacity-95 leading-relaxed font-medium">Track practice minutes and watch your musical skills grow! Every session brings you closer to your goals.</p>
+        <h2 class="text-center text-2xl md:text-3xl lg:text-4xl font-bold text-musical-graphite mb-8 md:mb-12">Let's Make Music Together! </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+          <div class="p-5 md:p-8 rounded-2xl md:rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-red-600 bg-musical-coral transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
+            <div class="text-4xl md:text-5xl mb-4 md:mb-5 flex justify-center"><Music class="w-8 h-8 md:w-10 md:h-10 text-white" /></div>
+            <h3 class="text-xl md:text-2xl font-bold mb-3 md:mb-4">Practice Made Fun</h3>
+            <p class="opacity-95 leading-relaxed font-medium text-sm md:text-base">Track practice minutes and watch your musical skills grow! Every session brings you closer to your goals.</p>
           </div>
           
-          <div class="p-8 rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-blue-600 bg-musical-primary transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5 flex justify-center"><Wand class="w-10 h-10 text-white" /></div>
+          <div class="p-5 md:p-8 rounded-2xl md:rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-blue-600 bg-musical-primary transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
+            <div class="text-4xl md:text-5xl mb-4 md:mb-5 flex justify-center"><Wand class="w-8 h-8 md:w-10 md:h-10 text-white" /></div>
             
-            <h3 class="text-2xl font-bold mb-4">Teacher Magic</h3>
-            <p class="opacity-95 leading-relaxed font-medium">Teachers listen, guide, and help you create musical masterpieces! Get personalized feedback on your progress.</p>
+            <h3 class="text-xl md:text-2xl font-bold mb-3 md:mb-4">Teacher Magic</h3>
+            <p class="opacity-95 leading-relaxed font-medium text-sm md:text-base">Teachers listen, guide, and help you create musical masterpieces! Get personalized feedback on your progress.</p>
           </div>
           
-          <div class="p-8 rounded-3xl text-center text-musical-graphite shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-yellow-600 bg-musical-secondary transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5 flex justify-center"><BarChart class="w-10 h-10 text-black" /></div>
+          <div class="p-5 md:p-8 rounded-2xl md:rounded-3xl text-center text-musical-graphite shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-yellow-600 bg-musical-secondary transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
+            <div class="text-4xl md:text-5xl mb-4 md:mb-5 flex justify-center"><BarChart class="w-8 h-8 md:w-10 md:h-10 text-black" /></div>
             
-            <h3 class="text-2xl font-bold mb-4">Watch Yourself Grow</h3>
-            <p class="opacity-95 leading-relaxed font-medium">See your musical skills develop day by day with colorful charts and exciting achievements!</p>
+            <h3 class="text-xl md:text-2xl font-bold mb-3 md:mb-4">Watch Yourself Grow</h3>
+            <p class="opacity-95 leading-relaxed font-medium text-sm md:text-base">See your musical skills develop day by day with colorful charts and exciting achievements!</p>
           </div>
           
-          <div class="p-8 rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-green-600 bg-musical-success transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
-            <div class="text-5xl mb-5 flex justify-center"><Star class="w-10 h-10 text-white" /></div>
+          <div class="p-5 md:p-8 rounded-2xl md:rounded-3xl text-center text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_30px_rgba(0,0,0,0.15)] border-4 border-green-600 bg-musical-success transition-all duration-300 relative hover:transform hover:-translate-y-1.5 hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_18px_40px_rgba(0,0,0,0.2)]">
+            <div class="text-4xl md:text-5xl mb-4 md:mb-5 flex justify-center"><Star class="w-8 h-8 md:w-10 md:h-10 text-white" /></div>
             
-            <h3 class="text-2xl font-bold mb-4">Sticker Collection</h3>
-            <p class="opacity-95 leading-relaxed font-medium">Earn amazing stickers for every milestone - collect them all and show off your progress!</p>
+            <h3 class="text-xl md:text-2xl font-bold mb-3 md:mb-4">Sticker Collection</h3>
+            <p class="opacity-95 leading-relaxed font-medium text-sm md:text-base">Earn amazing stickers for every milestone - collect them all and show off your progress!</p>
           </div>
         </div>
       </div>

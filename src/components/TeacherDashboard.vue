@@ -1,20 +1,20 @@
 <template>
-  <div class="min-h-screen bg-musical-primary p-6">
+  <div class="min-h-screen bg-musical-primary p-3 md:p-6">
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <GraduationCap class="w-6 h-6 text-black" />
+          <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-lg flex items-center justify-center flex-shrink-0">
+            <GraduationCap class="w-5 h-5 md:w-6 md:h-6 text-black" />
           </div>
-          <div>
-            <h1 class="text-2xl font-bold text-black">Teacher Dashboard</h1>
-            <p class="text-black/80 flex items-center gap-2 flex-wrap">
-              <span>
+          <div class="min-w-0">
+            <h1 class="text-xl md:text-2xl font-bold text-black truncate">Teacher Dashboard</h1>
+            <p class="text-black/80 flex items-center gap-2 flex-wrap text-sm md:text-base">
+              <span class="truncate">
                 Hello, {{ currentUser?.displayName || 'Music teacher' }}!
               </span>
               <span
-                class="inline-flex items-center px-2 py-0.5 border rounded-full text-xs font-semibold"
+                class="inline-flex items-center px-2 py-0.5 border rounded-full text-xs font-semibold flex-shrink-0"
                 :class="planBadgeClass"
               >
                 {{ planLabel }}
@@ -22,15 +22,15 @@
               <button
                 v-if="currentUser?.subscriptionPlan && currentUser.subscriptionPlan !== 'free'"
                 @click="openBillingPortal"
-                class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm"
+                class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm flex-shrink-0"
               >
                 Billing
               </button>
             </p>
           </div>
         </div>
-        <div>
-          <button @click="showProfile = true" class="px-4 py-2 border-2 border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-sm font-semibold">Edit Profile</button>
+        <div class="flex-shrink-0">
+          <button @click="showProfile = true" class="px-3 py-2 md:px-4 md:py-2 border-2 border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-sm font-semibold whitespace-nowrap">Edit Profile</button>
         </div>
       </div>
       <!-- Upgrade Alert Notice -->
@@ -64,68 +64,68 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-3 mb-8 shadow-lg border-2 border-blue-100">
-        <div class="flex flex-wrap gap-3">
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl md:rounded-3xl p-2 md:p-3 mb-6 md:mb-8 shadow-lg border-2 border-blue-100">
+        <div class="flex gap-2 md:gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-hide md:flex-wrap">
           <button
             @click="changeTab('overview')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'overview' 
                 ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 border-2 border-blue-200'
             ]"
           >
             <BarChart3 class="w-4 h-4" />
-             Recent Activity
+            <span class="hidden sm:inline">Recent</span> Activity
           </button>
           <button
             @click="changeTab('classes')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'classes' 
                 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 border-2 border-pink-200'
             ]"
           >
             <GraduationCap class="w-4 h-4" />
-            Group Classes and Private Lessons
+            <span class="hidden md:inline">Group</span> Classes
           </button>
           <button
             @click="changeTab('roster')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'roster' 
                 ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 border-2 border-orange-200'
             ]"
           >
             <Users class="w-4 h-4" />
-            All Students Roster
+            <span class="hidden sm:inline">Students</span> Roster
           </button>
          
           <button
             @click="changeTab('assignments')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'assignments' 
                 ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-green-600 hover:bg-green-50 hover:text-green-700 border-2 border-green-200'
             ]"
           >
             <BookOpen class="w-4 h-4" />
-            Individual and Class Assignments
+            Assignments
           </button>
           <button
             @click="changeTab('goals')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'goals' 
                 ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-purple-600 hover:bg-purple-50 hover:text-purple-700 border-2 border-purple-200'
             ]"
           >
             <Target class="w-4 h-4" />
-            Student Goals
+            Goals
           </button>
         </div>
       </div>
