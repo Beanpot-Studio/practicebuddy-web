@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jlooper/practicebuddy-web/main/public/lyre.png" alt="PracticeBuddy Logo" width="200" style="background-color: #2563eb; border-radius: 16px; padding: 20px;" />
+  <img src="public/lyre.png" alt="PracticeBuddy Logo" width="200" style="background-color: #2563eb; border-radius: 16px; padding: 20px;" />
 </p>
 
 <h1 align="center">PracticeBuddy</h1>
@@ -28,7 +28,7 @@ Check out PracticeBuddy in action:
 <table>
   <tr>
     <td width="50%" align="center">
-      <video src="https://github.com/jlooper/practicebuddy-web/raw/main/public/pb-students.mp4" width="100%" controls>
+      <video src="public/pb-students.mp4" width="100%" controls>
         Your browser does not support the video tag.
       </video>
       <br/>
@@ -37,7 +37,7 @@ Check out PracticeBuddy in action:
       <em>Practice sessions, progress tracking, and sticker rewards from the student dashboard.</em>
     </td>
     <td width="50%" align="center">
-      <video src="https://github.com/jlooper/practicebuddy-web/raw/main/public/pb-teachers.mp4" width="100%" controls>
+      <video src="public/pb-teachers.mp4" width="100%" controls>
         Your browser does not support the video tag.
       </video>
       <br/>
