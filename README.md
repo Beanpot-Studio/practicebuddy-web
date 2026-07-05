@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jlooper/practicebuddy-web/main/public/lyre.png" alt="PracticeBuddy Logo" width="200" />
+  <img src="https://raw.githubusercontent.com/jlooper/practicebuddy-web/main/public/lyre.png" alt="PracticeBuddy Logo" width="200" style="background-color: #2563eb; border-radius: 16px; padding: 20px;" />
 </p>
 
 <h1 align="center">PracticeBuddy</h1>
@@ -18,6 +18,35 @@
 <br/>
 
 PracticeBuddy is an open-source music education platform built by [Beanpot Studio](https://beanpotstudio.com) that empowers teachers to create, manage, and track music practice assignments. Students can record practice sessions, track progress, and earn stickers as rewards — making music practice engaging and measurable.
+
+---
+
+## 🎬 Demos
+
+Check out PracticeBuddy in action:
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <video src="https://github.com/jlooper/practicebuddy-web/raw/main/public/pb-students.mp4" width="100%" controls>
+        Your browser does not support the video tag.
+      </video>
+      <br/>
+      <strong>🎵 Student Experience</strong>
+      <br/>
+      <em>Practice sessions, progress tracking, and sticker rewards from the student dashboard.</em>
+    </td>
+    <td width="50%" align="center">
+      <video src="https://github.com/jlooper/practicebuddy-web/raw/main/public/pb-teachers.mp4" width="100%" controls>
+        Your browser does not support the video tag.
+      </video>
+      <br/>
+      <strong>👩‍🏫 Teacher Experience</strong>
+      <br/>
+      <em>Class management, practice goals, and student progress monitoring from the teacher dashboard.</em>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -44,9 +73,6 @@ Built-in instrument selection with visual icons covering piano, guitar, violin, 
 
 ### 🎧 Audio Recording & Playback
 Students can record audio snippets during practice sessions. Audio files are stored securely via Cloudinary for easy playback and teacher review.
-
-### 💬 Built-in Communication
-Teachers and students can communicate securely through the platform's messaging system.
 
 ---
 
