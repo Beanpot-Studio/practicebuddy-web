@@ -69,12 +69,6 @@ if (!process.env.PUBLIC_FIREBASE_AUTH_DOMAIN) {
 if (!process.env.PUBLIC_FIREBASE_PROJECT_ID) {
   process.env.PUBLIC_FIREBASE_PROJECT_ID = 'test-project'
 }
-if (!process.env.PUBLIC_FIREBASE_STORAGE_BUCKET) {
-  process.env.PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com'
-}
-if (!process.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID) {
-  process.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789'
-}
 if (!process.env.PUBLIC_FIREBASE_APP_ID) {
   process.env.PUBLIC_FIREBASE_APP_ID = '1:123456789:web:test'
 }

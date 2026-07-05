@@ -1,16 +1,36 @@
 <template>
-  <div class="min-h-screen bg-musical-primary p-6">
+  <div class="min-h-screen bg-musical-primary p-3 md:p-6">
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <GraduationCap class="w-6 h-6 text-black" />
+          <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-lg flex items-center justify-center flex-shrink-0">
+            <GraduationCap class="w-5 h-5 md:w-6 md:h-6 text-black" />
           </div>
-          <div>
-            <h1 class="text-2xl font-bold text-black">Teacher Dashboard</h1>
-            <p class="text-black/80">Welcome back, {{ currentUser?.displayName || 'Teacher' }}!</p>
+          <div class="min-w-0">
+            <h1 class="text-xl md:text-2xl font-bold text-black truncate">Teacher Dashboard</h1>
+            <p class="text-black/80 flex items-center gap-2 flex-wrap text-sm md:text-base">
+              <span class="truncate">
+                Hello, {{ currentUser?.displayName || 'Music teacher' }}!
+              </span>
+              <span
+                class="inline-flex items-center px-2 py-0.5 border rounded-full text-xs font-semibold flex-shrink-0"
+                :class="planBadgeClass"
+              >
+                {{ planLabel }}
+              </span>
+              <button
+                v-if="currentUser?.subscriptionPlan && currentUser.subscriptionPlan !== 'free'"
+                @click="openBillingPortal"
+                class="text-indigo-600 hover:text-indigo-800 hover:underline text-sm flex-shrink-0"
+              >
+                Billing
+              </button>
+            </p>
           </div>
+        </div>
+        <div class="flex-shrink-0">
+          <button @click="showProfile = true" class="px-3 py-2 md:px-4 md:py-2 border-2 border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-sm font-semibold whitespace-nowrap">Edit Profile</button>
         </div>
       </div>
       <!-- Upgrade Alert Notice -->
@@ -44,68 +64,68 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-3 mb-8 shadow-lg border-2 border-blue-100">
-        <div class="flex flex-wrap gap-3">
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl md:rounded-3xl p-2 md:p-3 mb-6 md:mb-8 shadow-lg border-2 border-blue-100">
+        <div class="flex gap-2 md:gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-hide md:flex-wrap">
           <button
             @click="changeTab('overview')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'overview' 
                 ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 border-2 border-blue-200'
             ]"
           >
             <BarChart3 class="w-4 h-4" />
-             Recent Activity
+            <span class="hidden sm:inline">Recent</span> Activity
           </button>
           <button
             @click="changeTab('classes')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'classes' 
                 ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-pink-600 hover:bg-pink-50 hover:text-pink-700 border-2 border-pink-200'
             ]"
           >
             <GraduationCap class="w-4 h-4" />
-            Group Classes and Private Lessons
+            <span class="hidden md:inline">Group</span> Classes
           </button>
           <button
             @click="changeTab('roster')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'roster' 
                 ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-orange-600 hover:bg-orange-50 hover:text-orange-700 border-2 border-orange-200'
             ]"
           >
             <Users class="w-4 h-4" />
-            All Students Roster
+            <span class="hidden sm:inline">Students</span> Roster
           </button>
          
           <button
             @click="changeTab('assignments')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'assignments' 
                 ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-green-600 hover:bg-green-50 hover:text-green-700 border-2 border-green-200'
             ]"
           >
             <BookOpen class="w-4 h-4" />
-            Individual and Class Assignments
+            Assignments
           </button>
           <button
             @click="changeTab('goals')"
             :class="[
-              'px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
+              'px-3 py-2.5 md:px-6 md:py-3.5 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 md:gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0',
               activeTab === 'goals' 
                 ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg scale-105' 
                 : 'bg-white text-purple-600 hover:bg-purple-50 hover:text-purple-700 border-2 border-purple-200'
             ]"
           >
             <Target class="w-4 h-4" />
-            Student Goals
+            Goals
           </button>
         </div>
       </div>
@@ -237,7 +257,7 @@
             ></textarea>
           </div>
           
-          <!-- Action Buttons -->
+          <!-- Action Buttons - removing for now-->
           <div class="flex gap-3 pt-4">
             <button 
               type="button"
@@ -321,18 +341,23 @@
     <div v-if="showErrorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
       {{ errorMessage }}
     </div>
+    
+    <!-- Profile Modal -->
+    <UserProfile v-if="showProfile" @close="showProfile = false" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { getPlanFromPriceId, getPlanLimitsAsync } from '../lib/stripe'
 import { getInstrumentName } from '../lib/instruments'
 import OverviewTab from './TeacherDashboard/OverviewTab.vue'
 import RosterTab from './TeacherDashboard/RosterTab.vue'
 import ClassesTab from './TeacherDashboard/ClassesTab.vue'
 import AssignmentsTab from './TeacherDashboard/AssignmentsTab.vue'
 import GoalsTab from './TeacherDashboard/GoalsTab.vue'
+import UserProfile from './UserProfile.vue'
 import { 
   GraduationCap, 
   BarChart3, 
@@ -357,6 +382,7 @@ const newClass = ref({
   schedule: ''
 })
 const isCreatingClass = ref(false)
+const showProfile = ref(false)
 
 // OverviewTab props
 const allStudents = ref([])
@@ -374,9 +400,12 @@ const showSuccessMessage = ref(false)
 const successMessage = ref('')
 const showErrorMessage = ref(false)
 const errorMessage = ref('')
+// Hide upgrade alert temporarily after successful upgrade redirect
+const suppressUpgradeAlert = ref(false)
 
 // Upgrade alert logic
 const showRosterUpgradeAlert = computed(() => {
+  if (suppressUpgradeAlert.value) return false
   console.log('Checking upgrade alert:', {
     hasUser: !!currentUser.value,
     userPlan: currentUser.value?.subscriptionPlan,
@@ -889,6 +918,25 @@ const changeTab = (tab) => {
   activeTab.value = tab
 }
 
+const openBillingPortal = async () => {
+  try {
+    if (!currentUser.value?.uid) return
+    const res = await fetch('/api/stripe/create-portal-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.value.uid })
+    })
+    const data = await res.json()
+    if (data?.url) {
+      window.location.assign(data.url)
+    } else if (data?.error) {
+      console.error('Portal error:', data.error)
+    }
+  } catch (e) {
+    console.error('Failed to open billing portal', e)
+  }
+}
+
 const selectClass = async (classItem) => {
   selectedClass.value = classItem
   // Load class roster for the selected class
@@ -1030,10 +1078,27 @@ const sendIndividualEmail = (student) => {
 
 const sendEmailMessage = async () => {
   try {
-    // For now, we'll use the browser's mailto functionality
-    // In a real app, you'd send this through your backend
+    // Validate email recipient
+    if (!emailRecipient.value || !emailRecipient.value.includes('@')) {
+      showErrorMessage.value = true
+      errorMessage.value = 'Please enter a valid email address'
+      setTimeout(() => {
+        showErrorMessage.value = false
+      }, 3000)
+      return
+    }
+
+    // Create mailto link
     const mailtoLink = `mailto:${emailRecipient.value}?subject=${encodeURIComponent(emailSubject.value)}&body=${encodeURIComponent(emailBody.value)}`
-    window.open(mailtoLink, '_blank')
+    
+    // Create a temporary anchor element and click it programmatically
+    // This is more reliable than window.open() for mailto links
+    const link = document.createElement('a')
+    link.href = mailtoLink
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
     
     // Close modal
     showEmailModal.value = false
@@ -1047,7 +1112,7 @@ const sendEmailMessage = async () => {
   } catch (error) {
     console.error('Error sending email:', error)
     showErrorMessage.value = true
-    errorMessage.value = 'Failed to send email'
+    errorMessage.value = 'Failed to open email client. Please check that you have an email client configured.'
     setTimeout(() => {
       showErrorMessage.value = false
     }, 3000)
@@ -1503,6 +1568,48 @@ const confirmDeleteClass = async () => {
 }
 
 onMounted(() => {
+  // Show a one-time thank-you message if coming from billing success
+  try {
+    const shouldThank = sessionStorage.getItem('pb_show_thanks') === '1'
+    const provisionalPrice = sessionStorage.getItem('pb_checkout_price') || ''
+    if (shouldThank) {
+      successMessage.value = 'Thank you for subscribing! Your plan has been upgraded.'
+      showSuccessMessage.value = true
+      setTimeout(() => { showSuccessMessage.value = false }, 4000)
+      sessionStorage.removeItem('pb_show_thanks')
+      suppressUpgradeAlert.value = true
+      // Clear suppression after a short window, UI will still respect plan limits afterwards
+      setTimeout(() => { suppressUpgradeAlert.value = false }, 8000)
+    }
+    // If we have a provisional priceId and no plan yet, apply a temporary plan update client-side
+    if (provisionalPrice && (!currentUser.value?.subscriptionPlan || currentUser.value.subscriptionPlan === 'free')) {
+      ;(async () => {
+        const plan = await getPlanFromPriceId(provisionalPrice)
+        const limits = await getPlanLimitsAsync(plan)
+        currentUser.value = { ...currentUser.value, subscriptionPlan: plan, subscriptionStatus: 'active', maxStudents: limits.maxStudents ?? null }
+        sessionStorage.removeItem('pb_checkout_price')
+      })()
+    }
+  } catch {}
   loadClasses()
+})
+
+// Computed plan label and badge styles
+const planLabel = computed(() => {
+  const plan = (currentUser.value?.subscriptionPlan || 'free').toLowerCase()
+  if (plan === 'pro') return 'Pro'
+  if (plan === 'studio') return 'Studio'
+  return 'Free'
+})
+
+const planBadgeClass = computed(() => {
+  const plan = (currentUser.value?.subscriptionPlan || 'free').toLowerCase()
+  if (plan === 'pro') {
+    return 'border-blue-600 text-blue-700 bg-blue-50'
+  }
+  if (plan === 'studio') {
+    return 'border-purple-600 text-purple-700 bg-purple-50'
+  }
+  return 'border-gray-400 text-gray-700 bg-gray-100'
 })
 </script>

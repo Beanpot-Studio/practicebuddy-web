@@ -1,8 +1,12 @@
 <template>
-  <div class="min-h-screen bg-musical-primary py-5">
-    <div class="container">
+  <div class="min-h-screen bg-musical-primary py-3 md:py-5">
+    <div class="container px-3 md:px-4">
       <!-- Header Section -->
-      <StudentHeader :student-name="studentName" :instrument="currentUser?.instrument || ''" />
+      <StudentHeader 
+        :student-name="currentUser?.displayName || 'Student'" 
+        :instrument="currentUser?.instrument || ''" 
+        @edit-profile="showProfile = true"
+      />
 
       <!-- Billing Upgrade Required Alert -->
       <div v-if="showBillingUpgradeAlert" class="mb-6 p-4 bg-orange-100 border-2 border-orange-400 rounded-xl text-orange-800 animate-fadeIn relative">
@@ -32,17 +36,19 @@
         </div>
       </div>
 
+     
       <!-- Stats Card - Full Width -->
       <StatsCard 
         :total-practice-minutes="totalPracticeMinutes"
         :assignments-completed="assignmentsCompleted"
         :assignments-pending="assignmentsPending"
         :next-assignment-due-date="nextAssignmentDueDate"
+        :sticker-count="stickerCount"
         :current-goal="currentGoal"
       />
 
       <!-- Other Cards - Half Width Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
         <!-- Start Practicing Card or Timer Card -->
         <PracticeSessionCard
           v-if="!showTimer"
@@ -76,7 +82,7 @@
 
 
       <!-- Class Enrollment/Assignments Section - Full Width -->
-      <div class="mb-8">
+      <div class="mb-6 md:mb-8">
         <!-- Class Enrollment Section -->
         <!-- Combined Classes and Assignments Section -->
         <ClassesAndAssignmentsCard
@@ -93,7 +99,7 @@
       </div>
 
       <!-- Practice History Chart -->
-      <div v-if="currentUser?.uid" class="mb-8">
+      <div v-if="currentUser?.uid" class="mb-6 md:mb-8">
         <PracticeHistoryChart :user-id="currentUser.uid" />
       </div>
 
@@ -103,6 +109,9 @@
     </div>
 
     <!-- Recording functionality is now integrated into PracticeTimer component -->
+
+    <!-- Profile Modal -->
+    <UserProfile v-if="showProfile" @close="showProfile = false" />
 
     <!-- Success Toast Notification -->
     <div 
@@ -138,7 +147,7 @@
 </style>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
@@ -154,6 +163,7 @@ import PracticeTimer from './StudentDashboard/PracticeTimer.vue'
 import MusicalCreationsCard from './StudentDashboard/MusicalCreationsCard.vue'
 import ClassEnrollmentCard from './StudentDashboard/ClassEnrollmentCard.vue'
 import ClassesAndAssignmentsCard from './StudentDashboard/ClassesAndAssignmentsCard.vue'
+import UserProfile from './UserProfile.vue'
 
 const props = defineProps({
   studentName: {
@@ -210,6 +220,7 @@ const userPracticeStats = ref(null)
 
 // Success toast notification
 const showSuccessToast = ref(false)
+const showProfile = ref(false)
 const successToastTitle = ref('')
 const successToastMessage = ref('')
 
@@ -253,6 +264,8 @@ const refreshPracticeSessions = async () => {
   if (musicalCreationsCard.value) {
     await musicalCreationsCard.value.loadPracticeSessions()
   }
+  // Recalculate sticker count when practice sessions are refreshed
+  await calculateStickerCount()
 }
 
 const handlePracticeSession = async (practiceData) => {
@@ -763,15 +776,31 @@ const loadAssignments = async () => {
   }
 }
 
+// Handle visibility change to refresh sticker count when user returns to page
+const handleVisibilityChange = async () => {
+  if (document.visibilityState === 'visible') {
+    // Refresh sticker count when page becomes visible
+    await calculateStickerCount()
+  }
+}
+
 onMounted(async () => {
   await loadEnrolledClasses() // Load enrolled classes first
   await loadAssignments() // Then load assignments for all enrolled classes
   await trackLoginActivity()
-  await loadUserPracticeStats() // Load practice stats on mount
+  await loadUserPracticeStats() // Load practice stats on mount (includes sticker count)
   await loadGoalProgress() // Load goal progress on mount
   
   // Clear any billing alerts on mount
   showBillingUpgradeAlert.value = false
   billingUpgradeMessage.value = ''
+  
+  // Listen for visibility changes to refresh sticker count
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+onUnmounted(() => {
+  // Clean up visibility change listener
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>

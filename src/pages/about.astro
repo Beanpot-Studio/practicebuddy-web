@@ -7,13 +7,13 @@ import CtaSection from "../components/CtaSection.astro";
   <div class="min-h-screen bg-musical-cream">
     <!-- Hero Section -->
     <div class="relative overflow-hidden bg-gradient-to-br bg-musical-primary">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-32 pb-10 md:pb-16">
         <div class="text-center">
-          <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+          <h1 class="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 md:mb-6">
             About <span class="text-musical-secondary">Practice Buddy</span>
           </h1>
           <p
-            class="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed"
+            class="text-lg md:text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed px-2"
           >
             Revolutionizing music education through smart practice tracking,
             personalized goals, and seamless teacher-student collaboration.
@@ -23,13 +23,13 @@ import CtaSection from "../components/CtaSection.astro";
     </div>
 
     <!-- Mission Section -->
-    <div class="py-16">
-      <div class="container max-w-7xl mx-auto">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-musical-graphite mb-6">
+    <div class="py-10 md:py-16">
+      <div class="container max-w-7xl mx-auto px-4">
+        <div class="text-center mb-10 md:mb-16">
+          <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-musical-graphite mb-4 md:mb-6">
             Our Mission
           </h2>
-          <p class="text-lg text-musical-graphite/80 max-w-4xl mx-auto">
+          <p class="text-base md:text-lg text-musical-graphite/80 max-w-4xl mx-auto">
             Practice Buddy was created to bridge the gap between music lessons
             and home practice. We believe that consistent, focused practice is
             the key to musical growth, and we're here to make that journey
@@ -37,7 +37,7 @@ import CtaSection from "../components/CtaSection.astro";
           </p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
           <div class="card text-center">
             <div
               class="w-16 h-16 bg-gradient-to-br from-musical-primary to-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_4px_0_rgba(0,0,0,0.1)] border-2 border-blue-600"
@@ -117,216 +117,24 @@ import CtaSection from "../components/CtaSection.astro";
           </div>
         </div>
 
-        <!-- Features Section -->
-        <div class="py-16 bg-white">
-          <div class="container max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-              <h2
-                class="text-3xl md:text-4xl font-bold text-musical-graphite mb-6"
-              >
-                Why Choose Practice Buddy?
-              </h2>
-              <p class="text-lg text-musical-graphite/80 max-w-3xl mx-auto">
-                Built specifically for music educators, music students, and
-                parents, our platform combines powerful features with an
-                intuitive interface.
-              </p>
-            </div>
-
-            <div class="grid lg:grid-cols-2 gap-12 items-start">
-              <div class="card">
-                <h3 class="text-2xl font-bold text-musical-graphite mb-6">
-                  For Music Teachers
-                </h3>
-                <ul class="space-y-4">
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Create and manage multiple classes with ease</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Assign personalized practice goals and track progress</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Monitor student engagement and provide feedback</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Generate comprehensive reports and insights</span
-                    >
-                  </li>
-                </ul>
-              </div>
-
-              <div class="card">
-                <h3 class="text-2xl font-bold text-musical-graphite mb-6">
-                  For Students
-                </h3>
-                <ul class="space-y-4">
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-success rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Achieve personalized practice goals</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-success rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Track practice sessions and celebrate milestones</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-success rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Receive feedback and encouragement from teachers</span
-                    >
-                  </li>
-                  <li class="flex items-start gap-3">
-                    <div
-                      class="w-6 h-6 bg-musical-success rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_2px_0_rgba(0,0,0,0.1)]"
-                    >
-                      <svg
-                        class="w-4 h-4 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span class="text-musical-graphite/80"
-                      >Build consistent practice habits for lasting success</span
-                    >
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+      
 
         <!-- How It Works Section -->
-        <div class="py-16">
+        <div class="py-10 md:py-16">
           <div class="container max-w-7xl mx-auto">
-            <div class="text-center mb-16">
+            <div class="text-center mb-10 md:mb-16">
               <h2
-                class="text-3xl md:text-4xl font-bold text-musical-graphite mb-6"
+                class="text-2xl sm:text-3xl md:text-4xl font-bold text-musical-graphite mb-4 md:mb-6"
               >
                 How It Works
               </h2>
-              <p class="text-lg text-musical-graphite/80 max-w-3xl mx-auto">
+              <p class="text-base md:text-lg text-musical-graphite/80 max-w-3xl mx-auto">
                 Getting started with Practice Buddy is simple and
                 straightforward.
               </p>
             </div>
 
-            <div class="grid md:grid-cols-4 gap-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
               <div class="card text-center">
                 <div
                   class="w-20 h-20 bg-gradient-to-br from-musical-primary to-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-[0_4px_0_rgba(0,0,0,0.1)] border-2 border-blue-600"
@@ -393,6 +201,69 @@ import CtaSection from "../components/CtaSection.astro";
         </div>
       </div>
     </div>
+
+    <!-- Video Section -->
+    <div class="py-10 md:py-16 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8 md:mb-12">
+          <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-musical-graphite mb-3 md:mb-4">
+            See Practice Buddy in Action
+          </h2>
+          <p class="text-base md:text-lg text-musical-graphite/80 max-w-3xl mx-auto">
+            Watch how Practice Buddy helps students and teachers work together to achieve musical goals.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto">
+          <!-- Student Video -->
+          <div class="card">
+            <div class="mb-4">
+              <h3 class="text-2xl font-bold text-musical-graphite mb-2">
+                For Students
+              </h3>
+              <p class="text-musical-graphite/70 text-sm">
+                Learn how students track practice, complete assignments, and earn stickers from their teachers.
+              </p>
+            </div>
+            <div class="relative w-full rounded-lg overflow-hidden shadow-lg bg-black">
+              <video
+                class="w-full h-auto"
+                controls
+                preload="metadata"
+                poster=""
+              >
+                <source src="/pb-students.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+
+          <!-- Teacher Video -->
+          <div class="card">
+            <div class="mb-4">
+              <h3 class="text-2xl font-bold text-musical-graphite mb-2">
+                For Teachers
+              </h3>
+              <p class="text-musical-graphite/70 text-sm">
+                Discover how teachers create classes, assign goals, and provide feedback to students.
+              </p>
+            </div>
+            <div class="relative w-full rounded-lg overflow-hidden shadow-lg bg-black">
+              <video
+                class="w-full h-auto"
+                controls
+                preload="metadata"
+                poster=""
+              >
+                <source src="/pb-teachers.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- CTA Section -->
     <CtaSection
       title="Ready to Get Started?"

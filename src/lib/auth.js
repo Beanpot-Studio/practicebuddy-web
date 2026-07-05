@@ -728,6 +728,49 @@ export const addStudentToClassRoster = async (classCode, studentId, studentName,
 }
 
 /**
+ * Remove a student from a class roster
+ * @param {string} classCode - Class code
+ * @param {string} studentId - Student ID to remove
+ * @param {string} requesterId - Teacher ID performing the removal (optional for auth check)
+ */
+export const removeStudentFromClassRoster = async (classCode, studentId, requesterId = '') => {
+  try {
+    const normalizedCode = normalizeClassCode(classCode)
+    const classRef = doc(db, 'classes', normalizedCode)
+    const classSnap = await getDoc(classRef)
+    if (!classSnap.exists()) {
+      return createErrorResponse('Class not found', 'class/not-found', 'remove-student-from-roster')
+    }
+    const classData = classSnap.data()
+    // Authorization: ensure requester is the class teacher if provided
+    if (requesterId && classData.teacherId && classData.teacherId !== requesterId) {
+      return createErrorResponse('Not authorized to modify this class', 'auth/not-authorized', 'remove-student-from-roster')
+    }
+
+    const currentStudents = Array.isArray(classData.students) ? [...classData.students] : []
+    const newStudents = currentStudents.filter(s => (s.studentId || s.id) !== studentId)
+
+    // Remove individual assignments for this student if present
+    const updatedIndividualAssignments = { ...(classData.individualAssignments || {}) }
+    if (updatedIndividualAssignments[studentId]) {
+      delete updatedIndividualAssignments[studentId]
+    }
+
+    await updateDoc(classRef, {
+      students: newStudents,
+      individualAssignments: updatedIndividualAssignments,
+      updatedAt: new Date().toISOString()
+    })
+
+    return { success: true }
+  } catch (error) {
+    logError(error, 'remove-student-from-roster')
+    const errorInfo = handleFirebaseError(error, 'remove-student-from-roster')
+    return createErrorResponse(errorInfo.message, errorInfo.code, 'remove-student-from-roster')
+  }
+}
+
+/**
  * Join a class as a student
  * @param {string} classCode - Class code to join
  * @param {string} studentId - Student's user ID
