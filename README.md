@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/lyre.png" alt="PracticeBuddy Logo" width="200" style="background-color: #2563eb; border-radius: 16px; padding: 20px;" />
+  <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/public/lyre.png" alt="PracticeBuddy Logo" width="200" />
 </p>
 
 <h1 align="center">PracticeBuddy</h1>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jlooper/practicebuddy-web">GitHub</a> ·
+  <a href="https://github.com/Beanpot-Studio/practicebuddy-web">GitHub</a> ·
   <a href="#-key-features">Features</a> ·
   <a href="#-getting-started">Getting Started</a> ·
   <a href="#-architecture">Architecture</a>
@@ -28,20 +28,20 @@ Check out PracticeBuddy in action:
 <table>
   <tr>
     <td width="50%" align="center">
-      <video src="public/pb-students.mp4" width="100%" controls>
-        Your browser does not support the video tag.
-      </video>
-      <br/>
-      <strong>🎵 Student Experience</strong>
+      <a href="https://github.com/Beanpot-Studio/practicebuddy-web/blob/main/public/pb-students.mp4">
+        <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/src/assets/ss1.png" alt="Student Demo" width="100%" />
+        <br/>
+        <strong>🎵 Student Experience ▶️</strong>
+      </a>
       <br/>
       <em>Practice sessions, progress tracking, and sticker rewards from the student dashboard.</em>
     </td>
     <td width="50%" align="center">
-      <video src="public/pb-teachers.mp4" width="100%" controls>
-        Your browser does not support the video tag.
-      </video>
-      <br/>
-      <strong>👩‍🏫 Teacher Experience</strong>
+      <a href="https://github.com/Beanpot-Studio/practicebuddy-web/blob/main/public/pb-teachers.mp4">
+        <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/src/assets/ss2.png" alt="Teacher Demo" width="100%" />
+        <br/>
+        <strong>👩‍🏫 Teacher Experience ▶️</strong>
+      </a>
       <br/>
       <em>Class management, practice goals, and student progress monitoring from the teacher dashboard.</em>
     </td>
@@ -90,7 +90,7 @@ Students can record audio snippets during practice sessions. Audio files are sto
 
 ```bash
 # Clone the repository
-git clone https://github.com/jlooper/practicebuddy-web.git
+git clone https://github.com/Beanpot-Studio/practicebuddy-web.git
 cd practicebuddy-web
 
 # Install dependencies
