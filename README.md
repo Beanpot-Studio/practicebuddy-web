@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/public/lyre.png" alt="PracticeBuddy Logo" width="200" />
+  <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/public/lyre.png" alt="PracticeBuddy Logo" width="200" style="background-color: #2563eb; border-radius: 16px; padding: 20px;" />
 </p>
 
 <h1 align="center">PracticeBuddy</h1>
@@ -29,7 +29,7 @@ Check out PracticeBuddy in action:
   <tr>
     <td width="50%" align="center">
       <a href="https://github.com/Beanpot-Studio/practicebuddy-web/blob/main/public/pb-students.mp4">
-        <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/src/assets/ss1.png" alt="Student Demo" width="100%" />
+        <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/public/lyre.png" alt="Student Demo" width="120" style="background-color: #1e293b; border-radius: 12px; padding: 16px;" />
         <br/>
         <strong>🎵 Student Experience ▶️</strong>
       </a>
@@ -38,7 +38,7 @@ Check out PracticeBuddy in action:
     </td>
     <td width="50%" align="center">
       <a href="https://github.com/Beanpot-Studio/practicebuddy-web/blob/main/public/pb-teachers.mp4">
-        <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/src/assets/ss2.png" alt="Teacher Demo" width="100%" />
+        <img src="https://raw.githubusercontent.com/Beanpot-Studio/practicebuddy-web/main/public/lyre.png" alt="Teacher Demo" width="120" style="background-color: #1e293b; border-radius: 12px; padding: 16px;" />
         <br/>
         <strong>👩‍🏫 Teacher Experience ▶️</strong>
       </a>
